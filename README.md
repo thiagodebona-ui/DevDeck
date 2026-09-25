@@ -11,13 +11,16 @@ and CPU monitor, and an AI assistant that can work with your own local model.
 Everything runs on your machine. Nothing you type, paste or run is sent anywhere unless you point
 the Assistant or the HTTP client at a server yourself.
 
+**[⬇ Download for Windows](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-win-x64.zip)**
+· [macOS and Linux](#download)
+
 ![The Commands page](docs/images/commands.png)
 
 ---
 
 ## Contents
 
-- [Getting started](#getting-started)
+- [Download](#download) · [Getting started](#getting-started)
 - [Features at a glance](#features-at-a-glance)
 - [Commands](#commands) · [Automation](#automation) · [HTTP](#http) · [Running](#running) ·
   [Toolbox](#toolbox) · [Clipboard](#clipboard) · [Assistant](#assistant) ·
@@ -29,22 +32,63 @@ the Assistant or the HTTP client at a server yourself.
 
 ---
 
+## Download
+
+Every download is **standalone**: no installer, and **no need to install .NET**. Everything the
+app needs is inside the folder.
+
+| Platform | Download | |
+|---|---|---|
+| **Windows** (10 / 11, 64-bit) | [**DevDeck-win-x64.zip**](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-win-x64.zip) | Recommended |
+| macOS, Apple Silicon (M1 and later) | [DevDeck-osx-arm64.tar.gz](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-osx-arm64.tar.gz) | Preview |
+| macOS, Intel | [DevDeck-osx-x64.tar.gz](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-osx-x64.tar.gz) | Preview |
+| Linux, x64 | [DevDeck-linux-x64.tar.gz](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-linux-x64.tar.gz) | Preview |
+| Linux, ARM64 | [DevDeck-linux-arm64.tar.gz](https://github.com/thiagodebona-ui/DevDeck/releases/latest/download/DevDeck-linux-arm64.tar.gz) | Preview |
+
+These links always point at the newest version. Older versions are on the
+[Releases](https://github.com/thiagodebona-ui/DevDeck/releases) page.
+
+**Windows is the tested platform.** The macOS and Linux builds come from the same code but have
+not been tried on real machines yet. Some features, such as the global hotkey and memory cleanup,
+are Windows-only.
+
 ## Getting started
 
-1. **Get the app.** Download the latest Windows build from the
-   [Releases](../../releases) page, or [build it yourself](#building-from-source).
-2. **Unzip it anywhere** — your Desktop, `C:\Tools`, a USB stick. There is no installer and
-   **no need to install .NET**; everything the app needs is inside the folder.
-3. **Run `DevDeck.exe`.** The folder holds just that and a `lib` folder with the app itself.
+### Windows
+
+1. Download **DevDeck-win-x64.zip** and **unzip it anywhere**: your Desktop, `C:\Tools`, a USB
+   stick.
+2. Open the `DevDeck` folder and run **`DevDeck.exe`**. Next to it is a `lib` folder holding the
+   app itself; leave it where it is.
+3. Windows may show *"Windows protected your PC"* the first time, because the app is not
+   code-signed. Click **More info → Run anyway**.
 
 > The very first launch of a freshly downloaded copy can take several seconds while Windows
 > scans the new files. After that it opens in about two seconds.
 
+### macOS (preview)
+
+```sh
+tar -xzf DevDeck-osx-arm64.tar.gz          # or DevDeck-osx-x64.tar.gz on an Intel Mac
+xattr -dr com.apple.quarantine DevDeck     # the app is not notarised, so macOS blocks it otherwise
+./DevDeck/DevDeck
+```
+
+### Linux (preview)
+
+```sh
+tar -xzf DevDeck-linux-x64.tar.gz          # or DevDeck-linux-arm64.tar.gz
+./DevDeck/DevDeck
+```
+
+It needs a desktop session (X11, or XWayland) and the usual libraries most desktops already
+have: `libfontconfig`, `libICU` and `libX11`.
+
+### First run
+
 On its first run DevDeck fills the deck with a set of **starter commands**, **three example chains**
 and **one file watch** so there is something to click straight away. Pick a folder as your
 **workspace** at the top of the Commands page and the commands run there.
-
-**Requirements:** Windows 10 or 11, 64-bit.
 
 ---
 
@@ -303,6 +347,9 @@ your whole deck with it.
 To start over, use **Settings → Reset everything**, or delete `settings.json` while DevDeck is
 closed. If the folder is somewhere you cannot write to, DevDeck uses `%APPDATA%\DevDeck` instead.
 
+On macOS the files live in `~/Library/Application Support/DevDeck`, and on Linux in
+`~/.config/devdeck`.
+
 ---
 
 ## Building from source
@@ -333,8 +380,15 @@ Run `python gen.py` after changing one; it regenerates the string files and fail
 missing.
 
 DevDeck is built with [Avalonia](https://avaloniaui.net/) and
-[CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet). For now only the Windows
-build is published.
+[CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet).
+
+**Making a release.** Push a version tag and GitHub Actions builds every platform and publishes
+the downloads (see `.github/workflows/release.yml`):
+
+```sh
+git tag v3.0.1
+git push origin v3.0.1
+```
 
 ---
 

@@ -16,3 +16,6 @@ secrets.json
 clips.json
 history.json
 conversations/
+out/
+*.zip
+*.tar.gz
