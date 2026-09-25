@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Midnight: darker than Steel Dark and blue rather than grey, for a room with the lights off.
+       The accent moves to blue because brass on this background reads as a warning. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#0B0E14" />
+  <SolidColorBrush x:Key="Panel" Color="#10141D" />
+  <SolidColorBrush x:Key="Steel" Color="#151A25" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#1D2433" />
+  <SolidColorBrush x:Key="SteelHover" Color="#252E40" />
+  <SolidColorBrush x:Key="Line" Color="#2A3446" />
+  <SolidColorBrush x:Key="CodeBg" Color="#070A10" />
+
+  <SolidColorBrush x:Key="Text" Color="#D8DEE9" />
+  <SolidColorBrush x:Key="TextMuted" Color="#8892A6" />
+  <SolidColorBrush x:Key="TextFaint" Color="#5B6579" />
+
+  <SolidColorBrush x:Key="Accent" Color="#7AA2F7" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#92B4F9" />
+  <SolidColorBrush x:Key="OnAccent" Color="#08101F" />
+
+  <SolidColorBrush x:Key="Good" Color="#7BC49A" />
+  <SolidColorBrush x:Key="Bad" Color="#E06C75" />
+  <SolidColorBrush x:Key="Warn" Color="#E0AF68" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#10141D" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#BB9AF7" />
+  <SolidColorBrush x:Key="SynString" Color="#9ECE6A" />
+  <SolidColorBrush x:Key="SynComment" Color="#5B6579" />
+  <SolidColorBrush x:Key="SynNumber" Color="#FF9E64" />
+  <SolidColorBrush x:Key="SynVariable" Color="#7DCFFF" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#070A10" />
+
+</ResourceDictionary>

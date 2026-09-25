@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Nord, using the published palette rather than an approximation of it: polar night for the
+       surfaces, snow storm for the text, frost for the accent, aurora for state. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#2E3440" />
+  <SolidColorBrush x:Key="Panel" Color="#2B303B" />
+  <SolidColorBrush x:Key="Steel" Color="#3B4252" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#434C5E" />
+  <SolidColorBrush x:Key="SteelHover" Color="#4C566A" />
+  <SolidColorBrush x:Key="Line" Color="#4C566A" />
+  <SolidColorBrush x:Key="CodeBg" Color="#272C36" />
+
+  <SolidColorBrush x:Key="Text" Color="#ECEFF4" />
+  <SolidColorBrush x:Key="TextMuted" Color="#D8DEE9" />
+  <SolidColorBrush x:Key="TextFaint" Color="#7B88A1" />
+
+  <SolidColorBrush x:Key="Accent" Color="#88C0D0" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#8FBCBB" />
+  <SolidColorBrush x:Key="OnAccent" Color="#2E3440" />
+
+  <SolidColorBrush x:Key="Good" Color="#A3BE8C" />
+  <SolidColorBrush x:Key="Bad" Color="#BF616A" />
+  <SolidColorBrush x:Key="Warn" Color="#EBCB8B" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#2B303B" Opacity="0.93" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#81A1C1" />
+  <SolidColorBrush x:Key="SynString" Color="#A3BE8C" />
+  <SolidColorBrush x:Key="SynComment" Color="#7B88A1" />
+  <SolidColorBrush x:Key="SynNumber" Color="#B48EAD" />
+  <SolidColorBrush x:Key="SynVariable" Color="#8FBCBB" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#272C36" />
+
+</ResourceDictionary>

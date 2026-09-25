@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             x:Class="DevDeck.App.Views.LogView"
+             x:DataType="vm:LogViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.line">
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="TextBlock.bad">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBlock.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="TextBlock.good">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="ListBox.log">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.log ListBoxItem">
+      <Setter Property="Padding" Value="10,3" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <DockPanel Margin="20" LastChildFill="True">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,14">
+      <TextBlock Text="{loc:T LogLog}" FontSize="17" FontWeight="SemiBold"
+                 Foreground="{DynamicResource Text}" />
+      <TextBlock Classes="label"
+                 Text="{loc:T LogEverythingTheAppItselfHasDone}" />
+    </StackPanel>
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+
+      <TextBox Grid.Column="0" Margin="0,0,10,0"
+               Text="{Binding Query, Mode=TwoWay}"
+               Watermark="{loc:T LogFilter}" />
+
+      <CheckBox Grid.Column="1" Content="{loc:T LogProblemsOnly}" FontSize="11.5" Margin="0,0,10,0"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextMuted}"
+                IsChecked="{Binding ProblemsOnly, Mode=TwoWay}" />
+
+      <Button Grid.Column="2" Content="{loc:T LogCopyAll}" Margin="0,0,6,0"
+              Command="{Binding CopyAllCommand}" />
+
+      <Button Grid.Column="3" Classes="danger" Content="{loc:T Clear}"
+              Command="{Binding ClearCommand}" />
+
+    </Grid>
+
+    <TextBlock DockPanel.Dock="Bottom" Classes="label" Margin="0,10,0,0"
+               Text="{Binding Status}" />
+
+    <Panel>
+
+      <ListBox Name="Lines" Classes="log" ItemsSource="{Binding Items}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="core:LogEntry">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10">
+
+              <TextBlock Grid.Column="0" Text="{Binding Stamp}" FontSize="11"
+                         FontFamily="{DynamicResource MonoFont}"
+                         Foreground="{DynamicResource TextFaint}" />
+
+              <!-- The source, not the level, is what a reader scans for: they are looking for the
+                   part of the app they just touched. The level is carried by the colour of the
+                   text beside it. -->
+              <TextBlock Grid.Column="1" Text="{Binding Source}" FontSize="11"
+                         FontFamily="{DynamicResource MonoFont}"
+                         Width="74" TextTrimming="CharacterEllipsis"
+                         Foreground="{DynamicResource Accent}" />
+
+              <!-- Classes bound to the entry rather than a converter returning a brush: a class
+                   resolves its colour through the theme, so it follows a theme change; a brush
+                   handed over by a converter does not. -->
+              <TextBlock Grid.Column="2" Text="{Binding Text}" FontSize="11.5"
+                         FontFamily="{DynamicResource MonoFont}"
+                         TextWrapping="Wrap"
+                         Classes="line"
+                         Classes.bad="{Binding IsError}"
+                         Classes.warn="{Binding IsWarning}"
+                         Classes.good="{Binding IsNotice}" />
+
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock IsVisible="{Binding IsEmpty}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontSize="12" Foreground="{DynamicResource TextFaint}"
+                 Text="{loc:T LogNothingToReport}" />
+
+    </Panel>
+
+  </DockPanel>
+</UserControl>

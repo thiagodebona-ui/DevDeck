@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DevDeck.App.Views.CodeEditor">
+
+  <UserControl.Styles>
+
+    <!-- The editable layer. Its own text is transparent: what you read is the highlighted block
+         underneath, and this only supplies the caret, the selection and the keyboard. Both layers
+         share every metric that affects layout, which is what keeps them registered. -->
+    <Style Selector="TextBox.layer">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="AcceptsTab" Value="True" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <!-- Stretched over the whole editor, not sized to its text. Sized to its text, an empty
+           body made this layer a caret's width across, so a brand-new command had an editor you
+           could not click into. The text itself still starts top-left, over the painted layer. -->
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="TextBox.layer /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource CodeBg}"
+          BorderBrush="{DynamicResource Line}" BorderThickness="1"
+          CornerRadius="2">
+
+    <!-- One scroller around both layers, rather than letting the TextBox scroll itself. A TextBox
+         with its own scrolling would slide out from under the highlighted layer the moment the
+         body was wider or taller than the box, and no amount of syncing two scroll offsets by
+         hand survives a fast keyboard. Unconstrained inside here, both layers measure to the same
+         content size and move together because they are the same content. -->
+    <ScrollViewer Name="Scroller" Background="Transparent"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto"
+                  Padding="0">
+
+      <Grid ColumnDefinitions="Auto,*">
+
+        <!-- The gutter. Right-aligned so the numbers stay on the same column as they grow. -->
+        <Border Grid.Column="0" Background="{DynamicResource Panel}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0"
+                Padding="8,10,8,10">
+          <TextBlock Name="Gutter"
+                     FontFamily="{DynamicResource MonoFont}"
+                     Foreground="{DynamicResource TextFaint}"
+                     TextAlignment="Right"
+                     VerticalAlignment="Top" />
+        </Border>
+
+        <Panel Grid.Column="1" Margin="10,10,12,10" Background="Transparent">
+          <TextBlock Name="Painted"
+                     FontFamily="{DynamicResource MonoFont}"
+                     Foreground="{DynamicResource Text}"
+                     TextWrapping="NoWrap"
+                     VerticalAlignment="Top"
+                     HorizontalAlignment="Left" />
+
+          <TextBox Name="Entry" Classes="layer"
+                   FontFamily="{DynamicResource MonoFont}"
+                   CaretBrush="{DynamicResource Text}" />
+        </Panel>
+
+      </Grid>
+    </ScrollViewer>
+  </Border>
+</UserControl>

@@ -1,0 +1,18 @@
+# Build output
+bin/
+obj/
+publish/
+TestResults/
+*.user
+.vs/
+.vscode/
+.idea/
+
+# What a portable copy writes beside itself. Never commit these: they hold your commands,
+# history, conversations and (encrypted) secrets.
+settings.json
+settings.json.*
+secrets.json
+clips.json
+history.json
+conversations/

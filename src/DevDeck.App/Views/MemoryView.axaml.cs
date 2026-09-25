@@ -1,0 +1,106 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using DevDeck.App.ViewModels;
+
+namespace DevDeck.App.Views
+{
+    public partial class MemoryView : UserControl
+    {
+        private MemoryWidget? widget;
+
+        public MemoryView()
+        {
+            InitializeComponent();
+
+            // The view model asks for the widget, for the app to come back, and for the app to
+            // end; only the view knows how to do any of those.
+            DataContextChanged += (_, _) =>
+            {
+                if (DataContext is MemoryViewModel model)
+                {
+                    model.ToggleWidget = Toggle;
+                    model.ShowApp = ShowApp;
+                    model.QuitApp = QuitApp;
+                }
+            };
+        }
+
+        /// <summary>Opens or closes the floating readout, and reports which it did.</summary>
+        private bool Toggle()
+        {
+            if (widget is not null)
+            {
+                widget.Close();
+                widget = null;
+                return false;
+            }
+
+            widget = new MemoryWidget { DataContext = DataContext };
+
+            // Clearing the field on close covers the widget's own menu as well as this one.
+            widget.Closed += (_, _) =>
+            {
+                widget = null;
+
+                if (DataContext is MemoryViewModel model)
+                {
+                    model.IsWidgetOpen = false;
+                }
+
+                // The widget was the only thing on screen if the main window had been closed behind
+                // it. Closing it as well would leave the app running with nothing to click, so the
+                // window comes back instead.
+                if (Main() is { IsVisible: false })
+                {
+                    ShowApp();
+                }
+            };
+
+            widget.Show();
+            return true;
+        }
+
+        /// <summary>
+        ///  Brings the main window back from hiding.
+        /// </summary>
+        /// <remarks>
+        ///  Hidden rather than closed, which is why this can simply show it again: a closed
+        ///  Avalonia window cannot be reopened, so <see cref="MainWindow"/> hides itself instead
+        ///  whenever the widget is floating.
+        /// </remarks>
+        private static void ShowApp()
+        {
+            if (Main() is not { } main)
+            {
+                return;
+            }
+
+            main.Show();
+
+            if (main.WindowState == WindowState.Minimized)
+            {
+                main.WindowState = WindowState.Normal;
+            }
+
+            main.Activate();
+        }
+
+        /// <summary>Ends the app outright, widget and all.</summary>
+        private void QuitApp()
+        {
+            widget?.Close();
+            widget = null;
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        }
+
+        private static Window? Main() =>
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null;
+    }
+}

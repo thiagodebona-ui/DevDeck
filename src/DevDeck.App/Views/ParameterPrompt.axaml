@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:vm="using:DevDeck.App.ViewModels"
+        x:Class="DevDeck.App.Views.ParameterPrompt"
+        x:DataType="vm:ParameterPromptViewModel"
+        Title="{loc:T ParameterPromptValuesForThisRun}"
+        Width="460" SizeToContent="Height" MaxHeight="620"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource Ink}">
+
+  <Window.Styles>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="16,7" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.hint">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+
+    <Style Selector="TextBlock.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <Border Grid.Row="0" Padding="20,16,20,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <StackPanel Spacing="3">
+        <TextBlock Text="{Binding Command}" FontSize="15" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Text="{loc:T ParameterPromptThisCommandAsksForValuesBefore}"
+                   FontSize="11.5" Foreground="{DynamicResource TextFaint}" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" Padding="20,18">
+      <ItemsControl ItemsSource="{Binding Entries}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ParameterEntry">
+            <StackPanel Margin="0,0,0,14">
+              <TextBlock Classes="label" Text="{Binding Label}" />
+              <TextBox Text="{Binding Value, Mode=TwoWay}" />
+              <TextBlock Classes="hint" Text="{Binding Hint}" IsVisible="{Binding HasHint}" />
+              <TextBlock Classes="warn" Text="{Binding Warning}" IsVisible="{Binding HasWarning}" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Padding="20,14" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <Button Content="{loc:T Cancel}" Click="CancelClick" />
+        <Button Classes="go" Content="{loc:T Run}" Click="RunClick" IsDefault="True" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DevDeck.App.Views.BodyView">
+
+  <Border Background="{DynamicResource CodeBg}"
+          BorderBrush="{DynamicResource Line}" BorderThickness="1"
+          CornerRadius="2">
+
+    <Panel>
+
+      <!-- Shown only while there is nothing to show. A read-only pane has no watermark of its
+           own, and an empty bordered box says less than a sentence does. -->
+      <TextBlock Name="Empty" Margin="12,10"
+                 FontSize="12"
+                 Foreground="{DynamicResource TextFaint}"
+                 VerticalAlignment="Top" />
+
+      <!-- One scroller around the painted text, for the same reason the editor has one: the
+           selection layer and the colour layer have to move together, and they do that by being
+           the same content inside the same viewport rather than by two offsets kept in step. -->
+      <ScrollViewer Name="Scroller"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto"
+                    Padding="0">
+
+        <SelectableTextBlock Name="Painted" Margin="12,10"
+                             FontFamily="{DynamicResource MonoFont}"
+                             Foreground="{DynamicResource Text}"
+                             TextWrapping="NoWrap"
+                             VerticalAlignment="Top"
+                             HorizontalAlignment="Left" />
+
+      </ScrollViewer>
+
+    </Panel>
+  </Border>
+</UserControl>

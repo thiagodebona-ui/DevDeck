@@ -1,0 +1,673 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:app="using:DevDeck.App"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:views="using:DevDeck.App.Views"
+             x:Class="DevDeck.App.Views.AutomationView"
+             x:DataType="vm:AutomationViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Button.step">
+      <Setter Property="Padding" Value="5,3" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Button.step:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="Button.step.drop:pointerover /template/ ContentPresenter">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.note">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="ListBox.rows">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.rows ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+
+    <Style Selector="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <!-- A section header that folds the section away. The whole title is the target, not just
+         the chevron: a sixteen-point arrow is a small thing to aim at, and the title is what the
+         eye is already on. -->
+    <Style Selector="Button.fold">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Button.fold:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.fold:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <!-- The chain's combined output. The same metrics as the deck's, so a log reads the same on
+         either page. -->
+    <Style Selector="ListBox.output">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="6,4" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem">
+      <Setter Property="Padding" Value="4,1" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBlock.stamp">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.err">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.notice">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <!-- A step's heading: where one command's output ends and the next begins. -->
+    <Style Selector="SelectableTextBlock.out.heading">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,6,0,2" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.ansi">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The chains section's resize grip. The same line-not-bar as the HTTP page's pane splitters,
+         for the same reason, with a short handle in the middle so there is something to aim at on
+         a strip that is otherwise just the card's own edge. -->
+    <Style Selector="Thumb.grip">
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Margin" Value="0,4,0,-6" />
+      <Setter Property="Cursor" Value="SizeNorthSouth" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Panel Background="Transparent">
+            <Border Name="Bar" Height="1" VerticalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+            <Border Name="Handle" Width="36" Height="4" CornerRadius="2"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+          </Panel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="Thumb.grip:pointerover /template/ Border">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="18">
+
+      <StackPanel Spacing="2">
+        <TextBlock Text="{loc:T AutomationAutomation}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" />
+        <TextBlock Classes="label"
+                   Text="{loc:T AutomationEverythingThatRunsACommandWithout}" />
+      </StackPanel>
+
+      <!-- Chains ........................................................................ -->
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <Button Grid.Column="0" Classes="fold" Command="{Binding ToggleChainsCommand}"
+                    ToolTip.Tip="{loc:T AutomationFold}">
+              <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                <Panel Grid.Column="0" Width="22" Height="22" Margin="-3,-2,5,0" VerticalAlignment="Top" Background="Transparent">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Down}" IsVisible="{Binding ChainsOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                  <Path Classes="icon" Data="{x:Static app:Icons.Right}" IsVisible="{Binding !ChainsOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                </Panel>
+                <StackPanel Grid.Column="1" Spacing="2">
+                  <TextBlock Classes="head" Text="{loc:T AutomationChains}" />
+                  <TextBlock Classes="label" TextWrapping="Wrap"
+                             Text="{loc:T AutomationSeveralCommandsOneAfterAnotherEach}" />
+                </StackPanel>
+              </Grid>
+            </Button>
+            <Button Grid.Column="1" Content="{loc:T AutomationNewChain}" Margin="0,0,6,0"
+                    Command="{Binding NewChainCommand}" />
+            <Button Grid.Column="2" Classes="danger" Content="{loc:T Delete}"
+                    Command="{Binding DeleteChainCommand}"
+                    IsEnabled="{Binding HasChain}" />
+          </Grid>
+
+          <StackPanel Spacing="12" IsVisible="{Binding ChainsOpen}">
+
+            <TextBlock Classes="note" IsVisible="{Binding NoChains}"
+                       Text="{loc:T AutomationNoChainsYetAChainIs}" />
+
+            <!-- A fixed height the user drags from the grip underneath, rather than as tall as the
+                 selected chain's editor: with the output log in it that was most of a screen, and
+                 the watches and the project deck sat below it out of sight. The list fills the
+                 height and the editor scrolls inside it. -->
+            <StackPanel IsVisible="{Binding !NoChains}">
+            <Grid Name="ChainsBox" ColumnDefinitions="260,*" ColumnSpacing="14"
+                  Height="{Binding ChainsHeight, Mode=OneWay}">
+
+              <ListBox Grid.Column="0" Classes="rows" MinHeight="150" VerticalAlignment="Stretch"
+                       ItemsSource="{Binding Chains}"
+                       SelectedItem="{Binding SelectedChain, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ChainItem">
+                    <StackPanel Spacing="2">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Name}" FontSize="12"
+                                   Foreground="{DynamicResource Text}" />
+                        <TextBlock Text="●" FontSize="9" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Warn}"
+                                   IsVisible="{Binding IsRunning}" />
+                        <!-- A chain whose steps no longer all exist says so in the list rather than
+                             at the moment it is run and stops halfway. -->
+                        <TextBlock Text="{loc:T AutomationBroken}" FontSize="10" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Bad}"
+                                   IsVisible="{Binding IsBroken}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding Summary}" FontSize="10"
+                                 Foreground="{DynamicResource TextFaint}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" Padding="0,0,12,0">
+              <StackPanel Spacing="10"
+                          DataContext="{Binding SelectedChain}"
+                          IsVisible="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).HasChain}">
+
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="{loc:T Name}" />
+                  <TextBox Text="{Binding Name, Mode=TwoWay}" />
+                </StackPanel>
+
+                <!-- The steps used to be a text box, one name per line. That asked the user to
+                     remember what their commands are called and to spell them the same way twice,
+                     and it turned a typo into a chain that dies halfway. Picking from the deck
+                     cannot produce a name that does not exist. Rows that are already there can
+                     still go missing - a command can be renamed or deleted afterwards - so each
+                     one says so on itself rather than only in the warning underneath. -->
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="label" Text="{loc:T AutomationStepsInOrder}" />
+
+                  <TextBlock Classes="note" IsVisible="{Binding !HasSteps}"
+                             Text="{loc:T AutomationNoStepsYet}" />
+
+                  <ItemsControl ItemsSource="{Binding Steps}" IsVisible="{Binding HasSteps}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:StepRow">
+                        <Border Background="{DynamicResource Steel}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                CornerRadius="2" Padding="8,4" Margin="0,0,0,4">
+                          <Grid ColumnDefinitions="22,*,Auto,Auto,Auto" ColumnSpacing="4">
+
+                            <!-- The number, not a bullet: the whole point of a chain is the order,
+                                 and a step being third is the fact the user is checking. -->
+                            <TextBlock Grid.Column="0" Text="{Binding Position}"
+                                       FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFaint}" />
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7"
+                                        VerticalAlignment="Center">
+                              <TextBlock Text="{Binding Name}" FontSize="12"
+                                         VerticalAlignment="Center"
+                                         FontFamily="{DynamicResource MonoFont}"
+                                         Foreground="{DynamicResource Text}" />
+                              <TextBlock Text="{loc:T AutomationStepIsMissing}" FontSize="10"
+                                         VerticalAlignment="Center"
+                                         Foreground="{DynamicResource Bad}"
+                                         IsVisible="{Binding IsMissing}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="2" Classes="step"
+                                    IsEnabled="{Binding CanMoveUp}"
+                                    ToolTip.Tip="{loc:T AutomationMoveStepUp}"
+                                    CommandParameter="{Binding}"
+                                    Command="{Binding $parent[ItemsControl].((vm:ChainItem)DataContext).MoveStepUpCommand}">
+                              <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
+                            </Button>
+
+                            <Button Grid.Column="3" Classes="step"
+                                    IsEnabled="{Binding CanMoveDown}"
+                                    ToolTip.Tip="{loc:T AutomationMoveStepDown}"
+                                    CommandParameter="{Binding}"
+                                    Command="{Binding $parent[ItemsControl].((vm:ChainItem)DataContext).MoveStepDownCommand}">
+                              <Path Classes="icon" Data="{x:Static app:Icons.Down}" />
+                            </Button>
+
+                            <Button Grid.Column="4" Classes="step drop"
+                                    ToolTip.Tip="{loc:T AutomationRemoveStep}"
+                                    CommandParameter="{Binding}"
+                                    Command="{Binding $parent[ItemsControl].((vm:ChainItem)DataContext).RemoveStepCommand}">
+                              <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                            </Button>
+
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                    <ComboBox Grid.Column="0" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding CommandChoices}"
+                              SelectedItem="{Binding Picked, Mode=TwoWay}"
+                              PlaceholderText="{loc:T AutomationPickACommand}" />
+                    <Button Grid.Column="1" Command="{Binding AddStepCommand}">
+                      <StackPanel Classes="iconLabel">
+                        <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                        <TextBlock Text="{loc:T AutomationAddStep}" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+
+                  <TextBlock Classes="note" Text="{loc:T AutomationSameStepTwiceIsFine}" />
+                </StackPanel>
+
+                <CheckBox Content="{loc:T AutomationStopAtTheFirstStepThat}"
+                          IsChecked="{Binding StopOnFailure, Mode=TwoWay}"
+                          ToolTip.Tip="{loc:T AutomationOffIsForAChainThat}" />
+
+                <TextBlock Classes="note" Foreground="{DynamicResource Bad}"
+                           Text="{Binding Broken}" IsVisible="{Binding IsBroken}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Classes="go" Content="{loc:T AutomationRunChain}"
+                          CommandParameter="{Binding}" Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).RunChainCommand}"
+                          IsEnabled="{Binding IsIdle}" />
+                  <Button Classes="danger" Content="{loc:T Stop}"
+                          CommandParameter="{Binding}" Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).StopChainCommand}"
+                          IsEnabled="{Binding IsRunning}" />
+                  <Button Content="{loc:T Save}"
+                          Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}" />
+                </StackPanel>
+
+                <TextBlock Classes="label" Text="{Binding Status}" />
+
+                <!-- Every step's output in one place, on this page. A chain used to send the user
+                     to the deck to watch it, where the output was split across as many commands
+                     as the chain had steps and only the selected one was on screen. -->
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Classes="label" VerticalAlignment="Center"
+                               Text="{loc:T AutomationChainOutput}" />
+                    <Button Grid.Column="1" Content="{loc:T Clear}"
+                            Command="{Binding ClearOutputCommand}"
+                            IsEnabled="{Binding HasOutput}" />
+                  </Grid>
+
+                  <Panel>
+                    <ListBox Name="ChainOutput" Classes="output" Height="320"
+                             ItemsSource="{Binding Output}">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:OutputLine">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Classes="stamp" Text="{Binding Stamp}"
+                                       Margin="0,0,10,0" VerticalAlignment="Top" />
+
+                            <SelectableTextBlock Grid.Column="1" Classes="out"
+                                                 IsVisible="{Binding !IsColoured}"
+                                                 Classes.err="{Binding IsError}"
+                                                 Classes.warn="{Binding IsWarning}"
+                                                 Classes.notice="{Binding IsNotice}"
+                                                 Classes.heading="{Binding IsHeading}"
+                                                 Text="{Binding Text}" />
+
+                            <SelectableTextBlock Grid.Column="1" Classes="ansi"
+                                                 IsVisible="{Binding IsColoured}"
+                                                 views:AnsiText.Spans="{Binding Spans}" />
+
+                            <Button Grid.Column="2" Classes="link"
+                                    IsVisible="{Binding HasLinks}"
+                                    Content="{Binding Link.Display}"
+                                    ToolTip.Tip="{loc:T CommandsOpenInYourEditor}"
+                                    Click="LinkClick" />
+                          </Grid>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock IsVisible="{Binding !HasOutput}"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                               TextWrapping="Wrap" TextAlignment="Center" Margin="20"
+                               FontSize="12" Foreground="{DynamicResource TextFaint}"
+                               Text="{loc:T AutomationChainOutputEmpty}" />
+                  </Panel>
+                </StackPanel>
+
+              </StackPanel>
+              </ScrollViewer>
+
+            </Grid>
+
+            <Thumb Classes="grip" ToolTip.Tip="{loc:T AutomationDragToResize}"
+                   DragDelta="ChainsDragged" DragCompleted="ChainsDropped" />
+            </StackPanel>
+
+          </StackPanel>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Watches ....................................................................... -->
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <Button Grid.Column="0" Classes="fold" Command="{Binding ToggleWatchesCommand}"
+                    ToolTip.Tip="{loc:T AutomationFold}">
+              <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                <Panel Grid.Column="0" Width="22" Height="22" Margin="-3,-2,5,0" VerticalAlignment="Top" Background="Transparent">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Down}" IsVisible="{Binding WatchesOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                  <Path Classes="icon" Data="{x:Static app:Icons.Right}" IsVisible="{Binding !WatchesOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                </Panel>
+                <StackPanel Grid.Column="1" Spacing="2">
+                  <TextBlock Classes="head" Text="{loc:T AutomationWhenFilesChange}" />
+                  <TextBlock Classes="label" TextWrapping="Wrap"
+                             Text="{loc:T AutomationRunACommandWhenSomethingIn}" />
+                </StackPanel>
+              </Grid>
+            </Button>
+            <Button Grid.Column="1" Content="{loc:T AutomationNewWatch}" Margin="0,0,6,0"
+                    Command="{Binding NewWatchCommand}" />
+            <Button Grid.Column="2" Classes="danger" Content="{loc:T Delete}"
+                    Command="{Binding DeleteWatchCommand}"
+                    IsEnabled="{Binding HasWatch}" />
+          </Grid>
+
+          <StackPanel Spacing="12" IsVisible="{Binding WatchesOpen}">
+
+            <!-- Said once, here, rather than left for the user to discover: a watch that fires on
+                 every write in a build output folder would restart the build it just ran. -->
+            <TextBlock Classes="note"
+                       Text="{loc:T AutomationAWatchWaitsForTheWriting}" />
+
+            <TextBlock Classes="note" IsVisible="{Binding NoWatches}"
+                       Text="{loc:T AutomationNoWatchesYet}" />
+
+            <Grid ColumnDefinitions="260,*" ColumnSpacing="14"
+                  IsVisible="{Binding !NoWatches}">
+
+              <ListBox Grid.Column="0" Classes="rows" MinHeight="150" VerticalAlignment="Stretch"
+                       ItemsSource="{Binding Watches}"
+                       SelectedItem="{Binding SelectedWatch, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:WatchItem">
+                    <StackPanel Spacing="2">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="●" FontSize="9" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Good}"
+                                   IsVisible="{Binding Enabled}" />
+                        <TextBlock Text="{Binding Name}" FontSize="12"
+                                   Foreground="{DynamicResource Text}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding Status}" FontSize="10"
+                                 Foreground="{DynamicResource TextFaint}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <StackPanel Grid.Column="1" Spacing="10"
+                          DataContext="{Binding SelectedWatch}"
+                          IsVisible="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).HasWatch}">
+
+                <CheckBox Content="{loc:T AutomationOn}" IsChecked="{Binding Enabled, Mode=TwoWay}" />
+
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="{loc:T Name}" />
+                  <TextBox Text="{Binding Name, Mode=TwoWay}" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="{loc:T AutomationCommandToRunByName}" />
+                  <!-- A picker rather than a text box: the value has to match a command in the deck
+                       exactly, and a typed name that does not is a watch which fires and then
+                       reports that there is no such command - at the moment nobody is watching. -->
+                  <ComboBox ItemsSource="{Binding CommandChoices}"
+                            SelectedItem="{Binding Command, Mode=TwoWay}"
+                            PlaceholderText="{loc:T AutomationPickACommand}"
+                            HorizontalAlignment="Stretch" />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                  <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Classes="label" Text="{loc:T AutomationFolderEmptyFollowsTheWorkspace}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                      <TextBox Grid.Column="0" Text="{Binding Folder, Mode=TwoWay}"
+                               FontFamily="{DynamicResource MonoFont}" />
+                      <!-- Still typable, because a path pasted from somewhere else is quicker than
+                           walking a tree to it, and a watch on a folder the picker cannot reach -
+                           a UNC share, a mount - has to be expressible at all. -->
+                      <Button Grid.Column="1" Classes="small" Click="BrowseWatchFolder"
+                              ToolTip.Tip="{loc:T AutomationPickTheFolderToWatch}">
+                        <StackPanel Classes="iconLabel">
+                          <Path Classes="icon" Data="{x:Static app:Icons.Folder}" />
+                          <TextBlock Text="{loc:T AutomationBrowse}" />
+                        </StackPanel>
+                      </Button>
+                    </Grid>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="{loc:T AutomationFilesSeparatedBySemicolons}" />
+                    <TextBox Text="{Binding Pattern, Mode=TwoWay}"
+                             FontFamily="{DynamicResource MonoFont}"
+                             Watermark="*.cs;*.axaml" />
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Classes="label" Text="{Binding Watching}"
+                           FontFamily="{DynamicResource MonoFont}" />
+
+                <CheckBox Content="{loc:T AutomationTellMeWhenAWatchFires}"
+                          IsChecked="{Binding Notify, Mode=TwoWay}" />
+
+                <TextBlock Classes="note" TextWrapping="Wrap"
+                           Text="{loc:T AutomationWhatAWatchPassesToItsCommand}" />
+
+                <Button Content="{loc:T Save}"
+                        Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}"
+                        HorizontalAlignment="Left" />
+
+                <TextBlock Classes="label" Text="{Binding Status}" />
+
+              </StackPanel>
+
+            </Grid>
+
+          </StackPanel>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Project deck .................................................................. -->
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+
+          <Grid ColumnDefinitions="*">
+            <Button Grid.Column="0" Classes="fold" Command="{Binding ToggleDeckCommand}"
+                    ToolTip.Tip="{loc:T AutomationFold}">
+              <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                <Panel Grid.Column="0" Width="22" Height="22" Margin="-3,-2,5,0" VerticalAlignment="Top" Background="Transparent">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Down}" IsVisible="{Binding DeckOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                  <Path Classes="icon" Data="{x:Static app:Icons.Right}" IsVisible="{Binding !DeckOpen}" IsHitTestVisible="False" HorizontalAlignment="Center" />
+                </Panel>
+                <StackPanel Grid.Column="1" Spacing="2">
+                  <TextBlock Classes="head" Text="{loc:T AutomationThisProjectSOwnDeck}" />
+                  <TextBlock Classes="label" TextWrapping="Wrap"
+                             Text="{loc:T AutomationADevdeckJsonCommittedBesideThe}" />
+                </StackPanel>
+              </Grid>
+            </Button>
+          </Grid>
+
+          <StackPanel Spacing="12" IsVisible="{Binding DeckOpen}">
+
+            <!-- The security stance, stated where the button is rather than only in the source: a
+                 file from a repository that silently became runnable commands is a supply chain
+                 problem, so importing is something the user does. -->
+            <TextBlock Classes="note"
+                       Text="{loc:T AutomationReadingADeckFileNeverRuns}" />
+
+            <TextBlock Classes="label" Text="{Binding DeckPath}"
+                       FontFamily="{DynamicResource MonoFont}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button Content="{loc:T ImportFromThisProject}"
+                      Command="{Binding ImportDeckCommand}"
+                      IsEnabled="{Binding HasProjectDeck}" />
+              <Button Content="{loc:T AutomationExportMyDeckToThisProject}"
+                      Command="{Binding ExportDeckCommand}" />
+            </StackPanel>
+
+            <TextBlock Classes="note" Text="{Binding DeckNote}"
+                       IsVisible="{Binding DeckNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          </StackPanel>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

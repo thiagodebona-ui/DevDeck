@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        x:Class="DevDeck.App.Views.NamePrompt"
+        Title="{loc:T NamePromptRename}"
+        Width="380" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource Ink}">
+
+  <Window.Styles>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,6" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="16,7" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,Auto">
+
+    <StackPanel Grid.Row="0" Margin="20,18" Spacing="8">
+      <TextBlock x:Name="Caption" FontSize="11.5"
+                 Foreground="{DynamicResource TextFaint}" />
+      <TextBox x:Name="Entry" KeyDown="EntryKeyDown" />
+    </StackPanel>
+
+    <Border Grid.Row="1" Padding="20,14" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <Button Content="{loc:T Cancel}" Click="CancelClick" />
+        <Button Classes="go" Content="{loc:T NamePromptRename}" Click="AcceptClick" IsDefault="True" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

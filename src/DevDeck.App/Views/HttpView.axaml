@@ -1,0 +1,855 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             xmlns:views="using:DevDeck.App.Views"
+             x:Class="DevDeck.App.Views.HttpView"
+             x:DataType="vm:HttpViewModel">
+
+  <UserControl.Resources>
+
+    <!-- One template, used by the ungrouped list and by every group's list. Shared rather than
+         repeated because the row carries the whole context menu, and two copies of that would
+         drift the first time a menu item was added to one of them.
+
+         The menu's commands are the view model's, and the menu is handed that view model by
+         the code-behind as it opens. It cannot find one by itself: a ContextMenu is shown in a
+         popup root of its own rather than inside the control it belongs to, so a binding that
+         walks up from one reaches nothing - and a MenuItem whose Command bound to nothing draws
+         itself disabled, which is a whole menu that opens and does not work. -->
+    <DataTemplate x:Key="RequestRow" x:DataType="core:HttpRequest">
+      <!-- Background and stretch are both load-bearing, and their absence is why this menu never
+           opened: a panel with a null background is not hit-tested in Avalonia, so the right
+           click went through the row to the ListBox behind it, which has no menu of its own.
+           Transparent still paints nothing and still takes the click. Stretching it means the
+           whole row answers rather than only the text on it.
+
+           The menu hangs on the row's own content rather than on the ListBox, so that
+           right-clicking a row that is not selected still acts on the row under the pointer. -->
+      <Grid ColumnDefinitions="3,Auto,*,Auto"
+            Background="Transparent"
+            HorizontalAlignment="Stretch">
+
+        <Grid.ContextMenu>
+          <ContextMenu x:DataType="vm:HttpViewModel" Opening="RowMenuOpening">
+            <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}" />
+            <MenuItem Header="{loc:T HttpNameItAfterTheURL}"
+                      Command="{Binding RenameCommand}" />
+            <MenuItem Header="{loc:T HttpDuplicate}"
+                      Command="{Binding DuplicateCommand}" />
+            <MenuItem Header="{loc:T HttpChooseIcon}"
+                      Command="{Binding ChooseIconCommand}" />
+            <Separator />
+
+            <!-- Named colours rather than swatches alone. A flag means whatever the person using
+                 it decided it means, and a menu of seven unlabelled squares says nothing about
+                 which is which to someone who cannot tell two of them apart. -->
+            <MenuItem Header="{loc:T HttpFlag}">
+              <MenuItem Header="{loc:T HttpNoFlag}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="" />
+              <Separator />
+              <MenuItem Header="{loc:T HttpRed}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="red" />
+              <MenuItem Header="{loc:T HttpAmber}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="amber" />
+              <MenuItem Header="{loc:T HttpGreen}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="green" />
+              <MenuItem Header="{loc:T HttpBlue}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="blue" />
+              <MenuItem Header="{loc:T HttpPurple}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="purple" />
+              <MenuItem Header="{loc:T HttpGrey}"
+                        Command="{Binding FlagCommand}"
+                        CommandParameter="grey" />
+            </MenuItem>
+
+            <!-- The groups that exist, then a way to make one. The existing ones are listed
+                 because filing into a group by typing its name again is how two groups called
+                 almost the same thing appear. -->
+            <MenuItem Header="{loc:T HttpMoveToGroup}">
+              <MenuItem Header="{loc:T HttpNoGroup}"
+                        Command="{Binding MoveToGroupCommand}"
+                        CommandParameter="" />
+              <Separator />
+              <MenuItem Header="{loc:T HttpNewGroup}"
+                        Command="{Binding MoveToNewGroupCommand}" />
+              <Separator IsVisible="{Binding HasGroups}" />
+
+              <!-- Each choice carries its own command, so the generated items need no ancestor
+                   lookup: a MenuItem built from an ItemsSource is not in the visual tree of the
+                   menu that owns it until it is shown, and a binding walking up from one finds
+                   nothing at the moment the style is applied. -->
+              <MenuItem Header="{loc:T HttpExisting}"
+                        ItemsSource="{Binding GroupChoices}"
+                        IsVisible="{Binding HasGroups}">
+                <MenuItem.Styles>
+                  <Style Selector="MenuItem > MenuItem" x:DataType="vm:GroupChoice">
+                    <Setter Property="Header" Value="{Binding Name}" />
+                    <Setter Property="Command" Value="{Binding File}" />
+                    <Setter Property="CommandParameter" Value="{Binding Name}" />
+                  </Style>
+                </MenuItem.Styles>
+              </MenuItem>
+            </MenuItem>
+
+            <Separator />
+            <MenuItem Header="{loc:T HttpCopyAsCurl}"
+                      Command="{Binding CopyCurlCommand}" />
+            <Separator />
+            <MenuItem Header="{loc:T HttpDeleteThisRequest}"
+                      Command="{Binding DeleteRequestCommand}" />
+          </ContextMenu>
+        </Grid.ContextMenu>
+
+        <!-- The flag. Always present, transparent when there is none, so that adding or clearing
+             one does not shuffle every row's text sideways. -->
+        <Border Grid.Column="0" Width="3" CornerRadius="2"
+                Margin="0,1,7,1"
+                Background="{Binding Colour, Converter={x:Static vm:Swatch.Brush}}" />
+
+        <!-- Collapsed rather than transparent when there is no icon, unlike the flag beside it.
+             The flag is three points wide and always in the same place, so reserving it costs
+             nothing; reserving sixteen points on every row would indent a whole list of requests
+             for the sake of the one that has an icon. -->
+        <Path Grid.Column="1" Classes="icon" Margin="0,0,6,0"
+              Stroke="{Binding Icon, Converter={x:Static vm:Glyph.Ink}}"
+              Fill="{Binding Icon, Converter={x:Static vm:Glyph.Wash}}"
+              Data="{Binding Icon, Converter={x:Static vm:Glyph.Shape}}"
+              IsVisible="{Binding Icon, Converter={x:Static vm:Glyph.Any}}" />
+
+        <StackPanel Grid.Column="2" Spacing="1">
+          <TextBlock Text="{Binding Name}" FontSize="12.5"
+                     Foreground="{DynamicResource Text}"
+                     TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding Method}" FontSize="10"
+                     Foreground="{DynamicResource TextFaint}" />
+        </StackPanel>
+
+        <!-- What the request is doing, or last did: a turning ring while it is on its way, then
+             its status code in green, amber or red. Kept after a restart, so the list says which
+             requests were failing without sending them all again. -->
+        <Panel Grid.Column="3" Margin="6,0,0,0" VerticalAlignment="Center">
+          <Ellipse Classes="sending turning" IsVisible="{Binding InFlight}" />
+          <Border Classes="code" IsVisible="{Binding HasLast}"
+                  Classes.ok="{Binding LastOk}" Classes.warn="{Binding LastWarn}" Classes.bad="{Binding LastBad}"
+                  ToolTip.Tip="{Binding LastTip}">
+            <TextBlock Text="{Binding LastText}" />
+          </Border>
+        </Panel>
+
+      </Grid>
+    </DataTemplate>
+
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+
+    <!-- The request row's live mark. The same dashed ring the deck uses for a running command,
+         so one motion means one thing app-wide. -->
+    <Style Selector="Ellipse.sending">
+      <Setter Property="Width" Value="11" />
+      <Setter Property="Height" Value="11" />
+      <Setter Property="Fill" Value="Transparent" />
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="1.8" />
+      <Setter Property="StrokeDashArray" Value="3,3" />
+      <Setter Property="RenderTransform" Value="rotate(0deg)" />
+      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    </Style>
+
+    <Style Selector="Ellipse.sending.turning">
+      <Style.Animations>
+        <Animation Duration="0:0:1.1" IterationCount="INFINITE">
+          <KeyFrame Cue="0%">
+            <Setter Property="RotateTransform.Angle" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The last status code, as a small pill. -->
+    <Style Selector="Border.code">
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="5,1" />
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="Border.code > TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Border.code.ok > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="Border.code.warn > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="Border.code.bad > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- The grab strip between two panes. Drawn as a line rather than a bar: it is furniture, and
+         a full-width raised block between every pair of panes would read as a divider the eye has
+         to get past on every glance. It lights up under the pointer so that it can still be found,
+         and the cursor changes over it either way. -->
+    <Style Selector="GridSplitter.pane">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Height" Value="6" />
+      <Setter Property="MinHeight" Value="6" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="SizeNorthSouth" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Panel Background="Transparent">
+            <Border Name="Bar" Height="1" VerticalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+          </Panel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="GridSplitter.pane:pointerover /template/ Border#Bar">
+      <Setter Property="Height" Value="2" />
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="20,6" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="Button.bare">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Padding" Value="7,3" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="Padding" Value="9,6" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="TextBox.mono">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <Setter Property="Padding" Value="10" />
+    </Style>
+
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.saved">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.saved ListBoxItem">
+      <Setter Property="Padding" Value="14,7" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.saved ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <!-- The vertical counterpart of the pane splitter, holding the tree's width. Same reasoning,
+         turned ninety degrees: a line rather than a bar, lit under the pointer so it can be
+         found. -->
+    <Style Selector="GridSplitter.tree">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Width" Value="6" />
+      <Setter Property="MinWidth" Value="6" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="SizeWestEast" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Panel Background="Transparent">
+            <Border Name="Bar" Width="1" HorizontalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+          </Panel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="GridSplitter.tree:pointerover /template/ Border#Bar">
+      <Setter Property="Width" Value="2" />
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- A group's header. A button rather than an Expander because the tree is two lists stacked
+         rather than a real hierarchy: the ungrouped requests sit above the groups at the same
+         depth, and an Expander would indent them apart from one another. -->
+    <Style Selector="Button.group">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Padding" Value="8,8" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="Button.group:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+    </Style>
+
+    <!-- The count, which is the one thing on the header that is not the name. Quieter than the
+         name and quieter than the icon, because it is the answer to a question nobody asked
+         until they were already looking at the row. -->
+    <Style Selector="TextBlock.tally">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="FontWeight" Value="Normal" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <!-- Banding, so a value that wraps onto three lines still reads as belonging to the name on
+         its left. Done in the styles rather than by an alternating-index converter, because the
+         list is already sorted by the view model and the stripe is purely a drawing concern. -->
+    <Style Selector="Border.headerRow">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ContentPresenter:nth-child(2n) > Border.headerRow">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <!-- The variables warning under the address bar. Amber rather than red: a request with an
+         unresolved name in it is still perfectly sendable, and usually is sent, which is how the
+         user finds out that it was not what they meant. -->
+    <Style Selector="TextBlock.unresolved">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <!-- The status line is the first thing read after a send, so it is the one thing on the panel
+         that carries colour: green answered, amber answered with something unexpected, red never
+         answered at all. -->
+    <Style Selector="TextBlock.tone">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="TextBlock.tone.good">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="TextBlock.tone.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="TextBlock.tone.bad">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <!-- The tree's width is driven from the code-behind and found there by index off this Grid,
+       for the reason the pane heights are: a ColumnDefinition is not a control, has no
+       DataContext, and a binding on one is dropped without a word. -->
+  <Grid Name="Shell" ColumnDefinitions="190,Auto,*">
+
+    <Border Grid.Column="0" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
+      <DockPanel LastChildFill="True">
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="10" Spacing="6">
+          <Button Content="{loc:T HttpNewRequest}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  Command="{Binding NewRequestCommand}" />
+          <Button Content="{loc:T HttpPasteACurlCommand}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  Command="{Binding PasteCurlCommand}" />
+        </StackPanel>
+
+        <!-- Two lists stacked rather than one tree control: the requests filed under nothing sit
+             at the top at the same depth as the group headers, which is what makes "ungrouped"
+             read as the absence of a group rather than as a group called nothing.
+
+             They are separate ListBoxes, so each keeps its own selection - and a selection in one
+             is cleared by the code-behind when the other takes one, or two rows would look
+             selected at once. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel>
+
+            <ListBox Name="Loose" Classes="saved"
+                     ItemsSource="{Binding Ungrouped}"
+                     SelectionChanged="RequestPicked"
+                     DoubleTapped="RequestDoubleTapped"
+                     ItemTemplate="{StaticResource RequestRow}" />
+
+            <ItemsControl ItemsSource="{Binding Groups}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RequestGroup">
+                  <StackPanel>
+
+                    <Button Classes="group" Click="GroupClicked" Tag="{Binding}">
+
+                      <!-- Right-click sets the icon. There is nowhere else to put it: a group is
+                           not a thing that can be selected, so it has no place in the request
+                           menu, and a button on the header would sit on a row whose whole width
+                           is already the collapse toggle. -->
+                      <Button.ContextMenu>
+                        <ContextMenu Opening="GroupMenuOpening" Tag="{Binding}">
+                          <MenuItem Header="{loc:T HttpGroupIcon}" Click="GroupIconClicked" />
+                        </ContextMenu>
+                      </Button.ContextMenu>
+
+                      <Grid ColumnDefinitions="Auto,Auto,*,Auto" >
+                        <TextBlock Grid.Column="0" Text="▾" FontSize="9" Margin="0,0,5,0"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding Expanded}" />
+                        <TextBlock Grid.Column="0" Text="▸" FontSize="9" Margin="0,0,5,0"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding Collapsed}" />
+
+                        <Path Grid.Column="1" Classes="icon" Margin="0,0,6,0"
+                              Stroke="{Binding Ink}" Fill="{Binding Wash}"
+                              Data="{Binding Glyph}" IsVisible="{Binding HasIcon}" />
+
+                        <TextBlock Grid.Column="2" Text="{Binding Label}" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+
+                        <TextBlock Grid.Column="3" Classes="tally" Margin="6,0,0,0"
+                                   Text="{Binding Tally}" />
+                      </Grid>
+                    </Button>
+
+                    <ListBox Classes="saved"
+                             ItemsSource="{Binding Requests}"
+                             IsVisible="{Binding Expanded}"
+                             SelectionChanged="RequestPicked"
+                             DoubleTapped="RequestDoubleTapped"
+                             ItemTemplate="{StaticResource RequestRow}" />
+
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+          </StackPanel>
+        </ScrollViewer>
+
+      </DockPanel>
+    </Border>
+
+    <GridSplitter Grid.Column="1" Classes="tree" ResizeDirection="Columns" />
+
+    <DockPanel Grid.Column="2" Margin="18" LastChildFill="True">
+
+      <!-- Above the address bar rather than beside it, because which environment is chosen
+           decides where the request in the box below actually goes - and that is worth having in
+           the eye's path before the Send button rather than tucked into a menu. -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,8">
+
+        <TextBlock Grid.Column="0" Text="{loc:T HttpEnvironment}" Classes="label"
+                   VerticalAlignment="Center" Margin="0,0,8,0" />
+
+        <!-- None is a listed choice rather than a cleared selection: "send it exactly as typed"
+             is a thing people mean, and a picker you can only get out of by deleting something
+             does not let them say it. -->
+        <ComboBox Grid.Column="1" MinWidth="160"
+                  ItemsSource="{Binding Environments}"
+                  SelectedItem="{Binding ActiveEnvironment, Mode=TwoWay}"
+                  PlaceholderText="{loc:T HttpNoneSendAsWritten}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="core:HttpEnvironment">
+              <TextBlock Text="{Binding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock Grid.Column="2" Classes="unresolved"
+                   Margin="10,0,10,0" VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
+                   Text="{Binding EnvironmentNote}"
+                   IsVisible="{Binding HasUnresolved}"
+                   ToolTip.Tip="{Binding EnvironmentNote}" />
+
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+          <Button Classes="bare" Content="{loc:T Clear}"
+                  Command="{Binding ClearEnvironmentCommand}"
+                  IsVisible="{Binding HasEnvironment}"
+                  ToolTip.Tip="{loc:T HttpSendRequestsExactlyAsTheyAre}" />
+          <Button Content="{loc:T HttpEdit}" Click="EditEnvironments"
+                  ToolTip.Tip="{loc:T HttpAddEnvironmentsAndTheValuesName}" />
+        </StackPanel>
+
+      </Grid>
+
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,12">
+
+        <ComboBox Grid.Column="0" Width="106" Margin="0,0,8,0"
+                  ItemsSource="{Binding Methods}"
+                  SelectedItem="{Binding Method, Mode=TwoWay}" />
+
+        <TextBox Grid.Column="1" Margin="0,0,8,0" Name="UrlBox"
+                 Text="{Binding Url, Mode=TwoWay}"
+                 PastingFromClipboard="UrlPasting"
+                 Watermark="{loc:T HttpLocalhost5000HealthOrPasteA}"
+                 ToolTip.Tip="{loc:T HttpACurlCommandPastedHereIs}" />
+
+        <Button Grid.Column="2" Classes="go" Content="{loc:T Send}" Margin="0,0,6,0"
+                ToolTip.Tip="Ctrl+Enter"
+                Command="{Binding SendCommand}"
+                IsVisible="{Binding !Sending}" />
+
+        <Button Grid.Column="2" Content="{loc:T Cancel}" Margin="0,0,6,0"
+                Command="{Binding CancelCommand}"
+                IsVisible="{Binding Sending}" />
+
+        <Button Grid.Column="3" Content="⋯" ToolTip.Tip="{loc:T HttpMore}">
+          <Button.Flyout>
+            <MenuFlyout>
+              <MenuItem Header="{loc:T HttpCopyAsCurl}" Command="{Binding CopyCurlCommand}" />
+              <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}" />
+              <MenuItem Header="{loc:T HttpNameItAfterTheURL}" Command="{Binding RenameCommand}" />
+              <MenuItem Header="{loc:T HttpDuplicate}" Command="{Binding DuplicateCommand}" />
+              <Separator />
+
+              <!-- The same two submenus as the row's own menu, because the row is not always
+                   where the hand is: the panel is often driven from the editor with the tree
+                   barely looked at. -->
+              <MenuItem Header="{loc:T HttpFlag}">
+                <MenuItem Header="{loc:T HttpNoFlag}" Command="{Binding FlagCommand}" CommandParameter="" />
+                <Separator />
+                <MenuItem Header="{loc:T HttpRed}" Command="{Binding FlagCommand}" CommandParameter="red" />
+                <MenuItem Header="{loc:T HttpAmber}" Command="{Binding FlagCommand}" CommandParameter="amber" />
+                <MenuItem Header="{loc:T HttpGreen}" Command="{Binding FlagCommand}" CommandParameter="green" />
+                <MenuItem Header="{loc:T HttpBlue}" Command="{Binding FlagCommand}" CommandParameter="blue" />
+                <MenuItem Header="{loc:T HttpPurple}" Command="{Binding FlagCommand}" CommandParameter="purple" />
+                <MenuItem Header="{loc:T HttpGrey}" Command="{Binding FlagCommand}" CommandParameter="grey" />
+              </MenuItem>
+
+              <MenuItem Header="{loc:T HttpMoveToGroup}">
+                <MenuItem Header="{loc:T HttpNoGroup}" Command="{Binding MoveToGroupCommand}" CommandParameter="" />
+                <Separator />
+                <MenuItem Header="{loc:T HttpNewGroup}" Command="{Binding MoveToNewGroupCommand}" />
+                <Separator IsVisible="{Binding HasGroups}" />
+                <MenuItem Header="{loc:T HttpExisting}"
+                          ItemsSource="{Binding GroupChoices}"
+                          IsVisible="{Binding HasGroups}">
+                  <MenuItem.Styles>
+                    <Style Selector="MenuItem > MenuItem" x:DataType="vm:GroupChoice">
+                      <Setter Property="Header" Value="{Binding Name}" />
+                      <Setter Property="Command" Value="{Binding File}" />
+                      <Setter Property="CommandParameter" Value="{Binding Name}" />
+                    </Style>
+                  </MenuItem.Styles>
+                </MenuItem>
+              </MenuItem>
+
+              <Separator />
+              <MenuItem Header="{loc:T HttpDeleteThisRequest}" Command="{Binding DeleteRequestCommand}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+
+      </Grid>
+
+      <!-- Header pane, splitter, body pane, splitter, the toolbar, and the reply taking what is
+           left. Two splitters for three panes: the reply has no height of its own, so a taller
+           window gives its extra room to the part the request was sent to see. -->
+      <Grid Name="Panes">
+
+        <!-- The two sized rows are driven from the code-behind rather than bound, and found there
+             by index off the named Grid. A RowDefinition is not a control: it has no DataContext,
+             so a binding on it resolves against nothing and is dropped in silence - which presents
+             as a splitter that drags freely and forgets every time - and x:Name on one generates no
+             field to reach it by either. -->
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition MinHeight="44" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition MinHeight="44" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <!-- The reply, taking the remainder. -->
+          <RowDefinition Height="*" MinHeight="44" />
+        </Grid.RowDefinitions>
+
+        <!-- Headers, above the body: they are edited far more often, and a request that needs one
+             usually needs it before it needs a body at all. -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{loc:T HttpHeaders}" Classes="label" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Classes="bare" Content="{loc:T HttpAdd}"
+                  Command="{Binding AddHeaderCommand}" />
+        </Grid>
+
+        <!-- Ten rows to begin with, then it scrolls, and the splitter below moves that line. A
+             request copied out of a browser's devtools arrives with twenty or thirty headers, and
+             without a ceiling here they push the body and the whole response pane off the bottom
+             of the panel - so the thing you sent the request to see is the thing that disappears.
+
+             The scrollbar overlays the content rather than taking a column from it, which put it
+             on top of each row's delete button: hovering widened the bar and took the button with
+             it. The right padding below is that width, so the buttons sit clear of it. -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="0,0,14,0">
+        <ItemsControl ItemsSource="{Binding Headers}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HeaderRow">
+              <Grid ColumnDefinitions="Auto,170,*,Auto" Margin="0,0,0,4">
+                <CheckBox Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center"
+                          IsChecked="{Binding Enabled, Mode=TwoWay}"
+                          ToolTip.Tip="{loc:T HttpSendThisHeader}" />
+                <TextBox Grid.Column="1" Margin="0,0,6,0" AttachedToVisualTree="CompleteHere"
+                         Text="{Binding Name, Mode=TwoWay}" Watermark="{loc:T Name}" />
+                <TextBox Grid.Column="2" Margin="0,0,6,0" AttachedToVisualTree="CompleteHere"
+                         Text="{Binding Value, Mode=TwoWay}" Watermark="{loc:T HttpValue}" />
+                <Button Grid.Column="3" Classes="bare" Content="✕"
+                        Command="{Binding $parent[ItemsControl].((vm:HttpViewModel)DataContext).RemoveHeaderCommand}"
+                        CommandParameter="{Binding}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        </ScrollViewer>
+
+        <GridSplitter Grid.Row="2" Classes="pane" ResizeDirection="Rows" />
+
+        <TextBox Grid.Row="3" Classes="mono" Name="BodyBox"
+                 Text="{Binding Body, Mode=TwoWay}"
+                 Watermark="{loc:T HttpBodyJSONIsDetectedFromThe}" />
+
+        <GridSplitter Grid.Row="4" Classes="pane" ResizeDirection="Rows" />
+
+        <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,4,0,8">
+
+          <TextBlock Grid.Column="0" Classes="tone"
+                     Classes.good="{Binding Result.Tone, Converter={x:Static vm:Is.Good}}"
+                     Classes.warn="{Binding Result.Tone, Converter={x:Static vm:Is.Warn}}"
+                     Classes.bad="{Binding Result.Tone, Converter={x:Static vm:Is.Bad}}"
+                     Text="{Binding Status}" VerticalAlignment="Center" />
+
+          <!-- What the body was read as, which is worth saying because it is worked out from the
+               bytes and not only from the content type: a server that labels JSON as text/plain
+               still gets it formatted, and one that labels an HTML error page as JSON is shown to
+               have done so. -->
+          <TextBlock Grid.Column="1" Margin="10,0,0,0"
+                     FontSize="11" FontFamily="{DynamicResource MonoFont}"
+                     Foreground="{DynamicResource TextFaint}"
+                     VerticalAlignment="Center"
+                     Text="{Binding ResponseKind}"
+                     IsVisible="{Binding HasResult}" />
+
+          <ToggleButton Grid.Column="3" Content="{loc:T HttpHeaders}" Margin="0,0,6,0"
+                        FontSize="11.5" Padding="10,5"
+                        Background="{DynamicResource SteelRaised}"
+                        Foreground="{DynamicResource Text}"
+                        BorderBrush="{DynamicResource Line}"
+                        BorderThickness="1" CornerRadius="2"
+                        IsChecked="{Binding ShowingHeaders, Mode=TwoWay}"
+                        IsVisible="{Binding HasResult}" />
+
+          <!-- Before Copy rather than after it, because for the replies where both exist this is
+               the one that works: an image or a download has nothing useful to put on a clipboard,
+               and saving is the only thing to do with it. -->
+          <Button Grid.Column="4" Content="{loc:T HttpSave}" Margin="0,0,6,0"
+                  ToolTip.Tip="{loc:T HttpSaveResponse}"
+                  Command="{Binding SaveResponseCommand}"
+                  IsVisible="{Binding HasResult}" />
+
+          <Button Grid.Column="5" Content="{loc:T Copy}"
+                  Command="{Binding CopyResponseCommand}"
+                  IsVisible="{Binding HasResult}" />
+
+        </Grid>
+
+        <!-- Coloured by what the body turned out to be, which is worked out from the bytes rather
+             than only from the content type - so a JSON body labelled text/plain is still drawn as
+             JSON, and an HTML error page labelled as JSON is shown for what it is. -->
+        <views:BodyView Grid.Row="6"
+                        Text="{Binding Response}"
+                        Kind="{Binding ResponseBodyKind}"
+                        Placeholder="The reply appears here."
+                        IsVisible="{Binding ShowingBodyText}" />
+
+        <!-- An image is drawn at its own size where it fits and scaled down where it does not, in
+             a scroller either way. Uniform rather than UniformToFill: a response is being looked at
+             to check it is the right picture, and a fill crop can hide exactly the corner that
+             would have said it was not. -->
+        <Border Grid.Row="6" Background="{DynamicResource Ink}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding ShowingImage}">
+          <Panel>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+              <Image Source="{Binding ResponseImage}"
+                     Stretch="Uniform"
+                     StretchDirection="DownOnly"
+                     Margin="10" />
+            </ScrollViewer>
+
+            <!-- The format arrived intact and Avalonia has no decoder for it, or the download was
+                 cut short. Either way the bytes are still there and Save still works, which is the
+                 useful thing to say. -->
+            <TextBlock Text="{loc:T HttpImageBroken}"
+                       Margin="20" TextWrapping="Wrap"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFaint}"
+                       IsVisible="{Binding !ResponseImage}" />
+          </Panel>
+        </Border>
+
+        <!-- No player. Embedding one means a native media stack on three platforms, for a case that
+             is nearly always "check the endpoint returns the file" rather than "watch it" - so the
+             pane says what arrived and points at the button that does the useful thing. -->
+        <Border Grid.Row="6" Background="{DynamicResource Ink}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding ShowingMedia}">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <TextBlock Text="{Binding ResponseKind}"
+                       HorizontalAlignment="Center"
+                       FontFamily="{DynamicResource MonoFont}"
+                       Foreground="{DynamicResource Text}" />
+            <TextBlock Text="{loc:T HttpMediaHere}"
+                       MaxWidth="360" TextWrapping="Wrap" TextAlignment="Center"
+                       Foreground="{DynamicResource TextFaint}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Headers are read by hunting for one name in a list of thirty, so the pane is built
+             for hunting: a filter at the top, the names sorted, and banded rows so the eye can
+             carry a long value back to the name it belongs to. -->
+        <Border Grid.Row="6" Background="{DynamicResource Ink}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding ShowingHeaders}">
+          <DockPanel LastChildFill="True">
+
+            <Border DockPanel.Dock="Top" Background="{DynamicResource Panel}"
+                    BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1"
+                    Padding="9,6">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="9">
+                <TextBlock Grid.Column="0" Text="{Binding HeaderCount}"
+                           VerticalAlignment="Center" FontSize="11"
+                           Foreground="{DynamicResource TextMuted}" />
+                <TextBox Grid.Column="1" Text="{Binding HeaderFilter, Mode=TwoWay}"
+                         Watermark="{loc:T HttpFilterHeaders}"
+                         FontSize="11.5" Padding="6,3" MinHeight="0" />
+              </Grid>
+            </Border>
+
+            <TextBlock DockPanel.Dock="Top" Margin="10,10,10,0" FontSize="11.5"
+                       Foreground="{DynamicResource TextFaint}"
+                       IsVisible="{Binding NothingMatches}"
+                       Text="{loc:T HttpNoHeadersMatch}" />
+
+            <TextBlock DockPanel.Dock="Top" Margin="10,10,10,0" FontSize="11.5"
+                       Foreground="{DynamicResource TextFaint}"
+                       IsVisible="{Binding NoHeadersAtAll}"
+                       Text="{loc:T HttpNoHeadersAtAll}" />
+
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{Binding ShownHeaders}" Margin="0,2,0,8">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="core:HeaderLine">
+                    <Border Classes="headerRow" Padding="10,4">
+
+                      <!-- Copying one header is worth a menu of its own: the useful thing to do
+                           with a Set-Cookie or a Location is paste it somewhere, and selecting a
+                           wrapped value by hand across three lines is a fiddle. -->
+                      <Border.ContextMenu>
+                        <ContextMenu x:DataType="vm:HttpViewModel" Opening="HeaderMenuOpening">
+                          <MenuItem Header="{loc:T HttpCopyHeader}"
+                                    Command="{Binding CopyHeaderCommand}"
+                                    CommandParameter="{Binding $parent[ContextMenu].Tag}" />
+                        </ContextMenu>
+                      </Border.ContextMenu>
+
+                      <Grid ColumnDefinitions="180,*" ColumnSpacing="10">
+                        <SelectableTextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11.5"
+                                             FontFamily="{DynamicResource MonoFont}"
+                                             TextWrapping="Wrap"
+                                             Foreground="{DynamicResource Accent}" />
+                        <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11.5"
+                                             FontFamily="{DynamicResource MonoFont}"
+                                             TextWrapping="Wrap"
+                                             Foreground="{DynamicResource Text}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+          </DockPanel>
+        </Border>
+
+      </Grid>
+
+    </DockPanel>
+
+  </Grid>
+</UserControl>

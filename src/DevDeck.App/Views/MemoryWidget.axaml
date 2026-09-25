@@ -1,0 +1,269 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:vm="using:DevDeck.App.ViewModels"
+        xmlns:views="using:DevDeck.App.Views"
+        x:Class="DevDeck.App.Views.MemoryWidget"
+        x:DataType="vm:MemoryViewModel"
+        Title="{loc:T MemoryWidgetDevDeckMemory}"
+        Width="200" Height="200"
+        SystemDecorations="None"
+        Topmost="True"
+        ShowInTaskbar="False"
+        CanResize="False"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+
+  <!-- A round dial, as V2's was. The rectangular card this replaced was a panel that happened to
+       float; a dial reads as an instrument sitting on the desktop, which is what it is.
+
+       Two concentric gauges: memory outside where it is easiest to read, processor inside. The
+       whole face is the button - there is no separate control to aim at - and it turns into a
+       spinner while a clean runs, then shows what was freed. -->
+
+  <Window.Styles>
+
+    <Style Selector="views|Gauge.memory">
+      <Setter Property="Fill" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="views|Gauge.memory.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.memory.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- The processor ring is quieter on purpose: two equally loud readings on something this
+         small read as neither. -->
+    <Style Selector="views|Gauge.cpu">
+      <Setter Property="Fill" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TrackOpacity" Value="0.55" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- Disk and GPU: two more hairline rings inside the processor's, quieter still, so the dial
+         keeps memory as the reading and the rest as context. -->
+    <Style Selector="views|Gauge.disk">
+      <Setter Property="Fill" Value="{DynamicResource SynKeyword}" />
+      <Setter Property="TrackOpacity" Value="0.4" />
+    </Style>
+
+    <Style Selector="views|Gauge.gpu">
+      <Setter Property="Fill" Value="{DynamicResource SynString}" />
+      <Setter Property="TrackOpacity" Value="0.4" />
+    </Style>
+
+    <Style Selector="views|Gauge.disk.high, views|Gauge.gpu.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.disk.critical, views|Gauge.gpu.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- The working state: a ring with gaps in it, turning, because a clean has no progress to
+         report. V2 spun a gear off a 33ms timer; this is the same idea handed to the compositor.
+
+         The animation is attached to a class, so it starts when IsBusy adds the class and stops
+         when it is taken away. There is nothing to start or stop by hand. -->
+    <Style Selector="Ellipse.spinner">
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="11" />
+      <Setter Property="StrokeDashArray" Value="2.4,2.4" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="RenderTransform" Value="rotate(0deg)" />
+      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    </Style>
+
+    <Style Selector="Ellipse.spinner.turning">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="INFINITE">
+          <KeyFrame Cue="0%">
+            <Setter Property="RotateTransform.Angle" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The face swaps between the reading and the result. Each fades rather than cutting, so a
+         clean that finishes quickly does not flicker. -->
+    <Style Selector="StackPanel.face">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="StackPanel.face.shown">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="TextBlock.sub">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.flashFigure">
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <!-- A clean that freed nothing is not a failure, but it is not good news either, so the figure
+         only goes green when there was actually something to show for it. -->
+    <Style Selector="TextBlock.flashFigure.good">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <!-- The close button stays out of the way until the pointer is on the widget. A dial with a
+         permanent cross on it is a dialog, not an instrument. -->
+    <Style Selector="Button.close">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.dial:pointerover Button.close">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Button.close:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <!-- The hint under the reading, shown on hover, which is the only thing that says the face is
+         clickable. Hover is the right moment for it: at rest the widget is a readout. -->
+    <Style Selector="TextBlock.hint">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.dial:pointerover TextBlock.hint">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+  </Window.Styles>
+
+  <!-- The whole surface drags the window: a borderless widget has no title bar to grab, and
+       PointerPressed here is the only handle it gets. A press that turns out to be a click, rather
+       than a drag, runs the clean - which is decided in the code-behind by whether it moved. -->
+  <Border Name="Face" Classes="dial"
+          Background="{DynamicResource WidgetBg}"
+          BorderBrush="{DynamicResource Line}" BorderThickness="1"
+          CornerRadius="100" Margin="4"
+          PointerPressed="DragStart"
+          PointerMoved="DragMove"
+          PointerReleased="FaceReleased"
+          Cursor="Hand">
+
+    <!-- The widget is not in the taskbar, so with the main window closed this menu is the only
+         way back to the app - and the only way out of it. -->
+    <Border.ContextMenu>
+      <ContextMenu>
+        <MenuItem Header="{loc:T MemoryWidgetShowDevDeck}" Command="{Binding ShowCommand}" />
+        <MenuItem Header="{loc:T MemoryWidgetCleanMemoryNow}" Command="{Binding CleanCommand}" />
+        <Separator />
+        <MenuItem Header="{loc:T MemoryWidgetHideWidget}" Command="{Binding HideWidgetCommand}" />
+        <MenuItem Header="{loc:T MemoryWidgetQuitDevDeck}" Command="{Binding QuitCommand}" />
+      </ContextMenu>
+    </Border.ContextMenu>
+
+    <Panel>
+
+      <views:Gauge Classes="memory"
+                   Classes.high="{Binding IsHigh}"
+                   Classes.critical="{Binding IsCritical}"
+                   Percent="{Binding UsedPercent}"
+                   RingSize="170" Thickness="11"
+                   IsVisible="{Binding !IsBusy}" />
+
+      <views:Gauge Classes="cpu"
+                   Classes.high="{Binding IsCpuHigh}"
+                   Classes.critical="{Binding IsCpuCritical}"
+                   Percent="{Binding CpuPercent}"
+                   RingSize="143" Thickness="5"
+                   IsVisible="{Binding !IsBusy}" />
+
+      <views:Gauge Classes="disk"
+                   Classes.high="{Binding IsDiskHigh}"
+                   Classes.critical="{Binding IsDiskCritical}"
+                   Percent="{Binding DiskPercent}"
+                   RingSize="131" Thickness="3.5"
+                   IsVisible="{Binding !IsBusy}" />
+
+      <views:Gauge Classes="gpu"
+                   Classes.high="{Binding IsGpuHigh}"
+                   Classes.critical="{Binding IsGpuCritical}"
+                   Percent="{Binding GpuPercent}"
+                   RingSize="121" Thickness="3.5"
+                   IsVisible="{Binding !IsBusy}" />
+
+      <Ellipse Classes="spinner" Classes.turning="{Binding IsBusy}"
+               IsVisible="{Binding IsBusy}"
+               Width="170" Height="170"
+               HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+      <!-- The reading. -->
+      <StackPanel Classes="face" Classes.shown="{Binding !IsFlashing}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
+        <TextBlock Text="{Binding UsedPercentText}" FontSize="30" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+        <TextBlock Classes="sub" Margin="0,-2,0,0"
+                   Text="{Binding Used, StringFormat='{}{0} used'}" />
+        <TextBlock Classes="sub" Margin="0,5,0,0"
+                   Text="{Binding CpuPercentText, StringFormat='CPU {0}'}" />
+        <TextBlock Classes="sub" Margin="0,1,0,0"
+                   Text="{Binding GpuDiskText}" />
+        <TextBlock Classes="sub hint" Margin="0,4,0,0"
+                   Foreground="{DynamicResource Accent}"
+                   Text="{loc:T MemoryWidgetClickToClean}" />
+      </StackPanel>
+
+      <!-- The result, for a few seconds after a clean. -->
+      <StackPanel Classes="face" Classes.shown="{Binding IsFlashing}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="1">
+        <TextBlock Classes="flashFigure" Classes.good="{Binding FlashGood}"
+                   Text="{Binding FlashText}" FontSize="26" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" />
+        <TextBlock Classes="sub" Text="{loc:T MemoryWidgetFreed}" IsVisible="{Binding FlashGood}" />
+      </StackPanel>
+
+      <Button Classes="close" Content="✕" Click="CloseClick"
+              VerticalAlignment="Top" HorizontalAlignment="Right"
+              Margin="0,16,16,0" />
+
+    </Panel>
+  </Border>
+</Window>

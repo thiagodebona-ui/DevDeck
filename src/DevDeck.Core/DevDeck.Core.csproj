@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- No UI package may ever be referenced here. Everything in this project has to compile and
+         run on all three platforms; anything that cannot belongs in DevDeck.App or behind a
+         platform check. -->
+    <AssemblyName>DevDeck.Core</AssemblyName>
+    <RootNamespace>DevDeck.Core</RootNamespace>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>

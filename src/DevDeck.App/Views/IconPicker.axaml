@@ -1,0 +1,97 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        x:Class="DevDeck.App.Views.IconPicker"
+        Title="{loc:T IconPickerTitle}"
+        Width="392" Height="418"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource Ink}">
+
+  <Window.Styles>
+
+    <!-- A tile, not a button with a label. Fifty of these have to be scannable at a
+         glance, and a caption under each one turns a grid you read in two seconds into a list
+         you read in twenty. The name is on the tooltip for anyone who wants it. -->
+    <Style Selector="Button.tile">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- Foreground is set on the button rather than on the presenter's TextElement, because the
+         thing being coloured is a stroked Path and Path.icon strokes to the templated parent's
+         Foreground. An inherited text colour would never reach it. -->
+    <Style Selector="Button.tile:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="Button.tile:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <!-- The one already chosen, so opening the picker on a request that has an icon shows which
+         it is rather than asking the user to recognise their own choice. -->
+    <Style Selector="Button.tile.chosen">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.tile.chosen /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.plain">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+  </Window.Styles>
+
+  <DockPanel LastChildFill="True">
+
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0"
+            Padding="14,11">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+
+        <!-- No icon is a choice, not the absence of one, so it gets a button of its own rather
+             than being reached by unpicking something. -->
+        <Button Grid.Column="0" Classes="plain" Content="{loc:T IconPickerNone}"
+                Click="NoneClick" />
+
+        <Button Grid.Column="2" Classes="plain" Content="{loc:T Cancel}"
+                IsCancel="True" Click="CancelClick" />
+      </Grid>
+    </Border>
+
+    <TextBlock DockPanel.Dock="Top" Margin="14,12,14,8"
+               FontSize="11.5" TextWrapping="Wrap"
+               Foreground="{DynamicResource TextMuted}"
+               Text="{loc:T IconPickerPickOne}" />
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,0,10,10">
+      <ItemsControl Name="Tiles">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

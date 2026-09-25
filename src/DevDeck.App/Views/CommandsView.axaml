@@ -1,0 +1,533 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:views="using:DevDeck.App.Views"
+             xmlns:core="using:DevDeck.Core"
+             xmlns:app="using:DevDeck.App"
+             x:Class="DevDeck.App.Views.CommandsView"
+             x:DataType="vm:CommandsViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="14,7" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <!-- Run is the only filled control on the page, so the primary action is findable without
+         reading. -->
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="ListBox.commands ListBoxItem">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <!-- Fluent paints selection in its own accent blue, the one colour on this page that belongs
+         to no state. Selection is quieter than a running process, so it gets a raised surface. -->
+    <Style Selector="ListBox.commands ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <Style Selector="ListBox.commands ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+    </Style>
+
+    <Style Selector="ListBox.commands ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <!-- The mark on a running row. A dashed ring rather than a filled dot: the gaps are what
+         make the rotation visible at six points across, which a solid circle could not show at
+         any speed. Borrowed from the memory panel's spinner, deliberately - one motion means one
+         thing everywhere in the app. -->
+    <Style Selector="Ellipse.working">
+      <Setter Property="Width" Value="11" />
+      <Setter Property="Height" Value="11" />
+      <Setter Property="Fill" Value="Transparent" />
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="1.8" />
+      <Setter Property="StrokeDashArray" Value="3,3" />
+      <Setter Property="RenderTransform" Value="rotate(0deg)" />
+      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    </Style>
+
+    <!-- The animation hangs on a second class rather than on .working itself, so that the rows
+         that are not running are not each carrying a running animation with their opacity at
+         zero. There can be fifty rows in this list. -->
+    <Style Selector="Ellipse.working.turning">
+      <Style.Animations>
+        <Animation Duration="0:0:1.1" IterationCount="INFINITE">
+          <KeyFrame Cue="0%">
+            <Setter Property="RotateTransform.Angle" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The output list. A ListBox rather than an ItemsControl purely for its virtualising panel:
+         a long build writes thousands of lines, and laying out a TextBlock for every one of them
+         off-screen is the other half of why this page used to stall. Rows are inert - no hover, no
+         selection - so it reads as a log rather than a list you are meant to pick from. -->
+    <Style Selector="ListBox.output">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="16,12" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox.output ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Output. Monospace because it is machine text and column alignment carries meaning. -->
+    <Style Selector="SelectableTextBlock.out">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.err">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.notice">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <!-- The coloured path. Same metrics as the plain one, so a log with colour in it does not
+         reflow relative to one without. -->
+    <Style Selector="SelectableTextBlock.ansi">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- The open-in-editor affordance on a line that names a file. Styled as a link rather than a
+         button: it sits inside a log, and a row of buttons down the side of build output would
+         read as chrome rather than as part of the error. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="TextBlock.stamp">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Opacity" Value="0.7" />
+    </Style>
+
+    <Style Selector="Border.status">
+      <Setter Property="BorderThickness" Value="3,0,0,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Border.status.busy">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Border.status.ok">
+      <Setter Property="BorderBrush" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="Border.status.bad">
+      <Setter Property="BorderBrush" Value="{DynamicResource Bad}" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <Border Grid.Row="0" Padding="22,16,22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:T CommandsCommands}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
+
+        <Button Grid.Row="0" Grid.Column="1" Command="{Binding StopAllCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+            <TextBlock Text="{Binding StopAllLabel}" />
+          </StackPanel>
+        </Button>
+
+        <!-- The workspace every command runs in. It sits at the top of the page, and nothing below
+             it is usable until it is set, because a command without a folder to run in is not a
+             command yet. -->
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,12,0,0"
+              ColumnDefinitions="Auto,*,Auto">
+          <TextBlock Grid.Column="0" Text="{loc:T CommandsWorkspace}" VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFaint}" FontSize="12" Margin="0,0,10,0" />
+          <ComboBox Grid.Column="1" ItemsSource="{Binding Workspaces}"
+                    SelectedItem="{Binding Workspace}"
+                    PlaceholderText="{loc:T CommandsNoFolderChosenYet}"
+                    HorizontalAlignment="Stretch" />
+          <Button Grid.Column="2" Classes="go" Margin="8,0,0,0" Click="BrowseClick">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Folder}" />
+              <TextBlock Text="{loc:T CommandsBrowse}" />
+            </StackPanel>
+          </Button>
+        </Grid>
+
+      </Grid>
+    </Border>
+
+    <Panel Grid.Row="1">
+
+      <!-- Everything below the workspace, shown only once there is one. -->
+      <Grid ColumnDefinitions="252,*" IsVisible="{Binding HasWorkspace}">
+
+        <Border Grid.Column="0" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
+          <DockPanel>
+
+            <Border DockPanel.Dock="Bottom" Padding="12"
+                    BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+              <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="*,Auto">
+                  <Button Grid.Column="0"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                          Command="{Binding NewCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                      <TextBlock Text="{loc:T CommandsNewCommand}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="1" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
+                          ToolTip.Tip="{loc:T Delete}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                  </Button>
+                </Grid>
+
+                <!-- The project already says how to build itself. Reading that is faster and more
+                     accurate than retyping it, and it is what makes the deck useful on a repository
+                     the user has just opened. -->
+                <Button Content="{loc:T ImportFromThisProject}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        ToolTip.Tip="{loc:T CommandsReadsPackageJsonMakefileCargoToml}"
+                        Command="{Binding ImportCommand}" />
+
+                <!-- The starters are only seeded on a fresh install, so this is how a deck that
+                     already existed gets them. It adds what is missing and nothing else. -->
+                <Button Content="{loc:T CommandsAddTheStarterCommands}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Command="{Binding AddStartersCommand}" />
+
+                <!-- A command worth keeping is a command worth pointing at from a README or a
+                     ticket, and the moment that occurs to someone is while they are looking at it. -->
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        ToolTip.Tip="{loc:T CommandsDevdeckRunOpensTheDeckAnd}"
+                        IsEnabled="{Binding HasSelection}"
+                        Command="{Binding CopyLinkCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                    <TextBlock Text="{loc:T CommandsCopyALinkToThisCommand}" />
+                  </StackPanel>
+                </Button>
+
+                <TextBlock Text="{Binding StarterNote}" FontSize="11" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFaint}"
+                           IsVisible="{Binding StarterNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+            </Border>
+
+            <TextBlock DockPanel.Dock="Top" Margin="22,22,22,0"
+                       IsVisible="{Binding !HasCommands}"
+                       TextWrapping="Wrap" FontSize="12.5" LineHeight="19"
+                       Foreground="{DynamicResource TextFaint}"
+                       Text="{loc:T CommandsNoCommandsYetAddOneAnd}" />
+
+            <ListBox Classes="commands"
+                     Background="Transparent" BorderThickness="0"
+                     ItemsSource="{Binding Commands}"
+                     SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:CommandItem">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="1">
+                      <TextBlock Text="{Binding Name}" FontSize="13"
+                                 Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Kind}" FontSize="10.5"
+                                 Foreground="{DynamicResource TextFaint}" />
+                    </StackPanel>
+                    <!-- The accent means running, here as everywhere else - but moving, because
+                         a still dot is indistinguishable from a decoration until you have learnt
+                         what it means. A chain walking its steps lights each row in turn, and the
+                         motion is what makes that readable as progress from across the desk. -->
+                    <Ellipse Grid.Column="1" Classes="working" VerticalAlignment="Center"
+                             Classes.turning="{Binding IsRunning}"
+                             IsVisible="{Binding IsRunning}" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </DockPanel>
+        </Border>
+
+        <DockPanel Grid.Column="1" IsVisible="{Binding HasSelection}">
+
+          <Border DockPanel.Dock="Top" Padding="22,18"
+                  BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+            <StackPanel Spacing="14">
+
+              <Grid ColumnDefinitions="*,160">
+                <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                  <TextBlock Classes="label" Text="{loc:T Name}" />
+                  <TextBox Text="{Binding Selected.Name}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Classes="label" Text="{loc:T CommandsRunWith}" />
+                  <ComboBox ItemsSource="{Binding Kinds}"
+                            SelectedItem="{Binding Selected.Kind}"
+                            HorizontalAlignment="Stretch" />
+                </StackPanel>
+              </Grid>
+
+              <!-- The body, as a code editor coloured for whatever Run with is set to. Changing
+                   the kind recolours what is already typed. -->
+              <StackPanel>
+                <TextBlock Classes="label" Text="{loc:T CommandsBody}" />
+                <views:CodeEditor Text="{Binding Selected.Body, Mode=TwoWay}"
+                                  Language="{Binding Selected.Kind}"
+                                  Height="200" />
+                <TextBlock Classes="label" Margin="0,6,0,0"
+                           Text="{loc:T CommandsWriteNameOrNameDefaultTo}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+
+              <!-- Parameters handed to the script on every run, as real arguments rather than text
+                   pasted into the body. A list, so a flag can be switched off without losing it. -->
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Grid.Column="0" Classes="label" VerticalAlignment="Center"
+                             Text="{loc:T CommandsParameters}" />
+                  <Button Grid.Column="1" Command="{Binding Selected.AddArgumentCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                      <TextBlock Text="{loc:T CommandsAddParameter}" />
+                    </StackPanel>
+                  </Button>
+                </Grid>
+
+                <ItemsControl ItemsSource="{Binding Selected.Arguments}"
+                              IsVisible="{Binding Selected.HasArguments}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ArgumentRow">
+                      <Grid ColumnDefinitions="Auto,180,*,Auto" ColumnSpacing="6" Margin="0,0,0,4">
+                        <CheckBox Grid.Column="0" VerticalAlignment="Center"
+                                  IsChecked="{Binding Enabled}"
+                                  ToolTip.Tip="{loc:T CommandsParameterOnTip}" />
+                        <TextBox Grid.Column="1" Text="{Binding Name}"
+                                 FontFamily="{DynamicResource MonoFont}"
+                                 PlaceholderText="{loc:T CommandsParameterName}" />
+                        <TextBox Grid.Column="2" Text="{Binding Value}"
+                                 FontFamily="{DynamicResource MonoFont}"
+                                 PlaceholderText="{loc:T CommandsParameterValue}" />
+                        <Button Grid.Column="3" VerticalAlignment="Center"
+                                ToolTip.Tip="{loc:T Remove}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[ItemsControl].((vm:CommandsViewModel)DataContext).Selected.RemoveArgumentCommand}">
+                          <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Classes="label" TextWrapping="Wrap"
+                           IsVisible="{Binding Selected.HasArguments}"
+                           Text="{loc:T CommandsParametersHelp}" />
+              </StackPanel>
+
+              <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+                <Button Grid.Column="0" Classes="go" Command="{Binding Selected.RunCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon solid" Data="{x:Static app:Icons.Run}" />
+                    <TextBlock Text="{loc:T Run}" />
+                  </StackPanel>
+                </Button>
+                <Button Grid.Column="1" Margin="8,0,0,0" Command="{Binding Selected.StopCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                    <TextBlock Text="{loc:T Stop}" />
+                  </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Content="{loc:T Save}" Margin="8,0,0,0"
+                        Command="{Binding SaveCommand}" />
+
+                <!-- Only after a failure. A button that is always there invites asking about runs
+                     that went fine, which costs a round trip to be told nothing is wrong. -->
+                <Button Grid.Column="3" Content="{loc:T CommandsExplainThisFailure}" Margin="8,0,0,0"
+                        IsVisible="{Binding CanExplain}"
+                        Command="{Binding ExplainFailureCommand}" />
+
+                <CheckBox Grid.Column="4" Margin="18,0,0,0" VerticalAlignment="Center"
+                          IsChecked="{Binding Selected.Detached}"
+                          Content="{loc:T CommandsRunAndDonTWaitFor}" />
+                <CheckBox Grid.Column="5" VerticalAlignment="Center"
+                          IsChecked="{Binding Follow}"
+                          Content="{loc:T CommandsFollowOutput}" />
+              </Grid>
+
+            </StackPanel>
+          </Border>
+
+          <Panel>
+
+            <ListBox Name="Output" Classes="output"
+                     ItemsSource="{Binding Selected.Output}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:OutputLine">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Classes="stamp" Text="{Binding Stamp}"
+                               Margin="0,0,10,0" />
+
+                    <!-- Two paths, and which one is used is decided per line. Most output is one
+                         plain span, and for that the single text block is much the cheaper thing
+                         to lay out thousands of times. Only a line that actually carries colour
+                         pays for an inline run per span. -->
+                    <SelectableTextBlock Grid.Column="1" Classes="out"
+                                         IsVisible="{Binding !IsColoured}"
+                                         Classes.err="{Binding IsError}"
+                                         Classes.warn="{Binding IsWarning}"
+                                         Classes.notice="{Binding IsNotice}"
+                                         Text="{Binding Text}" />
+
+                    <SelectableTextBlock Grid.Column="1" Classes="ansi"
+                                         IsVisible="{Binding IsColoured}"
+                                         views:AnsiText.Spans="{Binding Spans}" />
+
+                    <Button Grid.Column="2" Classes="link"
+                            IsVisible="{Binding HasLinks}"
+                            Content="{Binding Link.Display}"
+                            ToolTip.Tip="{loc:T CommandsOpenInYourEditor}"
+                            Click="LinkClick" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock IsVisible="{Binding !Selected.HasOutput}"
+                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                       FontSize="12.5" Foreground="{DynamicResource TextFaint}"
+                       Text="{loc:T CommandsOutputAppearsHereOnceYouRun}" />
+
+          </Panel>
+
+        </DockPanel>
+
+      </Grid>
+
+      <!-- The gate. Not a disabled page but an explanation of what is missing and the one control
+           that fixes it, because "everything is greyed out" is not a message. -->
+      <StackPanel IsVisible="{Binding NeedsWorkspace}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  MaxWidth="460" Spacing="12">
+        <TextBlock Text="{loc:T CommandsChooseAWorkspaceFirst}" FontSize="17" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12.5" LineHeight="20"
+                   Foreground="{DynamicResource TextFaint}"
+                   Text="{loc:T CommandsEveryCommandRunsInsideThisFolder}" />
+        <Button Classes="go" Content="{loc:T CommandsChooseAFolder}" HorizontalAlignment="Center"
+                Click="BrowseClick" />
+      </StackPanel>
+
+    </Panel>
+
+    <Border Grid.Row="2" Classes="status"
+            Classes.busy="{Binding Selected.IsBusy}"
+            Classes.ok="{Binding Selected.IsOk}"
+            Classes.bad="{Binding Selected.IsBad}"
+            Background="{DynamicResource Panel}" Padding="19,11">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding Selected.Status}" FontSize="12"
+                   Foreground="{DynamicResource TextMuted}" TextTrimming="CharacterEllipsis" />
+
+        <!-- How long it takes is only informative next to how long it usually takes. This is the
+             one place the app volunteers that, and it stays quiet inside the normal band. -->
+        <TextBlock Grid.Column="1" Text="{Binding Selected.Trend}" FontSize="12" Margin="14,0,0,0"
+                   FontWeight="SemiBold" Foreground="{DynamicResource Warn}"
+                   IsVisible="{Binding Selected.Trend, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <TextBlock Grid.Column="2" Text="{Binding Selected.Typical}" FontSize="12" Margin="14,0,0,0"
+                   Foreground="{DynamicResource TextFaint}"
+                   IsVisible="{Binding Selected.Typical, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>

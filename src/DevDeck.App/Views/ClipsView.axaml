@@ -1,0 +1,210 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             x:Class="DevDeck.App.Views.ClipsView"
+             x:DataType="vm:ClipsViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!-- A link looks like a link: the colour the rest of the app uses for "this does something",
+         underlined, and with the pointer that says so. Underlined rather than coloured alone,
+         because colour by itself is not a signal to anyone who cannot see that colour. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="Button.link /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.link TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.clips">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.clips ListBoxItem">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.clips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <DockPanel Margin="20" LastChildFill="True">
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+      <StackPanel Grid.Column="0" Spacing="2">
+        <TextBlock Text="{loc:T ClipsClipboard}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" />
+        <TextBlock Classes="label"
+                   Text="{loc:T ClipsWhatYouHaveCopiedWhileThis}" />
+      </StackPanel>
+
+      <!-- The switch is the feature, so it is the first control and it is labelled with what it
+           does rather than with the word "enabled". -->
+      <CheckBox Grid.Column="1" Content="{loc:T ClipsRecordWhatICopy}" FontSize="11.5"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextMuted}"
+                IsChecked="{Binding Capturing, Mode=TwoWay}" />
+    </Grid>
+
+    <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="12,10"
+            Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2">
+      <StackPanel Spacing="4">
+        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMuted}" TextWrapping="Wrap"
+                   Text="{loc:T ClipsThisIsOffUntilYouTurn}" />
+        <TextBlock Classes="label" Text="{Binding Where}" FontFamily="{DynamicResource MonoFont}" />
+      </StackPanel>
+    </Border>
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+      <TextBox Grid.Column="0" Margin="0,0,8,0"
+               Text="{Binding Query, Mode=TwoWay}"
+               Watermark="{loc:T ClipsSearchWhatYouHaveCopied}" />
+      <Button Grid.Column="1" Content="{loc:T Copy}" Margin="0,0,6,0"
+              Command="{Binding UseCommand}"
+              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Button Grid.Column="2" Content="{loc:T ClipsPin}" Margin="0,0,6,0"
+              Command="{Binding PinCommand}"
+              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Button Grid.Column="3" Classes="danger" Content="{loc:T ClipsClearAll}"
+              Command="{Binding ClearCommand}" />
+    </Grid>
+
+    <TextBlock DockPanel.Dock="Bottom" Classes="label" Margin="0,10,0,0"
+               Text="{Binding Status}" />
+
+    <Panel>
+
+      <ListBox Classes="clips"
+               ItemsSource="{Binding Items}"
+               SelectedItem="{Binding Selected, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="core:Clip">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+
+              <TextBlock Grid.Column="0" Text="📌" FontSize="10"
+                         VerticalAlignment="Center"
+                         IsVisible="{Binding Pinned}" />
+
+              <!-- The tooltip carries the head of the clip, because a single trimmed line cannot
+                   tell two curl commands or two stack traces apart and those are exactly what this
+                   list fills up with. -->
+              <StackPanel Grid.Column="1" Spacing="2"
+                          ToolTip.Tip="{Binding Peek}">
+
+                <!-- A copied address is followed from here rather than pasted somewhere first,
+                     which is most of what makes having copied it useful. Two controls rather than
+                     one styled conditionally: a clip that is not a link must not be clickable at
+                     all, and the surest way to get that is for there to be no button. -->
+                <Button Classes="link"
+                        IsVisible="{Binding IsLink}"
+                        Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).FollowCommand}"
+                        CommandParameter="{Binding}"
+                        ToolTip.Tip="{loc:T ClipsOpenThisInTheBrowser}">
+                  <TextBlock Text="{Binding Preview}" FontSize="12"
+                             FontFamily="{DynamicResource MonoFont}"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+
+                <TextBlock Text="{Binding Preview}" FontSize="12"
+                           IsVisible="{Binding !IsLink}"
+                           FontFamily="{DynamicResource MonoFont}"
+                           Foreground="{DynamicResource Text}"
+                           TextTrimming="CharacterEllipsis" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding When}" FontSize="10"
+                             Foreground="{DynamicResource TextFaint}" />
+                  <TextBlock Text="{Binding Shape}" FontSize="10"
+                             Foreground="{DynamicResource Accent}" />
+                  <TextBlock Text="{loc:T ClipsLink}" FontSize="10"
+                             IsVisible="{Binding IsLink}"
+                             Foreground="{DynamicResource TextFaint}" />
+                </StackPanel>
+              </StackPanel>
+
+              <!-- Per-row rather than only in the toolbar: the thing being copied is the row under
+                   the pointer, and making that a two-step selection is friction for the action the
+                   whole panel exists to perform. -->
+              <Button Grid.Column="2" Content="{loc:T Copy}" Padding="8,3" FontSize="10.5"
+                      VerticalAlignment="Center"
+                      Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).UseCommand}"
+                      CommandParameter="{Binding}" />
+
+              <Button Grid.Column="3" Content="✕" Padding="7,3" FontSize="10.5"
+                      VerticalAlignment="Center"
+                      Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).RemoveCommand}"
+                      CommandParameter="{Binding}" />
+
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock IsVisible="{Binding IsEmpty}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontSize="12" Foreground="{DynamicResource TextFaint}"
+                 Text="{loc:T ClipsNothingRecordedYet}" />
+
+    </Panel>
+
+  </DockPanel>
+</UserControl>

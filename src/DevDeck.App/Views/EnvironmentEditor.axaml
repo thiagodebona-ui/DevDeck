@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:vm="using:DevDeck.App.ViewModels"
+        xmlns:core="using:DevDeck.Core"
+        x:Class="DevDeck.App.Views.EnvironmentEditor"
+        Title="{loc:T EnvironmentEnvironments}"
+        Width="720" Height="520"
+        MinWidth="560" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ink}">
+
+  <Window.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="7,5" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.names">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.names ListBoxItem">
+      <Setter Property="Padding" Value="11,7" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="18">
+
+    <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,14">
+      <TextBlock Text="{loc:T EnvironmentEnvironments}" FontSize="16" FontWeight="SemiBold"
+                 Foreground="{DynamicResource Text}" />
+      <TextBlock Classes="label" TextWrapping="Wrap"
+                 Text="{loc:T EnvironmentASetOfValuesPerEnvironment}" />
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="180,Auto,*">
+
+      <DockPanel Grid.Column="0" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+          <Button Content="{loc:T EnvironmentAdd}" Click="AddEnvironment" />
+          <Button Classes="danger" Content="{loc:T Remove}" Click="RemoveEnvironment" />
+        </StackPanel>
+
+        <ListBox Name="Names" Classes="names"
+                 SelectionChanged="EnvironmentChanged">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="core:HttpEnvironment">
+              <TextBlock Text="{Binding Name}" FontSize="12"
+                         Foreground="{DynamicResource Text}"
+                         TextTrimming="CharacterEllipsis" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <Border Grid.Column="1" Width="1" Margin="14,0"
+              Background="{DynamicResource Line}" />
+
+      <DockPanel Grid.Column="2" LastChildFill="True">
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <TextBox Name="EnvironmentName" Grid.Column="0" Margin="0,0,8,0"
+                   Watermark="{loc:T EnvironmentEnvironmentName}"
+                   TextChanged="NameEdited"
+                   LostFocus="NameDone" />
+          <Button Grid.Column="1" Content="{loc:T EnvironmentAddValue}" Click="AddValue" />
+        </Grid>
+
+        <!-- The same padding as the header list, and for the same reason: the scrollbar overlays
+             the content and widens on hover, which would otherwise sit on the delete button. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="0,0,14,0">
+          <StackPanel Name="Values" Spacing="4" />
+        </ScrollViewer>
+
+      </DockPanel>
+
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+
+      <TextBlock Name="Note" Grid.Column="0" Classes="label"
+                 VerticalAlignment="Center" TextWrapping="Wrap" />
+
+      <Button Grid.Column="1" Content="{loc:T EnvironmentDone}" Click="DoneClick" IsDefault="True" />
+
+    </Grid>
+
+  </Grid>
+</Window>

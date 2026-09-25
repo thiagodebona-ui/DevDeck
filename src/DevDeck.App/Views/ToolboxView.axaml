@@ -1,0 +1,203 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             x:Class="DevDeck.App.Views.ToolboxView"
+             x:DataType="vm:ToolboxViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBox.pad">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.tools">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.tools ListBoxItem">
+      <Setter Property="Padding" Value="14,7" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.tools ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="10,5" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="188,*">
+
+    <!-- The tools, grouped, down the side. A list rather than a dropdown because the answer to
+         "what can this do" should be visible without a click. -->
+    <Border Grid.Column="0" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
+      <DockPanel LastChildFill="True">
+
+        <TextBlock DockPanel.Dock="Bottom" Margin="14,10,14,14"
+                   Classes="label" TextWrapping="Wrap" LineHeight="15"
+                   Text="{loc:T ToolboxEverythingHereRunsOnThisMachine}" />
+
+        <ListBox Classes="tools"
+                 ItemsSource="{Binding Tools}"
+                 SelectedItem="{Binding Selected, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:Tool">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12.5"
+                           Foreground="{DynamicResource Text}" />
+                <TextBlock Grid.Column="1" Text="{Binding Group}" FontSize="10"
+                           Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextFaint}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+      </DockPanel>
+    </Border>
+
+    <DockPanel Grid.Column="1" Margin="20" LastChildFill="True">
+
+      <StackPanel DockPanel.Dock="Top" Spacing="3" Margin="0,0,0,14">
+        <TextBlock Text="{Binding Selected.Name}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" />
+        <TextBlock Text="{Binding Selected.Hint}" Classes="label" TextWrapping="Wrap"
+                   IsVisible="{Binding Selected.Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+
+      <!-- The controls that only some tools need. Each appears for its own tool rather than being
+           shown greyed out, so the panel is only ever as complicated as the job in front of it. -->
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+
+        <ComboBox ItemsSource="{Binding Algorithms}"
+                  SelectedItem="{Binding Algorithm, Mode=TwoWay}"
+                  IsVisible="{Binding Selected.NeedsAlgorithm}" />
+
+        <ComboBox ItemsSource="{Binding Cases}"
+                  SelectedItem="{Binding Casing, Mode=TwoWay}"
+                  IsVisible="{Binding Selected.NeedsCase}" />
+
+        <Button Content="{loc:T ToolboxAgain}" Command="{Binding AgainCommand}"
+                IsVisible="{Binding Selected.Generates}" />
+
+        <Button Content="{loc:T ToolboxPaste}" Command="{Binding PasteInCommand}"
+                IsVisible="{Binding !Selected.Generates}" />
+
+        <Button Content="{loc:T Clear}" Command="{Binding ClearCommand}"
+                IsVisible="{Binding !Selected.Generates}" />
+
+        <TextBlock Text="{Binding Statistics}" Classes="label" VerticalAlignment="Center"
+                   Margin="4,0,0,0" />
+      </StackPanel>
+
+      <TextBox DockPanel.Dock="Top" Classes="pad" Height="34" Margin="0,0,0,10"
+               AcceptsReturn="False"
+               Text="{Binding Pattern, Mode=TwoWay}"
+               Watermark="{loc:T ToolboxThePattern}"
+               IsVisible="{Binding Selected.NeedsPattern}" />
+
+      <Grid RowDefinitions="*,Auto,*">
+
+        <TextBox Grid.Row="0" Classes="pad"
+                 Text="{Binding Input, Mode=TwoWay}"
+                 Watermark="{loc:T ToolboxPasteHere}"
+                 IsVisible="{Binding !Selected.Generates}" />
+
+        <!-- A generator has no input, so the output takes the whole area rather than leaving an
+             empty box above it. -->
+        <Panel Grid.Row="0" IsVisible="{Binding Selected.Generates}" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,10">
+
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Error}" FontSize="11.5" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Warn}"
+                       IsVisible="{Binding HasError}" />
+            <TextBlock Text="{Binding Status}" Classes="label"
+                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+
+          <Button Grid.Column="1" Content="{loc:T ToolboxUseAsInput}" Margin="0,0,8,0"
+                  Command="{Binding ChainCommand}"
+                  IsVisible="{Binding !Selected.Generates}" />
+
+          <Button Grid.Column="2" Content="{loc:T Copy}" Command="{Binding CopyOutCommand}" />
+
+        </Grid>
+
+        <TextBox Grid.Row="2" Classes="pad" IsReadOnly="True"
+                 Text="{Binding Output}"
+                 IsVisible="{Binding !Selected.NeedsPattern}" />
+
+        <!-- The regex tool answers with a list of matches rather than one string, which is the one
+             place the shared shape does not fit. -->
+        <Border Grid.Row="2" Background="{DynamicResource Ink}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding Selected.NeedsPattern}">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Matches}" Margin="10">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" FontFamily="{DynamicResource MonoFont}"
+                             FontSize="12" Foreground="{DynamicResource Text}"
+                             Margin="0,0,0,3" TextWrapping="Wrap" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+      </Grid>
+
+    </DockPanel>
+
+  </Grid>
+</UserControl>

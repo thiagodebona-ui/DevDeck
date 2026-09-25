@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!-- net8.0 with no -windows suffix: this is the whole point of the V3 tree. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- The single source of truth for the version, as in V2. -->
+    <Version>3.0.0-alpha.1</Version>
+    <Product>DevDeck</Product>
+    <!-- Keep the build warning-free: nullable problems fail rather than accumulate. -->
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <!-- Symbols inside the DLL rather than beside it: a single-file publish would otherwise leave
+         a loose .pdb per project, and dropping them would cost the line numbers in a crash. -->
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+</Project>

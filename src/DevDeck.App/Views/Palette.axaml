@@ -1,0 +1,92 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:vm="using:DevDeck.App.ViewModels"
+        x:Class="DevDeck.App.Views.Palette"
+        x:DataType="vm:PaletteViewModel"
+        Title="{loc:T PaletteRunACommand}"
+        Width="560" Height="440"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="BorderOnly"
+        Background="{DynamicResource Ink}">
+
+  <Window.Styles>
+
+    <Style Selector="TextBox.search">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Padding" Value="18,16" />
+    </Style>
+
+    <Style Selector="ListBox.hits">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6" />
+    </Style>
+
+    <Style Selector="ListBox.hits ListBoxItem">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <Style Selector="ListBox.hits ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <Style Selector="ListBox.hits ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+  </Window.Styles>
+
+  <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+      <Border Grid.Row="0" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+        <TextBox Name="Search" Classes="search"
+                 Text="{Binding Query, Mode=TwoWay}"
+                 Watermark="{loc:T PaletteTypeACommandAPanelOr}" />
+      </Border>
+
+      <ListBox Grid.Row="1" Name="Hits" Classes="hits"
+               ItemsSource="{Binding Results}"
+               SelectedItem="{Binding Selected, Mode=TwoWay}"
+               DoubleTapped="HitTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:PaletteAction">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="1">
+                <TextBlock Text="{Binding Name}" FontSize="13"
+                           Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Detail}" FontSize="10.5"
+                           Foreground="{DynamicResource TextFaint}"
+                           TextTrimming="CharacterEllipsis"
+                           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+              <TextBlock Grid.Column="1" Text="{Binding Group}" FontSize="10.5"
+                         VerticalAlignment="Center" Margin="12,0,0,0"
+                         Foreground="{DynamicResource TextFaint}" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding !HasResults}"
+                 VerticalAlignment="Center" HorizontalAlignment="Center"
+                 FontSize="12.5" Foreground="{DynamicResource TextFaint}"
+                 Text="{loc:T PaletteNothingMatchesThat}" />
+
+      <Border Grid.Row="2" Padding="16,9" Background="{DynamicResource Panel}"
+              BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+        <TextBlock FontSize="11" Foreground="{DynamicResource TextFaint}"
+                   Text="{loc:T PaletteEnterRunsItArrowsMoveEsc}" />
+      </Border>
+
+    </Grid>
+  </Border>
+</Window>

@@ -1,0 +1,45 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Steel Dark: the original palette. Cold, because the app sits open on a second monitor for
+       hours and a warm surface competes with whatever is being worked on. One signal colour, and
+       it only ever means "the machine is doing something".
+
+       Every theme in this folder defines exactly these keys. Miss one and the first control that
+       asks for it falls back to nothing, so the list is the contract. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#12161B" />
+  <SolidColorBrush x:Key="Panel" Color="#161C24" />
+  <SolidColorBrush x:Key="Steel" Color="#1B222B" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#252E39" />
+  <SolidColorBrush x:Key="SteelHover" Color="#2C3744" />
+  <SolidColorBrush x:Key="Line" Color="#323C49" />
+  <SolidColorBrush x:Key="CodeBg" Color="#0E1217" />
+
+  <SolidColorBrush x:Key="Text" Color="#DCE3EA" />
+  <SolidColorBrush x:Key="TextMuted" Color="#8A97A6" />
+  <SolidColorBrush x:Key="TextFaint" Color="#5D6B7A" />
+
+  <SolidColorBrush x:Key="Accent" Color="#C8A15A" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#D8B26C" />
+  <SolidColorBrush x:Key="OnAccent" Color="#1A1407" />
+
+  <!-- State. Desaturated on purpose: these sit next to code output and must not shout. -->
+  <SolidColorBrush x:Key="Good" Color="#6FA88A" />
+  <SolidColorBrush x:Key="Bad" Color="#C4706A" />
+  <SolidColorBrush x:Key="Warn" Color="#C9A227" />
+
+  <!-- The widget floats on the desktop, so its surface is the page colour with alpha. -->
+  <SolidColorBrush x:Key="WidgetBg" Color="#161C24" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#7FA8D4" />
+  <SolidColorBrush x:Key="SynString" Color="#9DBF8A" />
+  <SolidColorBrush x:Key="SynComment" Color="#5D6B7A" />
+  <SolidColorBrush x:Key="SynNumber" Color="#C9A227" />
+  <SolidColorBrush x:Key="SynVariable" Color="#C89A6A" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#0E1217" />
+
+</ResourceDictionary>

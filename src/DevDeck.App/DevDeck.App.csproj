@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- WinExe is not Windows-specific: it only means "no console window on startup", which is
+         what we want on all three platforms. -->
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>DevDeck</AssemblyName>
+    <RootNamespace>DevDeck.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <!-- A published build is a DevDeck launcher and a lib folder, rather than ~220 files in one.
+
+       Not a single-file bundle: that was tried, and a freshly published 46 MB executable took 30s
+       to show a window on its first launch against 12s for the loose files, because the virus
+       scanner reads the whole bundle before letting it start. Warm starts were the same either way.
+
+       Not a deps.json rewrite either. For a self-contained app the host ignores the relative paths
+       in deps.json and looks for every assembly by name beside the executable - so the only way to
+       move the runtime is to move the app. The launcher's one job is to know where the app is: the
+       SDK embeds "DevDeck.dll" in the apphost, and this writes a second apphost that says
+       "lib/DevDeck.dll" instead. The host then treats lib as the app folder, runtime and all.
+
+       The app itself still finds its settings beside the launcher (SettingsPath.Home), so the
+       portable Windows copy keeps its files in the folder the user sees.
+
+       Only the files this publish wrote are moved, from its own list - never anything else in the
+       folder, which on Windows holds the user's settings and secrets. Nothing here touches a plain
+       `dotnet build` or `dotnet run`, which have no runtime identifier. -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <LauncherFolder>lib</LauncherFolder>
+    <LauncherTarget Condition="$(RuntimeIdentifier.StartsWith('win'))">$(LauncherFolder)\$(AssemblyName).dll</LauncherTarget>
+    <LauncherTarget Condition="!$(RuntimeIdentifier.StartsWith('win'))">$(LauncherFolder)/$(AssemblyName).dll</LauncherTarget>
+  </PropertyGroup>
+
+  <!-- SkiaSharp's and HarfBuzz's native symbols: 100 MB that no crash report of ours would use.
+       Our own symbols are embedded in the DLLs instead (see Directory.Build.props). -->
+  <Target Name="DropLooseSymbols" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="MoveIntoLib" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' != '' and '$(UseAppHost)' == 'true'">
+    <ItemGroup>
+      <_Published Include="@(ResolvedFileToPublish->'$(PublishDir)%(RelativePath)')" RelativePath="%(RelativePath)" />
+    </ItemGroup>
+
+    <!-- A file can be listed twice (the apphost is), and a second move of it would fail. -->
+    <RemoveDuplicates Inputs="@(_Published)">
+      <Output TaskParameter="Filtered" ItemName="_PublishedOnce" />
+    </RemoveDuplicates>
+
+    <Move SourceFiles="@(_PublishedOnce)" DestinationFiles="@(_PublishedOnce->'$(PublishDir)$(LauncherFolder)/%(RelativePath)')" Condition="Exists('%(Identity)')" />
+
+    <!-- The one inside lib would start the app with lib as its home, and so beside the wrong
+         settings. Only the launcher should be something a user can double-click. -->
+    <Delete Files="$(PublishDir)$(LauncherFolder)/$(AssemblyName)$(_NativeExecutableExtension)" />
+
+    <!-- Same task and arguments as the SDK's _CreateAppHost, apart from where the app is. -->
+    <CreateAppHost AppHostSourcePath="$(AppHostSourcePath)"
+                   AppHostDestinationPath="$(PublishDir)$(AssemblyName)$(_NativeExecutableExtension)"
+                   AppBinaryName="$(LauncherTarget)"
+                   IntermediateAssembly="@(IntermediateAssembly->'%(FullPath)')"
+                   WindowsGraphicalUserInterface="$(_UseWindowsGraphicalUserInterface)"
+                   Retries="$(CopyRetryCount)"
+                   RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+                   EnableMacOSCodeSign="$(_EnableMacOSCodeSign)"
+                   DisableCetCompat="$(_DisableCetCompat)" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <!-- Ships the font rather than hoping one is installed: a bare Linux container has none. -->
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DevDeck.Core\DevDeck.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+</Project>

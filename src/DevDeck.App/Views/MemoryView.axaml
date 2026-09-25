@@ -1,0 +1,542 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:views="using:DevDeck.App.Views"
+             x:Class="DevDeck.App.Views.MemoryView"
+             x:DataType="vm:MemoryViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="14,7" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="TextBlock.stat">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.figure">
+      <Setter Property="FontSize" Value="19" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <!-- The bars are the one bold thing on the page, so pressure reads at a glance from across the
+         desk. The accent is normal load; amber and red are the usual bands above it. -->
+    <Style Selector="ProgressBar.fill /template/ Border#PART_Indicator">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="ProgressBar.fill.high /template/ Border#PART_Indicator">
+      <Setter Property="Background" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="ProgressBar.fill.critical /template/ Border#PART_Indicator">
+      <Setter Property="Background" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="views|Gauge.memory">
+      <Setter Property="Fill" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="views|Gauge.memory.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.memory.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu">
+      <Setter Property="Fill" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="views|Gauge.disk">
+      <Setter Property="Fill" Value="{DynamicResource SynKeyword}" />
+    </Style>
+
+    <Style Selector="views|Gauge.disk.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.disk.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="views|Gauge.gpu">
+      <Setter Property="Fill" Value="{DynamicResource SynString}" />
+    </Style>
+
+    <Style Selector="views|Gauge.gpu.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="views|Gauge.gpu.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- End task on a process row: quiet until the row is hovered, because twelve red buttons
+         down the side of a readout would make it look like a list of problems. -->
+    <Style Selector="Button.end">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="7,1" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Margin" Value="10,0,0,0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.row:pointerover Button.end">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <!-- One gauge and its figures, a quarter of the card each, so the four spread with the
+         window. The figures wrap rather than being cut off when the window is narrow. -->
+    <Style Selector="Grid.reading">
+      <Setter Property="Margin" Value="0,6,12,6" />
+    </Style>
+
+    <Style Selector="Grid.reading TextBlock.stat, Grid.reading TextBlock.figure">
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- A process row. One line, so the eye runs straight across it to the numbers, and the whole
+         row lights on hover because there is nothing else joining the two ends. -->
+    <Style Selector="Border.row">
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="8,0" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.row:pointerover">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <!-- The initial, in its own disc. Small and quiet: it is a landmark for the eye coming back
+         to the list, not a piece of information. -->
+    <Style Selector="Border.disc">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="CornerRadius" Value="11" />
+      <Setter Property="Margin" Value="0,0,10,0" />
+      <Setter Property="Background" Value="{DynamicResource Track}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- The share bar, in a column of its own. It used to be drawn across the bottom of the row,
+         where it ran straight through "pid 24780" and read as a strikethrough. -->
+    <Style Selector="ProgressBar.share">
+      <!-- Fluent gives a ProgressBar a 200px MinWidth, which is how the bar came to overhang its
+           own column and draw itself through the memory figure to its left. -->
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ProgressBar.share /template/ Border#PART_Indicator">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- A process using no processor at all is the normal case, so its 0.0% is drawn back to stop
+         a column of zeroes competing with the two or three figures that mean something. -->
+    <Style Selector="TextBlock.num.idle">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.num.hot">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.pid">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Column heads. Faint and small: they are read once and then never again. -->
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <Style Selector="TextBlock.outcome">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.outcome.bad">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- Waiting and running are not results, so they are not coloured like one. -->
+    <Style Selector="TextBlock.outcome.pending">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.outcome.working">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The step being worked on is lifted out of the list while it runs, so a long one is
+         obviously the thing holding everything up. -->
+    <Style Selector="Border.card.running">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <!-- Same chasing arc as the widget uses, at row size. -->
+    <Style Selector="Ellipse.spinner">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="StrokeDashArray" Value="3.2,3.2" />
+      <Setter Property="RenderTransform" Value="rotate(0deg)" />
+      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    </Style>
+
+    <Style Selector="Ellipse.spinner.turning">
+      <Style.Animations>
+        <Animation Duration="0:0:1.1" IterationCount="INFINITE">
+          <KeyFrame Cue="0%">
+            <Setter Property="RotateTransform.Angle" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <Border Grid.Row="0" Padding="22,16,22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{loc:T MemoryMemoryAndProcessor}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="{Binding WidgetLabel}" Command="{Binding WidgetCommand}" />
+        <Button Grid.Column="2" Content="{loc:T Refresh}" Margin="8,0,0,0" Command="{Binding RefreshCommand}" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1">
+      <!-- Stretched to the window like every other page. The process rows give their slack to
+           the share bar, so a wide window makes a longer chart rather than a gap. -->
+      <StackPanel Margin="22,20,22,20" Spacing="18"
+                  HorizontalAlignment="Stretch">
+
+        <!-- The two readings as gauges, side by side: they are read together, and stacking them
+             makes the second look like a detail of the first. Same control the widget's dial is
+             built from, so a ring means the same thing in both places. -->
+        <Border Classes="card" Padding="20,12">
+          <UniformGrid Rows="1">
+
+            <Grid Classes="reading" ColumnDefinitions="Auto,*">
+              <Panel Grid.Column="0">
+                <views:Gauge Classes="memory"
+                             Classes.high="{Binding IsHigh}"
+                             Classes.critical="{Binding IsCritical}"
+                             Percent="{Binding UsedPercent}"
+                             RingSize="112" Thickness="11" />
+                <StackPanel Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding UsedPercentText}" FontSize="24" FontWeight="SemiBold"
+                             HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="stat" Text="{loc:T MemoryMemory}" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Panel>
+              <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
+              <TextBlock Classes="figure" Text="{Binding Used}" />
+              <TextBlock Classes="stat" Text="{Binding Total, StringFormat='of {0} physical'}" />
+              <TextBlock Classes="stat" Text="{Binding Available, StringFormat='{}{0} available'}" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Classes="reading" ColumnDefinitions="Auto,*">
+              <Panel Grid.Column="0">
+                <views:Gauge Classes="cpu"
+                             Classes.high="{Binding IsCpuHigh}"
+                             Classes.critical="{Binding IsCpuCritical}"
+                             Percent="{Binding CpuPercent}"
+                             RingSize="112" Thickness="11" />
+                <StackPanel Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding CpuPercentText}" FontSize="24" FontWeight="SemiBold"
+                             HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="stat" Text="{loc:T MemoryProcessor}" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Panel>
+              <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
+              <TextBlock Classes="figure" Text="{Binding Cores}" />
+              <TextBlock Classes="stat" Text="{loc:T MemoryAcrossAllCores}" />
+              <TextBlock Classes="stat" Text="{loc:T MemorySampledEveryTwoSeconds}" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Classes="reading" ColumnDefinitions="Auto,*">
+              <Panel Grid.Column="0">
+                <views:Gauge Classes="disk"
+                             Classes.high="{Binding IsDiskHigh}"
+                             Classes.critical="{Binding IsDiskCritical}"
+                             Percent="{Binding DiskPercent}"
+                             RingSize="112" Thickness="11" />
+                <StackPanel Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding DiskPercentText}" FontSize="24" FontWeight="SemiBold"
+                             HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="stat" Text="{loc:T MemoryDisk}" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Panel>
+              <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
+              <TextBlock Classes="stat" Text="{loc:T MemoryDiskActive}" TextWrapping="Wrap" />
+              <TextBlock Classes="stat" Text="{Binding DiskDetail}" TextWrapping="Wrap" />
+              <!-- How full the drive is: used against free, refreshed every five seconds. -->
+              <ProgressBar Classes="fill space"
+                           Classes.high="{Binding IsDiskSpaceHigh}"
+                           Classes.critical="{Binding IsDiskSpaceCritical}"
+                           IsVisible="{Binding HasDiskSpace}"
+                           Minimum="0" Maximum="100" Value="{Binding DiskSpacePercent}"
+                           Height="6" MinHeight="0" MinWidth="0" CornerRadius="3"
+                           Margin="0,4,0,1"
+                           Background="{DynamicResource Track}"
+                           ToolTip.Tip="{Binding DiskSpaceText}" />
+              <TextBlock Classes="stat" Text="{Binding DiskSpaceText}" TextWrapping="Wrap"
+                         IsVisible="{Binding HasDiskSpace}" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Classes="reading" ColumnDefinitions="Auto,*">
+              <Panel Grid.Column="0">
+                <views:Gauge Classes="gpu"
+                             Classes.high="{Binding IsGpuHigh}"
+                             Classes.critical="{Binding IsGpuCritical}"
+                             Percent="{Binding GpuPercent}"
+                             RingSize="112" Thickness="11" />
+                <StackPanel Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding GpuPercentText}" FontSize="24" FontWeight="SemiBold"
+                             HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="stat" Text="{loc:T MemoryGpu}" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Panel>
+              <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
+              <TextBlock Classes="stat" Text="{Binding GpuDetail}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+
+          </UniformGrid>
+        </Border>
+
+        <!-- Largest processes. A card like everything else on the page, one line per process, and
+             a column of bars that turns twelve numbers into a shape you can read without them. -->
+        <StackPanel Spacing="10">
+
+          <TextBlock Text="{loc:T MemoryLargestProcesses}" FontSize="13.5" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Text}" />
+
+          <Border Classes="card" Padding="8,10,14,10">
+            <StackPanel>
+
+              <!-- The same column definitions as the rows below, so a head sits over what it
+                   names. They did not: the header grid was missing the disc's column. -->
+              <Grid ColumnDefinitions="Auto,260,*,96,64,Auto" Margin="8,0,0,6">
+                <Border Grid.Column="0" Classes="disc" Opacity="0" IsHitTestVisible="False" />
+                <TextBlock Grid.Column="1" Classes="head" Text="{loc:T MemoryProcess}" />
+                <TextBlock Grid.Column="2" Classes="head" Text="{loc:T MemoryShareOfTheHeaviest}"
+                           Margin="16,0,0,0" />
+                <TextBlock Grid.Column="3" Classes="head" Text="{loc:T MemoryMemory2}" TextAlignment="Right" />
+                <TextBlock Grid.Column="4" Classes="head" Text="CPU" TextAlignment="Right" />
+                <Button Grid.Column="5" Classes="end" Content="{loc:T RunningKill}"
+                        Opacity="0" IsHitTestVisible="False" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding Processes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ProcessRow">
+                    <Border Classes="row" ToolTip.Tip="{Binding Detail}">
+                      <Grid ColumnDefinitions="Auto,260,*,96,64,Auto">
+
+                        <Border Grid.Column="0" Classes="disc">
+                          <TextBlock Text="{Binding Initial}" FontSize="11" FontWeight="SemiBold"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource TextMuted}" />
+                        </Border>
+
+                        <!-- Name and pid side by side. Stacked, the pid was a second line of text
+                             holding the row open and giving the bar something to collide with. -->
+                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
+                          <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13"
+                                     Foreground="{DynamicResource Text}"
+                                     TextTrimming="CharacterEllipsis" MaxWidth="180"
+                                     VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Classes="pid" Text="{Binding Pid}"
+                                     Margin="8,1,0,0" />
+                        </Grid>
+
+                        <!-- The bar takes the slack in the row, so a wider window gives a longer
+                             chart rather than a wider gap between the name and its numbers. It
+                             sits immediately left of the figure it is drawing. -->
+                        <ProgressBar Grid.Column="2" Classes="share"
+                                     Minimum="0" Maximum="100" Value="{Binding Bar}"
+                                     MinWidth="0" Height="5" CornerRadius="3"
+                                     Margin="16,0,18,0"
+                                     HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                     Background="{DynamicResource Track}"
+                                     BorderThickness="0" />
+
+                        <TextBlock Grid.Column="3" Classes="num" Text="{Binding Size}"
+                                   Foreground="{DynamicResource Text}" />
+
+                        <TextBlock Grid.Column="4" Classes="num"
+                                   Classes.idle="{Binding IsIdle}"
+                                   Classes.hot="{Binding IsHot}"
+                                   Text="{Binding Cpu}"
+                                   Foreground="{DynamicResource TextMuted}" />
+
+                        <Button Grid.Column="5" Classes="end" Content="{loc:T RunningKill}"
+                                ToolTip.Tip="{loc:T RunningKillTip}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).EndProcessCommand}" />
+
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+
+        <!-- The cleaner. Every step says what it does before it is ticked, and what it did after
+             it ran, because most of them are irreversible-sounding and none of them are obvious. -->
+        <StackPanel Spacing="10">
+
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{loc:T MemoryCleanupSteps}" FontSize="13.5" FontWeight="SemiBold"
+                       Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Classes="stat" VerticalAlignment="Center"
+                       IsVisible="{Binding NeedsElevation}"
+                       Foreground="{DynamicResource Warn}"
+                       Text="{loc:T MemorySomeTickedStepsNeedAnAdministrator}" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding Steps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:StepToggle">
+                <Border Classes="card" Classes.running="{Binding IsRunning}" Margin="0,0,0,7">
+                  <StackPanel Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                      <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}"
+                                IsEnabled="{Binding IsSupported}"
+                                Content="{Binding Title}" />
+                      <!-- Turns while this step is the one running. -->
+                      <Ellipse Grid.Column="1" Classes="spinner"
+                               Classes.turning="{Binding IsRunning}"
+                               IsVisible="{Binding IsRunning}"
+                               VerticalAlignment="Center" Margin="0,0,10,0" />
+                      <TextBlock Grid.Column="2" Classes="stat" VerticalAlignment="Center"
+                                 IsVisible="{Binding NeedsAdmin}" Text="{loc:T MemoryAdministrator}" />
+                    </Grid>
+                    <TextBlock Classes="stat" Margin="28,0,0,0" TextWrapping="Wrap"
+                               Text="{Binding Explain}" />
+                    <TextBlock Classes="outcome"
+                               Classes.bad="{Binding OutcomeIsBad}"
+                               Classes.pending="{Binding IsWaiting}"
+                               Classes.working="{Binding IsRunning}"
+                               Margin="28,0,0,0"
+                               IsVisible="{Binding Outcome, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               Text="{Binding Outcome}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{DynamicResource Panel}" Padding="22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center"
+                   Text="{Binding Status}" FontSize="12" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextMuted}" />
+        <Button Grid.Column="1" Classes="go" VerticalAlignment="Center"
+                Content="{Binding CleanLabel}" Command="{Binding CleanCommand}" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>

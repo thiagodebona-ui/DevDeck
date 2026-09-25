@@ -1,0 +1,456 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             x:Class="DevDeck.App.Views.RunningView"
+             x:DataType="vm:RunningViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <!-- Stopping something is the one action here that cannot be undone, so it is the one that
+         looks different. -->
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- The small actions on a row: remove a check, stop a command. -->
+    <Style Selector="Button.mini">
+      <Setter Property="Padding" Value="7,2" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,5" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.cell">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style Selector="ListBox.rows">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.rows ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <!-- The tiles along the top: one number each, big enough to read from across the desk. -->
+    <Style Selector="Border.tile">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+
+    <Style Selector="TextBlock.big">
+      <Setter Property="FontSize" Value="19" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.big.bad">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="ProgressBar.meter">
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Height" Value="4" />
+      <Setter Property="Margin" Value="0,6,0,0" />
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="ProgressBar.meter /template/ Border#PART_Indicator">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Panel>
+
+    <DockPanel Margin="20" LastChildFill="True">
+
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Text="{loc:T RunningRunning}" FontSize="17" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Text}" />
+          <TextBlock Text="{Binding Status}" Classes="label" />
+        </StackPanel>
+
+        <TextBox Grid.Column="1" Width="220" Margin="0,0,12,0" VerticalAlignment="Center"
+                 Text="{Binding Filter, Mode=TwoWay}"
+                 PlaceholderText="{loc:T RunningFilter}" />
+
+        <CheckBox Grid.Column="2" Content="{loc:T RunningOnlyLikelyPorts}" FontSize="11.5" Margin="0,0,10,0"
+                  VerticalAlignment="Center"
+                  Foreground="{DynamicResource TextMuted}"
+                  IsChecked="{Binding OnlyInteresting, Mode=TwoWay}"
+                  ToolTip.Tip="{loc:T RunningHidesSystemServicesAndEphemeralPorts}" />
+
+        <CheckBox Grid.Column="3" Content="{loc:T RunningAutoRefresh}" FontSize="11.5" Margin="0,0,10,0"
+                  VerticalAlignment="Center"
+                  Foreground="{DynamicResource TextMuted}"
+                  IsChecked="{Binding AutoRefresh, Mode=TwoWay}"
+                  ToolTip.Tip="{loc:T RunningAutoRefreshTip}" />
+
+        <Button Grid.Column="4" Content="{loc:T Refresh}" Command="{Binding RefreshCommand}" />
+      </Grid>
+
+      <!-- The tiles. Everything on this page at a glance, before any list is read. -->
+      <UniformGrid DockPanel.Dock="Top" Rows="1" Margin="0,0,-8,14">
+
+        <Border Classes="tile">
+          <StackPanel>
+            <TextBlock Classes="label" Text="{loc:T RunTilePorts}" />
+            <TextBlock Classes="big" Text="{Binding PortsText}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="tile" IsVisible="{Binding ShowContainers}">
+          <StackPanel>
+            <TextBlock Classes="label" Text="{loc:T RunTileContainers}" />
+            <TextBlock Classes="big" Text="{Binding ContainersText}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="tile">
+          <StackPanel>
+            <TextBlock Classes="label" Text="{loc:T RunTileDeck}" />
+            <TextBlock Classes="big" Text="{Binding DeckText}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="tile">
+          <StackPanel>
+            <TextBlock Classes="label" Text="{loc:T RunTileHealth}" />
+            <TextBlock Classes="big" Classes.bad="{Binding HealthBad}" Text="{Binding HealthText}" />
+          </StackPanel>
+        </Border>
+
+      </UniformGrid>
+
+      <Grid ColumnDefinitions="*,16,340">
+
+        <!-- Left: the two lists, as before. -->
+        <Grid Grid.Column="0" Name="Lists" RowDefinitions="Auto,*,Auto,Auto,*">
+
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,6">
+            <TextBlock Grid.Column="0" Text="{loc:T RunningListening}" Classes="head" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{loc:T RunningCopyUrl}" Margin="0,0,6,0"
+                    Command="{Binding CopyPortUrlCommand}"
+                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}" />
+            <Button Grid.Column="2" Content="{loc:T RunningOpen}" Margin="0,0,6,0"
+                    Command="{Binding OpenPortCommand}"
+                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}" />
+            <Button Grid.Column="3" Classes="danger" Content="{loc:T RunningStopWhatHasIt}"
+                    Command="{Binding KillPortCommand}"
+                    IsEnabled="{Binding SelectedPort, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </Grid>
+
+          <ListBox Grid.Row="1" Classes="rows" MinHeight="120"
+                   ItemsSource="{Binding Ports}"
+                   SelectedItem="{Binding SelectedPort, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="core:ListeningPort">
+                <Grid ColumnDefinitions="72,110,*,80,Auto">
+                  <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Port}"
+                             FontFamily="{DynamicResource MonoFont}" />
+                  <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Note}"
+                             Foreground="{DynamicResource Accent}" />
+                  <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Process}" />
+                  <TextBlock Grid.Column="3" Classes="label" VerticalAlignment="Center"
+                             FontFamily="{DynamicResource MonoFont}"
+                             Text="{Binding ProcessId, StringFormat='pid {0}'}" />
+                  <TextBlock Grid.Column="4" Classes="label" Text="{Binding Address}"
+                             VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,18,0,6"
+                IsVisible="{Binding ShowContainers}">
+            <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+              <TextBlock Text="{loc:T RunningContainers}" Classes="head" />
+              <TextBlock Text="{Binding EngineNote}" Classes="label" IsVisible="{Binding !HasEngine}" />
+            </StackPanel>
+
+            <Button Grid.Column="1" Content="{loc:T RunningStart}" Margin="0,0,6,0"
+                    Command="{Binding StartContainerCommand}" />
+            <Button Grid.Column="2" Content="{loc:T RunningRestart}" Margin="0,0,6,0"
+                    Command="{Binding RestartContainerCommand}" />
+            <Button Grid.Column="3" Classes="danger" Content="{loc:T Stop}" Margin="0,0,6,0"
+                    Command="{Binding StopContainerCommand}" />
+            <Button Grid.Column="4" Content="{loc:T RunningLogs}" Margin="0,0,6,0"
+                    Command="{Binding ShowLogsCommand}" />
+            <Button Grid.Column="5" Content="⋯">
+              <Button.Flyout>
+                <MenuFlyout>
+                  <MenuItem Header="{loc:T RunningOpenInABrowser}" Command="{Binding OpenContainerCommand}" />
+                  <MenuItem Header="{loc:T RunningFollowItsLogInTheDeck}" Command="{Binding FollowInDeckCommand}" />
+                </MenuFlyout>
+              </Button.Flyout>
+            </Button>
+          </Grid>
+
+          <TextBlock Grid.Row="3" Classes="label" Margin="0,0,0,6"
+                     IsVisible="False"
+                     Text="{loc:T RunningNothingBelowUntilAnEngineIs}" />
+
+          <ListBox Grid.Row="4" Classes="rows" MinHeight="120"
+                   IsVisible="{Binding ShowContainers}"
+                   ItemsSource="{Binding Containers}"
+                   SelectedItem="{Binding SelectedContainer, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="core:ContainerInfo">
+                <Grid ColumnDefinitions="Auto,170,*,140">
+                  <!-- Running or not is the first thing anyone wants from this list, so it is a dot
+                       at the start of the row rather than a word at the end of it. -->
+                  <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,0,10,0"
+                           VerticalAlignment="Center"
+                           Fill="{DynamicResource Good}"
+                           IsVisible="{Binding IsRunning}" />
+                  <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,0,10,0"
+                           VerticalAlignment="Center"
+                           Fill="{DynamicResource TextFaint}"
+                           IsVisible="{Binding !IsRunning}" />
+                  <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Name}" />
+                  <TextBlock Grid.Column="2" Classes="cell" Text="{Binding ImageName}"
+                             Foreground="{DynamicResource TextMuted}" />
+                  <TextBlock Grid.Column="3" Classes="label" Text="{Binding Status}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+        </Grid>
+
+        <!-- Right: the things that are watched rather than listed. -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+          <StackPanel>
+
+            <!-- Health checks: is the thing I started actually answering? -->
+            <Border Classes="card">
+              <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="1">
+                    <TextBlock Classes="head" Text="{loc:T RunningHealth}" />
+                    <TextBlock Classes="label" TextWrapping="Wrap" Text="{loc:T RunningHealthBlurb}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="mini" VerticalAlignment="Top"
+                          Content="{loc:T RunningCheckNow}"
+                          Command="{Binding CheckHealthCommand}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0" Name="HealthUrl"
+                           Text="{Binding NewHealthUrl, Mode=TwoWay}"
+                           PlaceholderText="{loc:T RunningHealthPlaceholder}"
+                           KeyDown="HealthUrlKeyDown" />
+                  <Button Grid.Column="1" Content="{loc:T Add}" Command="{Binding AddHealthCheckCommand}" />
+                </Grid>
+
+                <TextBlock Classes="label" TextWrapping="Wrap"
+                           IsVisible="{Binding NoHealthChecks}"
+                           Text="{loc:T RunningHealthNone}" />
+
+                <ItemsControl ItemsSource="{Binding HealthChecks}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HealthCheck">
+                      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,3">
+                        <Panel Grid.Column="0" Width="8" Height="8" Margin="0,4,8,0" VerticalAlignment="Top">
+                          <Ellipse Fill="{DynamicResource TextFaint}" IsVisible="{Binding IsWaiting}" />
+                          <Ellipse Fill="{DynamicResource Good}" IsVisible="{Binding IsGood}" />
+                          <Ellipse Fill="{DynamicResource Warn}" IsVisible="{Binding IsWarn}" />
+                          <Ellipse Fill="{DynamicResource Bad}" IsVisible="{Binding IsBad}" />
+                        </Panel>
+                        <StackPanel Grid.Column="1" Spacing="1">
+                          <TextBlock Classes="cell" FontFamily="{DynamicResource MonoFont}" FontSize="11.5"
+                                     Text="{Binding Url}" ToolTip.Tip="{Binding Url}" />
+                          <TextBlock Classes="label" Text="{Binding Note}" TextTrimming="CharacterEllipsis"
+                                     ToolTip.Tip="{Binding Note}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+                          <Button Classes="mini" Content="{loc:T RunningOpen}"
+                                  CommandParameter="{Binding}"
+                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).OpenHealthCheckCommand}" />
+                          <Button Classes="mini danger" Content="✕"
+                                  ToolTip.Tip="{loc:T Remove}"
+                                  CommandParameter="{Binding}"
+                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).RemoveHealthCheckCommand}" />
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- Port check: the question a dev server asks before it starts. -->
+            <Border Classes="card">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="head" Text="{loc:T RunningPortCheck}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0"
+                           Text="{Binding PortToCheck, Mode=TwoWay}"
+                           PlaceholderText="{loc:T RunningPortPlaceholder}"
+                           KeyDown="PortKeyDown" />
+                  <Button Grid.Column="1" Content="{loc:T RunningCheck}" Command="{Binding CheckPortCommand}" />
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding PortAnswer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <Panel Width="8" Height="8" VerticalAlignment="Center">
+                    <Ellipse Fill="{DynamicResource Good}" IsVisible="{Binding PortIsFree}" />
+                    <Ellipse Fill="{DynamicResource Bad}" IsVisible="{Binding PortIsTaken}" />
+                  </Panel>
+                  <TextBlock Classes="cell" TextWrapping="Wrap" Text="{Binding PortAnswer}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- What the deck has going, with how long, so a forgotten watcher is findable here. -->
+            <Border Classes="card">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="head" Text="{loc:T RunningDeckActivity}" />
+                <TextBlock Classes="label" IsVisible="{Binding DeckIdle}" Text="{loc:T RunningDeckIdle}" />
+                <ItemsControl ItemsSource="{Binding DeckRunning}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DeckActivity">
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,3">
+                        <Ellipse Grid.Column="0" Width="8" Height="8" Margin="0,0,8,0"
+                                 VerticalAlignment="Center" Fill="{DynamicResource Accent}" />
+                        <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Name}" />
+                        <TextBlock Grid.Column="2" Classes="label" Margin="8,0"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{DynamicResource MonoFont}"
+                                   Text="{Binding Elapsed}" />
+                        <Button Grid.Column="3" Classes="mini danger" Content="{loc:T Stop}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).StopDeckCommandCommand}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- The heaviest processes by memory, refreshed with the lists. -->
+            <Border Classes="card">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="head" Text="{loc:T RunningTopProcesses}" />
+                <ItemsControl ItemsSource="{Binding TopProcesses}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:ProcessUsage">
+                      <Grid ColumnDefinitions="*,Auto,70,Auto" Margin="0,2">
+                        <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Name}" />
+                        <TextBlock Grid.Column="1" Classes="label" Margin="8,0"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{DynamicResource MonoFont}"
+                                   Text="{Binding Id, StringFormat='pid {0}'}" />
+                        <TextBlock Grid.Column="2" Classes="cell" TextAlignment="Right"
+                                   FontFamily="{DynamicResource MonoFont}"
+                                   Text="{Binding Size}" />
+                        <Button Grid.Column="3" Classes="mini danger" Margin="8,0,0,0"
+                                Content="{loc:T RunningKill}"
+                                ToolTip.Tip="{loc:T RunningKillTip}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).KillProcessCommand}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
+
+      </Grid>
+
+    </DockPanel>
+
+    <!-- The log sits over the page rather than beside it: it is read once and dismissed, and giving
+         it permanent space would shrink both lists for the rest of the session. -->
+    <Border IsVisible="{Binding HasLogs}"
+            Background="{DynamicResource Ink}" Margin="40"
+            BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="3">
+      <DockPanel LastChildFill="True">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,12">
+          <TextBlock Grid.Column="0" Text="{Binding SelectedContainer.Name}" Classes="head"
+                     VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="{loc:T RunningClose}" Command="{Binding CloseLogsCommand}" />
+        </Grid>
+        <ScrollViewer Margin="14,0,14,14">
+          <SelectableTextBlock Text="{Binding Logs}"
+                               FontFamily="{DynamicResource MonoFont}" FontSize="11.5"
+                               Foreground="{DynamicResource Text}" />
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+  </Panel>
+</UserControl>

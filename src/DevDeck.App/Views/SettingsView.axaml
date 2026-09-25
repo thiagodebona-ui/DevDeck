@@ -1,0 +1,353 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             x:Class="DevDeck.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector="TextBlock.group">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="FontSize" Value="13.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.note">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="LineHeight" Value="18" />
+    </Style>
+
+    <Style Selector="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="18" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <Border Grid.Row="0" Padding="22,16,22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <TextBlock Text="{loc:T SettingsSettings}" FontSize="17" FontWeight="SemiBold"
+                 Foreground="{DynamicResource Text}" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1" Padding="22,20">
+      <StackPanel Spacing="16" MaxWidth="660" HorizontalAlignment="Left">
+
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="group" Text="{loc:T SettingsAppearance}" />
+            <StackPanel Width="260" HorizontalAlignment="Left">
+              <TextBlock Classes="label" Text="{loc:T SettingsTheme}" />
+              <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}"
+                        HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Width="260" HorizontalAlignment="Left">
+              <TextBlock Classes="label" Text="{loc:T SettingsLanguage}" />
+              <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}"
+                        HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsFollowTheSystemTracksTheDesktop}" />
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsTheLanguageChangesTheMomentYou}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="11">
+            <TextBlock Classes="group" Text="{loc:T SettingsBehaviour}" />
+            <CheckBox IsChecked="{Binding KeepAwake}" Content="{loc:T SettingsKeepThisMachineAwakeWhileDevDeck}" />
+            <StackPanel Margin="24,0,0,0" Spacing="6" IsEnabled="{Binding KeepAwake}">
+              <CheckBox IsChecked="{Binding StayAvailable}"
+                        IsVisible="{Binding CanStayAvailable}"
+                        Content="{loc:T SettingsAlsoStopItLockingItselfAnd}" />
+              <TextBlock Classes="note" Text="{Binding AwakeDetail}" TextWrapping="Wrap" />
+            </StackPanel>
+            <CheckBox IsChecked="{Binding ConfirmPowerActions}" Content="{loc:T SettingsAskBeforePowerActions}" />
+            <CheckBox IsChecked="{Binding AutoScrollLog}" Content="{loc:T SettingsFollowOutputAsItArrives}" />
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsNotSleepingAndNotLockingAre}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="11">
+            <TextBlock Classes="group" Text="{loc:T SettingsWhenALongCommandFinishes}" />
+            <CheckBox IsChecked="{Binding NotifyOnFinish}" Content="{loc:T SettingsTellMeWhenItIsDone}" />
+            <StackPanel Orientation="Horizontal" Spacing="10" IsEnabled="{Binding NotifyOnFinish}">
+              <TextBlock Classes="note" VerticalAlignment="Center" Text="{loc:T SettingsOnlyIfItRanForAt}" />
+              <NumericUpDown Value="{Binding NotifyAfterSeconds}" Minimum="1" Maximum="3600"
+                             Increment="5" FormatString="0" Width="110"
+                             Background="{DynamicResource CodeBg}"
+                             Foreground="{DynamicResource Text}"
+                             BorderBrush="{DynamicResource Line}" />
+              <TextBlock Classes="note" VerticalAlignment="Center" Text="{loc:T SettingsSeconds}" />
+            </StackPanel>
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsADesktopNotificationWhereTheSystem}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="11">
+            <TextBlock Classes="group" Text="{loc:T SettingsSecrets}" />
+
+            <!-- Stated first, because the whole point is that the value does not end up in a file
+                 that gets synced, exported or committed. -->
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsASecretIsStoredWrappedIn}" />
+
+            <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+              <TextBox Grid.Column="0" Text="{Binding SecretName, Mode=TwoWay}"
+                       Watermark="NPM_TOKEN"
+                       Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                       BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+              <!-- Masked, and cleared the moment it is stored. -->
+              <TextBox Grid.Column="1" Text="{Binding SecretValue, Mode=TwoWay}"
+                       PasswordChar="•" Watermark="{loc:T SettingsValue}"
+                       Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                       BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+              <Button Grid.Column="2" Content="{loc:T SettingsStore}" Command="{Binding AddSecretCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </Grid>
+
+            <StackPanel Spacing="8" IsVisible="{Binding HasSecrets}">
+              <ListBox ItemsSource="{Binding Secrets}"
+                       SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
+                       MaxHeight="150"
+                       Background="{DynamicResource Ink}"
+                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                       CornerRadius="2" Padding="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{Binding}" FontSize="12"
+                               FontFamily="{DynamicResource MonoFont}"
+                               Foreground="{DynamicResource Text}" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button Content="{loc:T Remove}" Command="{Binding RemoveSecretCommand}"
+                      IsEnabled="{Binding SelectedSecret, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      HorizontalAlignment="Left"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </StackPanel>
+
+            <TextBlock Classes="note" Text="{Binding SecretNote}"
+                       IsVisible="{Binding SecretNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <TextBlock Classes="label" Text="{Binding SecretsPath}" FontSize="11"
+                       FontFamily="{DynamicResource MonoFont}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- Environment variables for every command. Beside the secrets on purpose: the note says
+             which of the two a value belongs in, and the answer for a token is always the vault. -->
+        <Border Classes="card">
+          <StackPanel Spacing="11">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Classes="group" VerticalAlignment="Center"
+                         Text="{loc:T SettingsEnvVars}" />
+              <Button Grid.Column="1" Content="{loc:T SettingsAddVariable}" Command="{Binding AddVariableCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </Grid>
+
+            <TextBlock Classes="note" Text="{loc:T SettingsEnvVarsNote}" />
+
+            <ItemsControl ItemsSource="{Binding Variables}" IsVisible="{Binding HasVariables}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ArgumentRow">
+                  <Grid ColumnDefinitions="Auto,200,*,Auto" ColumnSpacing="8" Margin="0,0,0,6">
+                    <CheckBox Grid.Column="0" VerticalAlignment="Center" IsChecked="{Binding Enabled}" />
+                    <TextBox Grid.Column="1" Text="{Binding Name}"
+                             PlaceholderText="{loc:T CommandsParameterName}"
+                             FontFamily="{DynamicResource MonoFont}"
+                             Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                             BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+                    <TextBox Grid.Column="2" Text="{Binding Value}"
+                             PlaceholderText="{loc:T CommandsParameterValue}"
+                             FontFamily="{DynamicResource MonoFont}"
+                             Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                             BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+                    <Button Grid.Column="3" Content="✕" ToolTip.Tip="{loc:T Remove}"
+                            CommandParameter="{Binding}"
+                            Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveVariableCommand}"
+                            Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
+                            BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                            CornerRadius="2" Padding="9,5" FontSize="11.5" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+
+            <TextBlock Classes="group" Text="{loc:T SettingsFromATerminalAndFromA}" />
+
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsASavedCommandCanBeStarted}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="{loc:T SettingsWriteTheTerminalLauncher}"
+                      Command="{Binding InstallShimCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+
+              <Button Content="{loc:T SettingsRemoveIt}" IsVisible="{Binding HasShim}"
+                      Command="{Binding RemoveShimCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+
+              <Button Content="{loc:T SettingsRegisterDevdeck}" IsEnabled="{Binding CanRegisterScheme}"
+                      Command="{Binding RegisterSchemeCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </StackPanel>
+
+            <TextBlock Classes="note" Text="{Binding SchemeNote}" />
+
+            <SelectableTextBlock Text="{Binding ShimPath}" FontSize="11"
+                                 FontFamily="{DynamicResource MonoFont}" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource TextFaint}" />
+
+            <TextBlock Classes="note" Text="{Binding LinkStatus}"
+                       IsVisible="{Binding LinkStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="group" Text="{loc:T SettingsAKeyThatWorksFromAnywhere}" />
+
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsOneCombinationThatBringsTheDeck}" />
+
+            <Grid ColumnDefinitions="*,Auto,Auto" IsEnabled="{Binding CanUseHotkey}">
+              <TextBox Grid.Column="0" Text="{Binding Hotkey}" FontSize="12"
+                       Watermark="Ctrl+Shift+D"
+                       FontFamily="{DynamicResource MonoFont}" />
+              <Button Grid.Column="1" Content="{loc:T SettingsClaimIt}" Margin="8,0,0,0"
+                      Command="{Binding SetHotkeyCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+              <Button Grid.Column="2" Content="{loc:T SettingsGiveItBack}" Margin="8,0,0,0"
+                      Command="{Binding ClearHotkeyCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </Grid>
+
+            <TextBlock Classes="note" Text="{Binding HotkeyNote}" />
+
+            <TextBlock Classes="note" Text="{Binding HotkeyStatus}"
+                       IsVisible="{Binding HotkeyStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="group" Text="{loc:T SettingsThisBuild}" />
+            <TextBlock Classes="note" Text="{Binding Version}" />
+            <TextBlock Classes="label" Text="{loc:T SettingsSettingsFile}" />
+            <SelectableTextBlock Text="{Binding SettingsPath}" FontSize="11.5"
+                                 FontFamily="{DynamicResource MonoFont}" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource TextMuted}" />
+            <TextBlock Classes="note" Text="{Binding Storage}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="group" Text="{loc:T SettingsUpdates}" />
+
+            <!-- Checked when asked and never on startup: an app that reaches the network the
+                 moment it opens has decided something on the user's behalf. -->
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsAsksTheReleasePageWhetherThere}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="{loc:T SettingsCheckNow}" Command="{Binding CheckForUpdateCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+
+              <Button Content="{loc:T SettingsOpenTheReleasePage}" IsVisible="{Binding HasUpdate}"
+                      Command="{Binding GetUpdateCommand}"
+                      Background="{DynamicResource Accent}" Foreground="{DynamicResource OnAccent}"
+                      BorderThickness="0" CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </StackPanel>
+
+            <TextBlock Classes="note" Text="{Binding UpdateStatus}"
+                       IsVisible="{Binding UpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="group" Text="{loc:T SettingsNotBuiltYet}" />
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsStartingWithTheSystemIsStill}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Last, and edged in the warning colour. Nothing else on this page loses work, so the
+             one control that does should not sit in the run of ordinary cards where a stray click
+             can find it. -->
+        <Border Classes="card" BorderBrush="{DynamicResource Bad}">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="group" Text="{loc:T SettingsStartOver}"
+                       Foreground="{DynamicResource Bad}" />
+            <TextBlock Classes="note" Text="{loc:T SettingsResetExplains}" />
+            <TextBlock Classes="note" Text="{loc:T SettingsResetKeepsSecrets}" />
+
+            <Button Content="{loc:T SettingsResetNow}" HorizontalAlignment="Left"
+                    Command="{Binding ResetCommand}"
+                    Background="Transparent" Foreground="{DynamicResource Bad}"
+                    BorderBrush="{DynamicResource Bad}" BorderThickness="1"
+                    CornerRadius="2" Padding="11,5" FontSize="11.5" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{DynamicResource Panel}" Padding="22,11"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+      <TextBlock Text="{Binding Status}" FontSize="12" Foreground="{DynamicResource TextMuted}" />
+    </Border>
+
+  </Grid>
+</UserControl>

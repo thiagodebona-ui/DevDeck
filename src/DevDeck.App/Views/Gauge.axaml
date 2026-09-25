@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DevDeck.App.Views.Gauge">
+
+  <!-- A ring gauge. Two ellipses: a full-circle track, and the reading drawn on top of it as a
+       single dash whose length is the percentage.
+
+       Dashes rather than an Arc, deliberately. Avalonia's Arc has StartAngle and SweepAngle, and
+       measured off a screenshot a 28% arc sat straddling twelve o'clock rather than starting
+       there, in both sweep directions. A dashed ellipse is plain arithmetic instead - the
+       circumference is pi x diameter, a dash length is a multiple of the stroke width - and the
+       -90 degree rotation below is what puts the start of the dash at twelve. -->
+
+  <Panel>
+    <Ellipse Name="Track"
+             Stroke="{DynamicResource Track}"
+             HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+    <Ellipse Name="Progress"
+             HorizontalAlignment="Center" VerticalAlignment="Center"
+             StrokeLineCap="Round"
+             RenderTransform="rotate(-90deg)"
+             RenderTransformOrigin="50%,50%" />
+
+    <!-- Nothing in the middle, deliberately. An earlier cut had a ContentPresenter here bound to
+         $parent[UserControl].Content, so a caller could drop a figure into the hole - but a
+         UserControl's Content is its own root Panel, so the gauge was asking to host itself. It
+         crashed the moment a window containing one was shown.
+
+         Callers that want something in the middle layer it over the gauge in their own Panel,
+         which needs no API here and cannot recurse. -->
+  </Panel>
+</UserControl>

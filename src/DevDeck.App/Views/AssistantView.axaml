@@ -1,0 +1,508 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             xmlns:app="using:DevDeck.App"
+             x:Class="DevDeck.App.Views.AssistantView"
+             DragDrop.AllowDrop="True"
+             x:DataType="vm:AssistantViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="14,7" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="Button.small">
+      <Setter Property="Padding" Value="9,4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- Turns are bubbles, as in V2: side and surface carry who is speaking, so the eye can follow
+         a long conversation without reading the labels. -->
+    <Style Selector="Border.bubble">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14,11" />
+      <Setter Property="MaxWidth" Value="720" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="Border.bubble.user">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <!-- A note from the app is not a turn in the conversation, so it does not get a bubble's
+         weight: no fill, a left rule, and the full width. Same distinction V2 drew. -->
+    <Style Selector="Border.bubble.notice">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="MaxWidth" Value="1400" />
+      <Setter Property="Padding" Value="12,2" />
+    </Style>
+
+    <Style Selector="Border.bubble.problem">
+      <Setter Property="BorderBrush" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- Output of something we ran: machine text, so it gets the code surface and the full width. -->
+    <Style Selector="Border.bubble.output">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="MaxWidth" Value="1400" />
+    </Style>
+
+    <Style Selector="TextBlock.who">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Margin" Value="3,0,3,0" />
+    </Style>
+
+    <Style Selector="StackPanel.head.user">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="TextBlock.stamp">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
+
+    <!-- A row in the history or prompt list: a button that does not look like one until it is
+         under the pointer, because a list of twenty buttons reads as noise. -->
+    <Style Selector="Button.chat">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="8,6" />
+    </Style>
+
+    <Style Selector="Button.chat:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+    </Style>
+
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="9,4" />
+    </Style>
+
+    <!-- The default is a class rather than a local Foreground: a local property outranks every
+         style setter, so the tight state could never win. -->
+    <Style Selector="TextBlock.usage">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.usage.tight">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+
+    <!-- Endpoint first: an assistant that cannot reach a model is the commonest failure, so what
+         it is pointed at is visible rather than buried in settings. -->
+    <Border Grid.Row="0" Padding="22,16,22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <StackPanel Spacing="12">
+
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+          <TextBlock Grid.Column="0" Text="{loc:T AssistantAssistant}" FontSize="17" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
+
+          <!-- Everything said before today, behind one button. A flyout rather than a pane: the
+               archive is opened rarely and read once, and a permanent column would cost the
+               transcript width on every turn to save one click on a few of them. -->
+          <Button Grid.Column="1" Content="{loc:T AssistantHistory}" Classes="small"
+                  IsEnabled="{Binding HasHistory}">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight">
+                <Border Width="380" MaxHeight="420">
+                  <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding History}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:SavedChat">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
+                            <Button Grid.Column="0" Classes="chat"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).OpenChatCommand}"
+                                    CommandParameter="{Binding}">
+                              <StackPanel Spacing="1">
+                                <TextBlock Text="{Binding Title}" FontSize="12.5"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource Text}" />
+                                <TextBlock FontSize="11" Foreground="{DynamicResource TextFaint}">
+                                  <Run Text="{Binding When}" />
+                                  <Run Text="·" />
+                                  <Run Text="{Binding Summary}" />
+                                </TextBlock>
+                              </StackPanel>
+                            </Button>
+                            <Button Grid.Column="1" Classes="small" Content="{loc:T Delete}"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).ForgetCommand}"
+                                    CommandParameter="{Binding}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ScrollViewer>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+
+          <Button Grid.Column="2" Content="{loc:T AssistantSaveAsCommand}" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding SaveLastCommand}" />
+
+          <!-- No longer "lose this": it writes the conversation out first, which is why the
+               label says what it now does. -->
+          <Button Grid.Column="3" Content="{loc:T AssistantNewChat}" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding ClearCommand}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="180,*,200,Auto">
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Classes="label" Text="{loc:T AssistantProvider}" />
+            <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding Provider}"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:AssistantViewModel">
+                  <TextBlock Text="{Binding}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Margin="0,0,10,0">
+            <TextBlock Classes="label" Text="{loc:T AssistantEndpoint}" />
+            <TextBox Text="{Binding BaseUrl}" FontSize="12" />
+          </StackPanel>
+
+          <!-- The model belongs here as well as in settings: it is the one endpoint setting that
+               gets changed mid-conversation, and going elsewhere for it is two clicks away from
+               the answer that prompted it. -->
+          <StackPanel Grid.Column="2" Margin="0,0,8,0">
+            <TextBlock Classes="label" Text="{loc:T AssistantModel}" />
+            <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding Model}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <Button Grid.Column="3" Classes="small" VerticalAlignment="Bottom"
+                  Command="{Binding RefreshModelsCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+              <TextBlock Text="{loc:T Refresh}" />
+            </StackPanel>
+          </Button>
+        </Grid>
+
+        <StackPanel IsVisible="{Binding NeedsKey}">
+          <TextBlock Classes="label" Text="{loc:T AssistantAPIKey}" />
+          <TextBox Text="{Binding ApiKey}" PasswordChar="•" FontSize="12" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <!-- The readiness line. Nothing can be typed until something has answered, so the reason sits
+         above the box rather than arriving as an error bubble after the first question. -->
+    <Border Grid.Row="1" Padding="22,9" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding Hint}" FontSize="11.5" TextWrapping="Wrap"
+                   VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+        <Button Grid.Column="1" Classes="small" Content="{Binding SetupLabel}"
+                IsVisible="{Binding CanSetUp}" Command="{Binding SetUpCommand}" />
+        <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantCheckAgain}" Margin="8,0,0,0"
+                IsVisible="{Binding IsUnavailable}" Command="{Binding CheckCommand}" />
+      </Grid>
+    </Border>
+
+    <!-- The conversation. -->
+    <Panel Grid.Row="2">
+
+      <ScrollViewer Name="Transcript" Padding="22,18">
+        <ItemsControl ItemsSource="{Binding Turns}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:Turn">
+              <StackPanel Margin="0,0,0,16" Spacing="4">
+
+                <!-- Who, and when. V2 put the time on log lines but not on turns, which meant a
+                     conversation you came back to had no idea how old it was. -->
+                <StackPanel Classes="head" Classes.user="{Binding IsUser}"
+                            Orientation="Horizontal" Spacing="6">
+                  <TextBlock Classes="who" Text="{Binding Who}" />
+                  <TextBlock Classes="stamp" Text="{Binding Stamp}" />
+                </StackPanel>
+
+                <Border Classes="bubble"
+                        Classes.user="{Binding IsUser}"
+                        Classes.notice="{Binding IsNotice}"
+                        Classes.problem="{Binding IsProblem}"
+                        Classes.output="{Binding IsOutput}">
+                  <!-- V2 put these on a right click over the transcript, and they are worth
+                       keeping: the whole point of asking for a command is taking it somewhere. -->
+                  <Border.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{loc:T AssistantCopyThisMessage}"
+                                Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyTurnCommand}"
+                                CommandParameter="{Binding}" />
+                      <MenuItem Header="{loc:T AssistantCopyWholeConversation}"
+                                Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyAllCommand}" />
+                    </ContextMenu>
+                  </Border.ContextMenu>
+                  <ItemsControl ItemsSource="{Binding Segments}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Segment">
+                        <Panel Margin="0,0,0,8">
+
+                          <SelectableTextBlock IsVisible="{Binding !IsCode}"
+                                               Text="{Binding Text}" TextWrapping="Wrap"
+                                               FontSize="13.5" LineHeight="21"
+                                               Foreground="{DynamicResource Text}" />
+
+                          <!-- A code block carries its own actions, which is the whole point of the
+                               assistant sitting next to the command deck. -->
+                          <Border IsVisible="{Binding IsCode}"
+                                  Background="{DynamicResource CodeBg}"
+                                  BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                  CornerRadius="3" Padding="0">
+                            <DockPanel>
+                              <Border DockPanel.Dock="Bottom" Padding="10,7"
+                                      IsVisible="{Binding ShowsActions}"
+                                      BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                  <TextBlock Grid.Column="0" Text="{Binding Caption}" FontSize="11"
+                                             VerticalAlignment="Center"
+                                             Foreground="{DynamicResource TextFaint}" />
+                                  <!-- Up to the view, not to $parent[ItemsControl]: the nearest
+                                       ItemsControl from here is the segments list, whose DataContext
+                                       is the Turn. Casting that to the view model silently yields
+                                       nothing and leaves both buttons dead. -->
+                                  <Button Grid.Column="1" Classes="small" Content="{loc:T AssistantAddAsCommand}"
+                                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).AddAsCommandCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <Button Grid.Column="2" Classes="small go" Margin="6,0,0,0"
+                                          Content="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunLabel}"
+                                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunCodeCommand}"
+                                          CommandParameter="{Binding}" />
+                                </Grid>
+                              </Border>
+                              <SelectableTextBlock Margin="12,10" Text="{Binding Text}"
+                                                   FontFamily="{DynamicResource MonoFont}"
+                                                   FontSize="12.5" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource Text}" />
+                            </DockPanel>
+                          </Border>
+
+                        </Panel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Border>
+
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+      <StackPanel IsVisible="{Binding IsEmpty}" MaxWidth="420" Spacing="8"
+                  VerticalAlignment="Center" HorizontalAlignment="Center">
+        <TextBlock Text="{loc:T AssistantAskItSomething}" FontSize="14" TextAlignment="Center"
+                   Foreground="{DynamicResource TextMuted}" />
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12.5" LineHeight="19"
+                   Foreground="{DynamicResource TextFaint}"
+                   Text="{loc:T AssistantAnyCodeItWritesGetsA}" />
+      </StackPanel>
+
+    </Panel>
+
+    <!-- Asked once per session, before any model-written code runs. A bar rather than a modal,
+         because a dialog over the transcript hides the very code it is asking about. -->
+    <Border Grid.Row="3" Padding="22,12" IsVisible="{Binding IsConfirmingRun}"
+            Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Warn}" BorderThickness="0,2,0,0">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <StackPanel Grid.Column="0" Margin="0,0,14,0" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Text="{loc:T AssistantRunThisScriptNow}" FontSize="13" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Text}" />
+          <TextBlock Text="{Binding ConfirmBlurb}" FontSize="11.5" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextMuted}" />
+          <TextBlock Text="{loc:T AssistantThisIsAskedOncePerSession}" FontSize="11"
+                     Foreground="{DynamicResource TextFaint}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="go" Content="{loc:T AssistantRunIt}"
+                VerticalAlignment="Center" Command="{Binding ConfirmRunCommand}" />
+        <Button Grid.Column="2" Content="{loc:T Cancel}" Margin="8,0,0,0"
+                VerticalAlignment="Center" Command="{Binding CancelRunCommand}" />
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="4" Padding="22,12,22,14"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+      <StackPanel Spacing="9">
+
+        <!-- The tools that fill the box: a file to talk about, and a prompt worth keeping. Above
+             it rather than beside it, so neither takes width off the box itself. -->
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+
+          <Button Grid.Column="0" Classes="small" Content="{loc:T AssistantAttachAFile}"
+                  Command="{Binding AttachCommand}" />
+
+          <Button Grid.Column="1" Classes="small" Content="{loc:T AssistantPrompts}" Margin="8,0,0,0">
+            <Button.Flyout>
+              <Flyout Placement="TopEdgeAlignedLeft">
+                <Border Width="330" MaxHeight="340">
+                  <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding Prompts}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:SavedPrompt">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
+                            <Button Grid.Column="0" Classes="chat"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Content="{Binding Name}"
+                                    Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).UsePromptCommand}"
+                                    CommandParameter="{Binding}" />
+                            <Button Grid.Column="1" Classes="small" Content="{loc:T Delete}"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).DeletePromptCommand}"
+                                    CommandParameter="{Binding}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ScrollViewer>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+
+          <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantKeepThisPrompt}" Margin="8,0,0,0"
+                  Command="{Binding SavePromptCommand}" />
+
+          <TextBlock Grid.Column="4" Text="{Binding AttachmentNote}" FontSize="11"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                     Foreground="{DynamicResource TextFaint}" />
+        </Grid>
+
+        <!-- What will go in front of the next question, with its size, because a file that is
+             about to cost four thousand tokens should say so before it is sent. -->
+        <ItemsControl ItemsSource="{Binding Attachments}" IsVisible="{Binding HasAttachments}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="core:Attachment">
+              <Border Classes="chip" Margin="0,0,6,4">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Summary}" FontSize="11" VerticalAlignment="Center"
+                             Foreground="{DynamicResource Text}" />
+                  <Button Classes="small" Content="×" Padding="6,0"
+                          Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).DetachCommand}"
+                          CommandParameter="{Binding}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <!-- Enter sends, Shift+Enter starts a line: the same as every chat box already open on
+               this machine. The handler is attached in the code-behind rather than here, because
+               it has to be on the tunnel route - see ComposerKeyDown. -->
+          <TextBox Grid.Column="0" Name="Composer" Text="{Binding Prompt}"
+                   PlaceholderText="{loc:T AssistantAskTheModel}"
+                   IsEnabled="{Binding CanType}"
+                   AcceptsReturn="True" MinHeight="64" MaxHeight="150"
+                   VerticalContentAlignment="Top" />
+          <Button Grid.Column="1" Classes="go" Content="{loc:T Send}" Margin="10,0,0,0"
+                  VerticalAlignment="Bottom" Command="{Binding SendCommand}" />
+          <Button Grid.Column="2" Content="{loc:T Stop}" Margin="8,0,0,0"
+                  VerticalAlignment="Bottom" Command="{Binding StopCommand}" />
+        </Grid>
+
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="5" Background="{DynamicResource Panel}" Padding="22,11">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding Status}" FontSize="12"
+                   VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+
+        <!-- Two numbers that nothing else in the app can tell you: what the last answer cost, and
+             how close the conversation is to the point where the model starts forgetting. -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="12,0"
+                    VerticalAlignment="Center" IsVisible="{Binding ShowsSpend}">
+          <TextBlock Text="{Binding Spent}" FontSize="11"
+                     FontFamily="{DynamicResource MonoFont}"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFaint}" />
+          <TextBlock Text="{Binding Context}" FontSize="11"
+                     VerticalAlignment="Center"
+                     Classes="usage" Classes.tight="{Binding ContextIsTight}" />
+        </StackPanel>
+
+        <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantStopTheScript}"
+                IsVisible="{Binding IsRunning}" Command="{Binding StopCodeCommand}" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>
