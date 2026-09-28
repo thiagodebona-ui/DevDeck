@@ -120,6 +120,10 @@ output streams into the pane below with the exit code and run time in the status
   or **Shell**. The body gets syntax colouring as you type.
 - **Workspace.** The folder at the top is where commands run. Switch projects by picking another
   folder; recent ones are remembered in the drop-down.
+- **Parameters on every run.** Add a row under **Parameters** (a name and a value) and it is passed
+  to the script each time: PowerShell gets `-Name "value"`, read with `param([string]$Name)` on the
+  script's first line; batch gets `%1 %2`; shell scripts `$1 $2`. Every value is also in the
+  environment as `DEVDECK_ARG_NAME`.
 - **Parameters that ask you.** Write `{{branch}}` in a command and DevDeck asks for a value each
   time it runs. `{{branch:main}}` offers `main` as the default, and values you have typed before are
   offered back.
@@ -143,6 +147,11 @@ output streams into the pane below with the exit code and run time in the status
 *TODOs and FIXMEs*, *What is taking up space*, *Heavy build folders*, *Outdated packages*,
 *What is on my dev ports*, *Tool versions* and *Open in VS Code*. Edit or delete them freely. If you
 ever want them back, **Add the starter commands** restores them.
+
+**Examples** show the mechanics on things too small to get in the way: *Example: hello with a
+parameter*, *Example: ask before running*, *Example: write to the log*, *Example: count files*,
+*Example: double it* and more, each commented line by line. They all start with `Example:`, so they
+are easy to find and to delete once you have what you need.
 
 ---
 
@@ -168,6 +177,11 @@ A chain runs several commands **one after another**, each step waiting for the o
   variables: `DEVDECK_PREVIOUS_LINE` (its last line), `DEVDECK_PREVIOUS` (everything it printed),
   `DEVDECK_PREVIOUS_EXIT` and more. The example chain *Pass values between steps* shows how: it
   finds a file, measures it, and reports what it was given.
+- **Example chains** to copy from: *Example: log a message* (hand a file path to the next step),
+  *Example: count, double, log* (a number changing as it travels, then logged), *Example: several
+  values* (pass many values as `NAME=value` lines) and *Example: stop on failure* (the last step never
+  runs). A step can use its own parameters too: in a chain, the examples prefer what they were handed
+  and fall back to their parameter rows when run by hand.
 
 ### When files change
 

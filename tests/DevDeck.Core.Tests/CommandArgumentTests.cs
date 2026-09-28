@@ -86,5 +86,57 @@ namespace DevDeck.Core.Tests
             Assert.Equal("x", variables["DEVDECK_ARG_2"]);
             Assert.Equal("2", variables["DEVDECK_ARG_COUNT"]);
         }
+
+        [Theory]
+        [InlineData("param([string]$Path)\r\n'x'", "param([string]$Path)")]
+        [InlineData("# a note\r\n#requires -Version 5\r\n\r\nPARAM ( $A = ')' )\r\n$A", "# a note\r\n#requires -Version 5\r\n\r\nPARAM ( $A = ')' )")]
+        [InlineData("<# help ) #>\r\n[CmdletBinding()]\r\nparam(\r\n  [Parameter(Mandatory)] [string] $Name, # (\r\n  $B = \"it`\"s )\"\r\n)\r\n$Name", "<# help ) #>\r\n[CmdletBinding()]\r\nparam(\r\n  [Parameter(Mandatory)] [string] $Name, # (\r\n  $B = \"it`\"s )\"\r\n)")]
+        public void ThePreambleGoesAfterALeadingParamBlock(string script, string block)
+        {
+            Assert.Equal(block.Length, ScriptFile.EndOfParamBlock(script));
+            Assert.StartsWith(block + "\r\n[Console]::OutputEncoding", ScriptFile.WithPowerShellPreamble(script));
+        }
+
+        [Theory]
+        [InlineData("'hello'")]
+        [InlineData("$params = 1\r\nparam($x)")]
+        [InlineData("parameters\r\n")]
+        [InlineData("param(")]
+        public void WithoutAParamBlockThePreambleGoesFirst(string script)
+        {
+            Assert.Equal(0, ScriptFile.EndOfParamBlock(script));
+            Assert.StartsWith("[Console]::OutputEncoding", ScriptFile.WithPowerShellPreamble(script));
+        }
+
+        /// <summary>The whole way through, since the bug was PowerShell's reading of the file.</summary>
+        [Fact]
+        public void AParamBlockReceivesItsParameterWhenRun()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
+
+            CustomCommand command = With(
+                CommandKind.PowerShell,
+                new CommandArgument { Name = "Path", Value = @"C:\some where" });
+            command.Command = "param([string]$Path)\r\n\"got: $Path\"";
+
+            using ScriptFile file = ScriptFile.Create(command);
+            using System.Diagnostics.Process process = System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(file.FileName, file.Arguments)
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                })!;
+
+            string output = process.StandardOutput.ReadToEnd();
+            string errors = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            Assert.Equal(string.Empty, errors.Trim());
+            Assert.Equal(@"got: C:\some where", output.Trim());
+        }
     }
 }

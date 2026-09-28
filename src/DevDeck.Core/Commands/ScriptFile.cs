@@ -67,7 +67,7 @@ namespace DevDeck.Core
                     // A BOM, because Windows PowerShell 5.1 reads a script without one as ANSI and
                     // mangles every accented character and box-drawing glyph in it. pwsh assumes
                     // UTF-8 without one, and tolerates it with.
-                    string file = Write(command.Name, ".ps1", PowerShellPreamble + command.Command,
+                    string file = Write(command.Name, ".ps1", WithPowerShellPreamble(command.Command),
                         new UTF8Encoding(windows));
 
                     return new ScriptFile(
@@ -134,6 +134,142 @@ namespace DevDeck.Core
         ///  different tools than the rest of the command deck; Git bash shares the Windows
         ///  filesystem and is what someone typing a shell one-liner on Windows usually means.
         /// </remarks>
+        /// <summary>
+        ///  The script with <see cref="PowerShellPreamble"/> in it, after the script's own
+        ///  <c>param()</c> block when it opens with one.
+        /// </summary>
+        /// <remarks>
+        ///  PowerShell only accepts <c>param()</c> as the first statement of a script. Put in front
+        ///  of it, the preamble turned the block into a call to a command named "param", which
+        ///  failed - and the parameters the editor tells the user to read with <c>param()</c> never
+        ///  arrived.
+        /// </remarks>
+        internal static string WithPowerShellPreamble(string script)
+        {
+            int at = EndOfParamBlock(script);
+
+            return at == 0
+                ? PowerShellPreamble + script
+                : script[..at] + "\r\n" + PowerShellPreamble + script[at..];
+        }
+
+        /// <summary>
+        ///  Where a leading <c>param(...)</c> block ends, or 0 when the script does not open with one.
+        /// </summary>
+        /// <remarks>
+        ///  Only what may legally come before it is skipped: blank lines, comments (which is also
+        ///  where <c>#requires</c> lives) and attributes such as <c>[CmdletBinding()]</c>. Brackets
+        ///  inside strings and comments are not counted, so a default of <c>")"</c> does not end
+        ///  the block early.
+        /// </remarks>
+        internal static int EndOfParamBlock(string script)
+        {
+            int i = SkipTrivia(script, 0);
+
+            while (i < script.Length && script[i] == '[')
+            {
+                i = SkipTrivia(script, Balanced(script, i, '[', ']'));
+
+                if (i < 0)
+                {
+                    return 0;
+                }
+            }
+
+            if (string.Compare(script, i, "param", 0, 5, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                return 0;
+            }
+
+            int open = SkipTrivia(script, i + 5);
+
+            if (open >= script.Length || script[open] != '(')
+            {
+                return 0;
+            }
+
+            return Math.Max(0, Balanced(script, open, '(', ')'));
+        }
+
+        /// <summary>Past whitespace and comments from <paramref name="i"/>.</summary>
+        private static int SkipTrivia(string script, int i)
+        {
+            while (i >= 0 && i < script.Length)
+            {
+                if (char.IsWhiteSpace(script[i]))
+                {
+                    i++;
+                }
+                else if (string.CompareOrdinal(script, i, "<#", 0, 2) == 0)
+                {
+                    int end = script.IndexOf("#>", i + 2, StringComparison.Ordinal);
+                    i = end < 0 ? script.Length : end + 2;
+                }
+                else if (script[i] == '#')
+                {
+                    int end = script.IndexOf('\n', i);
+                    i = end < 0 ? script.Length : end + 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return i;
+        }
+
+        /// <summary>
+        ///  Just past the bracket that closes the one at <paramref name="start"/>, or -1 if it is
+        ///  never closed.
+        /// </summary>
+        private static int Balanced(string script, int start, char open, char close)
+        {
+            int depth = 0;
+
+            for (int i = start; i < script.Length; i++)
+            {
+                char c = script[i];
+
+                if (c == '\'' || c == '"')
+                {
+                    // '' inside single quotes and a backtick in double ones escape the quote.
+                    for (i++; i < script.Length; i++)
+                    {
+                        if (c == '"' && script[i] == '`')
+                        {
+                            i++;
+                        }
+                        else if (script[i] == c)
+                        {
+                            if (i + 1 < script.Length && script[i + 1] == c)
+                            {
+                                i++;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (c == '#' || string.CompareOrdinal(script, i, "<#", 0, 2) == 0)
+                {
+                    i = SkipTrivia(script, i) - 1;
+                }
+                else if (c == open)
+                {
+                    depth++;
+                }
+                else if (c == close && --depth == 0)
+                {
+                    return i + 1;
+                }
+            }
+
+            return -1;
+        }
+
         /// <summary>
         ///  The command's parameters as they go on the end of its command line, with a leading
         ///  space - or nothing, when it has none switched on.

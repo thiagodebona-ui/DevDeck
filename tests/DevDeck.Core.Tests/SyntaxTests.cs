@@ -47,6 +47,23 @@ namespace DevDeck.Core.Tests
             Assert.Equal(source.Length, at);
         }
 
+        /// <summary>
+        ///  Drawn, a CRLF body has exactly as many lines as it has in the TextBox over it.
+        /// </summary>
+        [Theory]
+        [InlineData(nameof(CommandKind.PowerShell))]
+        [InlineData(nameof(CommandKind.Bash))]
+        [InlineData(nameof(CommandKind.Batch))]
+        public void ACrlfBodyIsDrawnWithOneBreakPerLine(string kindName)
+        {
+            CommandKind kind = Enum.Parse<CommandKind>(kindName);
+            string source = "# one\r\n# two\r\nREM three\r\necho \"four\"\r\n$x = 5\r\n";
+
+            string drawn = string.Concat(Syntax.Tokenize(source, kind).Select(token => Syntax.Drawn(source, token)));
+
+            Assert.Equal(source.Replace("\r\n", "\n"), drawn);
+        }
+
         [Fact]
         public void EmptySourceProducesNoTokens()
         {

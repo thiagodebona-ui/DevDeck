@@ -570,6 +570,23 @@ namespace DevDeck.Core
                 TrySave();
             }
 
+            // The parameter and chain examples, offered once to an install that predates them.
+            // By name, so nothing already there is replaced and a deleted one is not brought back.
+            if (!SeededExtras.Contains(StarterExamples.SeedKey, StringComparer.Ordinal))
+            {
+                CustomCommands.AddRange(StarterExamples.Commands()
+                    .Where(example => !CustomCommands.Any(command => command.Name == example.Name)));
+
+                Chains.AddRange(StarterExamples.Chains()
+                    .Where(example => !Chains.Any(chain => chain.Name == example.Name)));
+
+                SeededExtras = [.. SeededExtras, StarterExamples.SeedKey];
+
+                AppLog.Instance.Info("settings", "Added the Example: commands and chains.");
+
+                TrySave();
+            }
+
             if (mended.Count == 0)
             {
                 return;
@@ -646,11 +663,11 @@ namespace DevDeck.Core
             return new()
             {
                 CommandVariables = variables,
-                CustomCommands = StarterCommands.For(),
-                Chains = StarterCommands.Chains(),
+                CustomCommands = [.. StarterCommands.For(), .. StarterExamples.Commands()],
+                Chains = [.. StarterCommands.Chains(), .. StarterExamples.Chains()],
                 Watches = StarterCommands.Watches(),
                 Environments = StarterCommands.Environments(),
-                SeededExtras = [StarterCommands.SecretExampleName],
+                SeededExtras = [StarterCommands.SecretExampleName, StarterExamples.SeedKey],
             };
         }
 

@@ -159,7 +159,7 @@ namespace DevDeck.App.Views
 
             foreach (Token token in Syntax.Tokenize(source, Language))
             {
-                inlines.Add(new Run(source.Substring(token.Start, token.Length))
+                inlines.Add(new Run(Syntax.Drawn(source, token))
                 {
                     Foreground = BrushFor(token.Kind),
                 });

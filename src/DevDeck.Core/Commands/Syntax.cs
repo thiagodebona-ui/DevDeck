@@ -127,6 +127,31 @@ namespace DevDeck.Core
             return built;
         }
 
+        /// <summary>
+        ///  The text to draw for <paramref name="token"/>: its slice of the source, with every
+        ///  CRLF - including one split between this token and the next - drawn as one break.
+        /// </summary>
+        /// <remarks>
+        ///  A comment runs to the end of its line, so on a CRLF body it ends with the CR and the
+        ///  next token starts with the LF. A TextBlock given those as two runs breaks the line
+        ///  twice, while the TextBox over it reads CRLF as one break. Every comment then pushed the
+        ///  painted text a line further down than the text being edited, and a click on the code
+        ///  you could see landed past the end of the box - so only the comments at the top could
+        ///  take the caret. Dropping the CR costs nothing: it has no width, at the end of a line.
+        /// </remarks>
+        public static string Drawn(string source, Token token)
+        {
+            string text = source.Substring(token.Start, token.Length);
+            int end = token.Start + token.Length;
+
+            if (text.EndsWith('\r') && end < source.Length && source[end] == '\n')
+            {
+                text = text[..^1];
+            }
+
+            return text.Replace("\r\n", "\n", StringComparison.Ordinal);
+        }
+
         /// <summary>Colours keywords, variables and numbers between two offsets.</summary>
         private static void Words(string source, int from, int to, Regex words, List<Token> into)
         {

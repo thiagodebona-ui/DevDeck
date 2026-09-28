@@ -215,7 +215,7 @@ namespace DevDeck.App.ViewModels
         {
             int added = 0;
 
-            foreach (CustomCommand starter in StarterCommands.For())
+            foreach (CustomCommand starter in StarterCommands.For().Concat(StarterExamples.Commands()))
             {
                 if (Commands.Any(existing => existing.Name == starter.Name))
                 {

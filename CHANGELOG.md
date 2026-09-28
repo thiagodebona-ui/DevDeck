@@ -1,5 +1,20 @@
 ﻿# Changelog
 
+## 1.1.0
+
+- **Examples of parameters and chains.** Nine small `Example:` commands - say hello with a
+  parameter, ask before running, write to a log, count files, double a number, hand on several
+  values, fail on purpose - and four `Example:` chains that pass values between them. They are
+  added once to an existing install, and **Add the starter commands** brings back any you delete.
+- **`param()` works in PowerShell commands.** DevDeck put a line of its own at the top of every
+  PowerShell script, which PowerShell then refused: `param` has to come first, so a script that did
+  what the Parameters hint says failed with "The term 'param' is not recognized". That line now goes
+  after the script's `param()` block.
+- **The cursor goes where you click in the body editor.** On a script with Windows line endings,
+  every comment line was drawn with an extra blank line under it, so the code you could see was
+  lower than where the editor really had it - and clicking it could only put the cursor at the end.
+  Only the comments at the top could be clicked into.
+
 ## 1.0.1
 
 - **The chain output really does grow with the chains section now.** 1.0.0 meant to do this but the
