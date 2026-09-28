@@ -48,7 +48,15 @@ namespace DevDeck.App.Views
                 Follow();
             };
 
-            ChainEditor.SizeChanged += (_, _) => FitOutput();
+            // The viewport rather than the scroll viewer's size: it is set later in the same layout
+            // pass, so on SizeChanged it still holds the previous height.
+            ChainEditor.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == ScrollViewer.ViewportProperty)
+                {
+                    FitOutput();
+                }
+            };
             ChainForm.SizeChanged += (_, _) => FitOutput();
         }
 
@@ -62,7 +70,9 @@ namespace DevDeck.App.Views
         ///  Done here rather than with a star row: the editor is a scroll viewer, which measures
         ///  its content with unlimited height, so nothing inside it can fill the viewport by
         ///  layout alone. Below the floor the log stops shrinking and the editor scrolls instead.
-        ///  Setting the height resizes the form and calls back in here, where the same sum comes
+        ///  The form is top-aligned so its bounds are its content: stretched, the scroll viewer
+        ///  makes it at least as tall as the viewport, the empty space counts as "the fields above",
+        ///  and the log never grows. Setting the height resizes the form and calls back in here, where the same sum comes
         ///  out and nothing changes, so it settles after one pass.
         /// </remarks>
         private void FitOutput()

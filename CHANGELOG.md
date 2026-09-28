@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.0.1
+
+- **The chain output really does grow with the chains section now.** 1.0.0 meant to do this but the
+  log stayed at its smallest height: the form around it was stretched to the section's height, so
+  the empty space under the log was counted as fields above it and there was never room left over.
+
 ## 1.0.0
 
 The first stable release. The version starts again at 1.0.0: "3" counted internal rewrites, not

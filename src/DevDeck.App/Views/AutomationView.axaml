@@ -308,7 +308,7 @@
               </ListBox>
 
               <ScrollViewer Name="ChainEditor" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" Padding="0,0,12,0">
-              <StackPanel Name="ChainForm" Spacing="10"
+              <StackPanel Name="ChainForm" Spacing="10" VerticalAlignment="Top"
                           DataContext="{Binding SelectedChain}"
                           IsVisible="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).HasChain}">
 
