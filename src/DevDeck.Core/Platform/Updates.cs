@@ -41,10 +41,10 @@ namespace DevDeck.Core
         ///  The API rather than the web page: the JSON has the version and the link in it, and
         ///  scraping HTML for a version number breaks the first time the page is restyled.
         /// </remarks>
-        public const string Endpoint = "https://api.github.com/repos/devdeck-app/devdeck/releases/latest";
+        public const string Endpoint = "https://api.github.com/repos/thiagodebona-ui/DevDeck/releases/latest";
 
         /// <summary>The page a person would read, for the link in Settings.</summary>
-        public const string Page = "https://github.com/devdeck-app/devdeck/releases";
+        public const string Page = "https://github.com/thiagodebona-ui/DevDeck/releases";
 
         /// <summary>
         ///  Asks the release feed what the newest build is.

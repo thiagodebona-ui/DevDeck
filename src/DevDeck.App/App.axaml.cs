@@ -21,6 +21,51 @@ namespace DevDeck.App
         /// </remarks>
         internal static LinkRequest Arrived { get; set; } = LinkRequest.Nothing;
 
+        private static readonly object handoffLock = new();
+
+        private static readonly Queue<string> early = new();
+
+        private static Action<string>? deliver;
+
+        /// <summary>
+        ///  Takes a request from a later copy, holding it until the window exists.
+        /// </summary>
+        /// <remarks>
+        ///  <see cref="Program"/> starts listening before Avalonia does, so a request can arrive
+        ///  while there is no deck yet to hand it to.
+        /// </remarks>
+        internal static void Receive(string payload)
+        {
+            lock (handoffLock)
+            {
+                if (deliver is null)
+                {
+                    early.Enqueue(payload);
+
+                    return;
+                }
+            }
+
+            deliver(payload);
+        }
+
+        private static void Deliver(Action<string> to)
+        {
+            string[] waiting;
+
+            lock (handoffLock)
+            {
+                deliver = to;
+                waiting = early.ToArray();
+                early.Clear();
+            }
+
+            foreach (string payload in waiting)
+            {
+                to(payload);
+            }
+        }
+
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
         public override void OnFrameworkInitializationCompleted()
@@ -58,7 +103,8 @@ namespace DevDeck.App
                 void Arrive(string payload) =>
                     Dispatcher.UIThread.Post(() => model.Handle(DeepLink.Parse(payload)));
 
-                SingleInstance.Listen(Arrive);
+                // Program is already listening; from here on what arrives goes straight to the deck.
+                Deliver(Arrive);
 
                 // After Surface is wired by the window, since the menu's first entry uses it.
                 Tray? tray = Tray.Attach(this, model);

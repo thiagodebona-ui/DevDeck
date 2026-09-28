@@ -1,6 +1,6 @@
 # Builds DevDeck for every platform and attaches the downloads to a GitHub release.
 #
-# Runs when a version tag is pushed (git tag v3.0.0 && git push origin v3.0.0), or by hand from
+# Runs when a version tag is pushed (git tag v1.0.0 && git push origin v1.0.0), or by hand from
 # the Actions tab. Each platform is built on its own OS, so the macOS launcher is signed by
 # macOS itself and the macOS/Linux archives keep their executable bit - a zip made on Windows
 # would lose both.
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release, e.g. v3.0.0-alpha.1 (created if missing)'
+        description: 'Tag to release, e.g. v1.0.0 (created if missing)'
         required: true
 
 permissions:

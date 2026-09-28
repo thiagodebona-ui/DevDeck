@@ -47,6 +47,33 @@ namespace DevDeck.App.Views
 
                 Follow();
             };
+
+            ChainEditor.SizeChanged += (_, _) => FitOutput();
+            ChainForm.SizeChanged += (_, _) => FitOutput();
+        }
+
+        /// <summary>The shortest the chain output gets, however little room the section leaves it.</summary>
+        private const double OutputMinHeight = 200;
+
+        /// <summary>
+        ///  Makes the chain output as tall as the editor has room for below the fields above it.
+        /// </summary>
+        /// <remarks>
+        ///  Done here rather than with a star row: the editor is a scroll viewer, which measures
+        ///  its content with unlimited height, so nothing inside it can fill the viewport by
+        ///  layout alone. Below the floor the log stops shrinking and the editor scrolls instead.
+        ///  Setting the height resizes the form and calls back in here, where the same sum comes
+        ///  out and nothing changes, so it settles after one pass.
+        /// </remarks>
+        private void FitOutput()
+        {
+            double rest = ChainForm.Bounds.Height - ChainOutput.Bounds.Height;
+            double height = Math.Max(OutputMinHeight, ChainEditor.Viewport.Height - rest);
+
+            if (Math.Abs(ChainOutput.Height - height) > 0.5 || double.IsNaN(ChainOutput.Height))
+            {
+                ChainOutput.Height = height;
+            }
         }
 
         private void ModelChanged(object? sender, PropertyChangedEventArgs e)

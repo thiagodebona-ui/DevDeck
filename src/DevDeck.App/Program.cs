@@ -48,6 +48,12 @@ namespace DevDeck.App
 
             App.Arrived = request;
 
+            // Listening now, not once the window exists. A first launch can take seconds to draw
+            // anything, and a user who clicks again in that gap would otherwise find nobody
+            // listening and start a second deck. What arrives early waits in App until the window
+            // is there to act on it.
+            SingleInstance.Listen(App.Receive);
+
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
             return 0;

@@ -6,6 +6,9 @@
     <AssemblyName>DevDeck</AssemblyName>
     <RootNamespace>DevDeck.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Embedded in the executable too, not only set on the window: Explorer, a pinned taskbar
+         entry and a shortcut all read the icon from the file, and showed the generic one. -->
+    <ApplicationIcon>Assets\DevDeck.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
@@ -30,6 +33,11 @@
        `dotnet build` or `dotnet run`, which have no runtime identifier. -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <SelfContained>true</SelfContained>
+    <!-- Precompiled, so a first launch is not the JIT and the virus scanner fighting over the same
+         freshly written files: measured on Windows with Defender for Endpoint, a new copy showed
+         its window after 5s instead of 14s, and warm starts went from 2.3s to under 2s. Costs
+         about 17 MB. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
     <LauncherFolder>lib</LauncherFolder>
     <LauncherTarget Condition="$(RuntimeIdentifier.StartsWith('win'))">$(LauncherFolder)\$(AssemblyName).dll</LauncherTarget>
     <LauncherTarget Condition="!$(RuntimeIdentifier.StartsWith('win'))">$(LauncherFolder)/$(AssemblyName).dll</LauncherTarget>

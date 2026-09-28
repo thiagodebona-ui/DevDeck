@@ -1,5 +1,22 @@
 ﻿# Changelog
 
+## 1.0.0
+
+The first stable release. The version starts again at 1.0.0: "3" counted internal rewrites, not
+releases, and this is the first one meant for everyone. If you are on 3.0.0-alpha.1, download this
+one by hand - that build reads 1.0.0 as older and will not offer it.
+
+- **A new icon**, in the app's own steel and gold, and now embedded in the executable as well, so
+  Explorer, shortcuts and a pinned taskbar entry show it instead of the generic one.
+- **The chain output grows with the chains section.** Dragging the grip down makes the log taller,
+  instead of only adding empty space under a log that stayed 320 pixels high.
+- **Check for updates works.** It was asking a repository the releases are not published to, so it
+  could never find one.
+- **Faster first launch.** The app is precompiled, so a new copy shows its window in about 5s
+  instead of 14s on a machine with a virus scanner, and warm starts are quicker too.
+- **A second click during startup no longer opens a second deck.** DevDeck listens for a later
+  copy from the moment it starts rather than once its window is up.
+
 ## 3.0.0-alpha.1
 
 The V3 rebuild, from a shell with one working panel to a complete deck.
