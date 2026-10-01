@@ -101,6 +101,18 @@
         public const string PreviousExit = "DEVDECK_PREVIOUS_EXIT";
 
         /// <summary>
+        ///  A folder holding every earlier step's output, one file per step: step1.txt, step2.txt.
+        /// </summary>
+        /// <remarks>
+        ///  The way past the one-hop rule below. "Run three checks, then report on all of them" is
+        ///  the commonest chain there is, and the report step only ever saw the third check. Files
+        ///  rather than more variables, because the environment block has a hard size limit and
+        ///  three outputs would blow through it - and because files are numbered, so the report
+        ///  knows which output is which, which is the objection to accumulating variables.
+        /// </remarks>
+        public const string Outputs = "DEVDECK_CHAIN_OUTPUTS";
+
+        /// <summary>
         ///  How much of the previous step's output is passed on, in characters.
         /// </summary>
         /// <remarks>
@@ -145,7 +157,8 @@
             int steps = 0,
             string? previousName = null,
             string? previousOutput = null,
-            int previousExit = 0)
+            int previousExit = 0,
+            string? outputs = null)
         {
             Dictionary<string, string> given = new()
             {
@@ -156,6 +169,11 @@
                 // wants "what started me" should not have to know which of two names to look at.
                 [WatchName] = chain,
             };
+
+            if (outputs is { Length: > 0 })
+            {
+                given[Outputs] = outputs;
+            }
 
             if (steps > 0)
             {

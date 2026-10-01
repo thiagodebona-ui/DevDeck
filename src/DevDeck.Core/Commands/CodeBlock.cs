@@ -51,7 +51,8 @@ namespace DevDeck.Core
                     }
                     else
                     {
-                        language = trimmed[Fence.Length..].Trim();
+                        // Only the language: a chain's commands carry name="..." on the same line.
+                        language = ChainPlan.LanguageOf(trimmed[Fence.Length..]);
                     }
 
                     inside = !inside;

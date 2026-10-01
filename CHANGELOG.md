@@ -1,5 +1,18 @@
 ﻿# Changelog
 
+## 1.2.3
+
+- **The Assistant builds chains.** Ask for several commands that work together - "make three
+  commands that check the repository and a chain that reports on them" - and the answer comes
+  with one block per command and a chain block listing the steps. **Create chain** adds the
+  commands to the deck and the chain to Automation, then opens it there. A command already in the
+  deck with the same script is reused rather than added twice; one with a different script is
+  added beside yours under a new name, so your own command is never overwritten.
+- **A chain step can read every earlier step's output.** Each step now gets
+  `DEVDECK_CHAIN_OUTPUTS`, a folder holding what every earlier step printed, as `step1.txt`,
+  `step2.txt` and so on. Before, a step only saw the step just before it, so a final report could
+  not see the first two checks. The folder is removed when the chain ends.
+
 ## 1.2.2
 
 - **A command that a chain or a watch runs cannot be deleted.** The delete button is off for it,

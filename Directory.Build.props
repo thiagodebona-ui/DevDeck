@@ -8,7 +8,7 @@
          not change underneath the code when a newer SDK is installed. -->
     <LangVersion>14</LangVersion>
     <!-- The single source of truth for the version, as in V2. -->
-    <Version>1.2.2</Version>
+    <Version>1.2.3</Version>
     <Product>DevDeck</Product>
     <!-- Keep the build warning-free: nullable problems fail rather than accumulate. -->
     <WarningsAsErrors>nullable</WarningsAsErrors>

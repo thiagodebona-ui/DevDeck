@@ -299,7 +299,7 @@
                               <Border DockPanel.Dock="Bottom" Padding="10,7"
                                       IsVisible="{Binding ShowsActions}"
                                       BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
-                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                   <TextBlock Grid.Column="0" Text="{Binding Caption}" FontSize="11"
                                              VerticalAlignment="Center"
                                              Foreground="{DynamicResource TextFaint}" />
@@ -308,11 +308,21 @@
                                        is the Turn. Casting that to the view model silently yields
                                        nothing and leaves both buttons dead. -->
                                   <Button Grid.Column="1" Classes="small" Content="{loc:T AssistantAddAsCommand}"
+                                          IsVisible="{Binding IsScript}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).AddAsCommandCommand}"
                                           CommandParameter="{Binding}" />
                                   <Button Grid.Column="2" Classes="small go" Margin="6,0,0,0"
+                                          IsVisible="{Binding IsScript}"
                                           Content="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunLabel}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunCodeCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <!-- The chain block is a list of names, so instead of Run it has the
+                                       one action that makes sense of it: add the commands above it to
+                                       the deck, and the chain to the automation page. -->
+                                  <Button Grid.Column="3" Classes="small go"
+                                          IsVisible="{Binding IsChain}"
+                                          Content="{loc:T AssistantCreateChain}"
+                                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CreateChainCommand}"
                                           CommandParameter="{Binding}" />
                                 </Grid>
                               </Border>

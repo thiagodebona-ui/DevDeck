@@ -229,6 +229,7 @@ namespace DevDeck.App.Localisation
             "AssistantCopyThisMessage",
             "AssistantCopyWholeConversation",
             "AssistantAddAsCommand",
+            "AssistantCreateChain",
             "AssistantAskItSomething",
             "AssistantAnyCodeItWritesGetsA",
             "AssistantRunThisScriptNow",
@@ -601,6 +602,10 @@ namespace DevDeck.App.Localisation
             "AiContextWindow",
             "AiContextTight",
             "AiNoCommandInAnswer",
+            "AiNoChainInAnswer",
+            "AiChainCreated",
+            "AiChainMissing",
+            "AiChainRenamed",
             "AiConfirmBlurb",
             "AiNotRun",
             "AiNeedWorkspace",
@@ -1185,6 +1190,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Add as command</summary>
         public string AssistantAddAsCommand => Strings.Text("AssistantAddAsCommand");
+
+        /// <summary>Create chain</summary>
+        public string AssistantCreateChain => Strings.Text("AssistantCreateChain");
 
         /// <summary>Ask it something.</summary>
         public string AssistantAskItSomething => Strings.Text("AssistantAskItSomething");
@@ -2301,6 +2309,18 @@ namespace DevDeck.App.Localisation
 
         /// <summary>That answer did not contain a command to save.</summary>
         public string AiNoCommandInAnswer => Strings.Text("AiNoCommandInAnswer");
+
+        /// <summary>There is no chain in this answer to create.</summary>
+        public string AiNoChainInAnswer => Strings.Text("AiNoChainInAnswer");
+
+        /// <summary>Created the chain "{0}" with {1} steps, and added {2} new commands to </summary>
+        public string AiChainCreated => Strings.Text("AiChainCreated");
+
+        /// <summary>These steps name commands the deck does not have: {0}. The chain marks</summary>
+        public string AiChainMissing => Strings.Text("AiChainMissing");
+
+        /// <summary>"{0}" is already in the deck with a different script, so this one was </summary>
+        public string AiChainRenamed => Strings.Text("AiChainRenamed");
 
         /// <summary>This was written by a model. It runs in {0} with your account - read i</summary>
         public string AiConfirmBlurb => Strings.Text("AiConfirmBlurb");

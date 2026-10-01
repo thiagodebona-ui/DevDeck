@@ -844,12 +844,28 @@ namespace DevDeck.App.ViewModels
         {
             CommandChain chain = new()
             {
-                Name = Unique(Strings.Text("AutoNewChain")),
+                Name = Strings.Text("AutoNewChain"),
 
                 // Seeded with what is selected in the deck, since a chain is nearly always started
                 // from a command the user was already looking at.
                 Steps = deck.Selected is { } current ? [current.Name] : [],
             };
+
+            Add(chain);
+        }
+
+        /// <summary>
+        ///  Puts a chain on the page and selects it - from New chain, or from the assistant.
+        /// </summary>
+        /// <remarks>
+        ///  The name is made unique here rather than by the caller, so a chain the assistant asks
+        ///  for twice arrives as "Report 2" instead of a second "Report" that Run cannot tell apart
+        ///  from the first. The section is opened too: a chain added to a folded section looks, from
+        ///  the assistant's side, like nothing happened.
+        /// </remarks>
+        public ChainItem Add(CommandChain chain)
+        {
+            chain.Name = Unique(chain.Name);
 
             settings.Chains.Add(chain);
 
@@ -857,10 +873,13 @@ namespace DevDeck.App.ViewModels
 
             Chains.Add(item);
             SelectedChain = item;
+            ChainsOpen = true;
 
             OnPropertyChanged(nameof(NoChains));
             settings.Save();
             Check();
+
+            return item;
         }
 
         [RelayCommand]
@@ -949,6 +968,10 @@ namespace DevDeck.App.ViewModels
             string previousOutput = string.Empty;
             int previousExit = 0;
 
+            // Every step's output, for a step that needs more than the one before it. Gone when
+            // the run ends, however it ends.
+            using ChainOutputs? outputs = ChainOutputs.Create();
+
             try
             {
                 foreach (string step in chain.Source.Steps)
@@ -1022,7 +1045,8 @@ namespace DevDeck.App.ViewModels
                             total,
                             previousName,
                             previousOutput,
-                            previousExit));
+                            previousExit,
+                            outputs?.Folder));
 
                         // The command hands its output over in batches at background priority,
                         // so the last one can still be queued when the run returns. Waiting
@@ -1044,6 +1068,8 @@ namespace DevDeck.App.ViewModels
                     previousName = command.Name;
                     previousOutput = command.Tail(StepOutputLines);
                     previousExit = command.LastExitCode;
+
+                    outputs?.Write(at, previousOutput);
 
                     if (command.State == RunState.Failed && chain.StopOnFailure)
                     {

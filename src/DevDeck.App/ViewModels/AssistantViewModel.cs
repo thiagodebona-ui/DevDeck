@@ -34,13 +34,33 @@ namespace DevDeck.App.ViewModels
     /// </remarks>
     internal sealed partial class Segment : ObservableObject
     {
-        public Segment(string text, bool isCode, string language = "", bool showsActions = false)
+        public Segment(string text, bool isCode, string info = "", bool showsActions = false)
         {
             this.text = text;
             IsCode = isCode;
-            Language = language;
+            Info = info;
+            Language = ChainPlan.LanguageOf(info);
+            Name = ChainPlan.NameOf(info);
+            IsChain = isCode && ChainPlan.IsChainFence(info);
             ShowsActions = showsActions;
         }
+
+        /// <summary>The whole fence line after the backticks: powershell name="Count files".</summary>
+        public string Info { get; }
+
+        /// <summary>The name the model gave this block, for a chain's commands. Empty otherwise.</summary>
+        public string Name { get; }
+
+        /// <summary>
+        ///  Whether this is the block that defines a chain.
+        /// </summary>
+        /// <remarks>
+        ///  It gets Create chain instead of Run and Add: it is a list of names, not a script, and
+        ///  running it as one would hand "steps:" to cmd.exe.
+        /// </remarks>
+        public bool IsChain { get; }
+
+        public bool IsScript => !IsChain;
 
         /// <summary>
         ///  Whether this block carries Run and Add.
@@ -59,8 +79,9 @@ namespace DevDeck.App.ViewModels
 
         public string Language { get; }
 
-        /// <summary>The label under a code block, e.g. "powershell" or "shell".</summary>
-        public string Caption => Language.Length > 0 ? Language : "code";
+        /// <summary>The label under a code block, e.g. "powershell" or "powershell · Count files".</summary>
+        public string Caption => (Language.Length > 0 ? Language : "code")
+            + (Name.Length > 0 ? $" · {Name}" : string.Empty);
     }
 
     /// <summary>One turn in the conversation.</summary>
@@ -215,7 +236,7 @@ namespace DevDeck.App.ViewModels
                     // Same kind and same language means the same block, one token longer. Setting
                     // the text keeps the control and its buttons exactly where they were.
                     if (existing.IsCode == fresh.IsCode
-                        && existing.Language == fresh.Language
+                        && existing.Info == fresh.Info
                         && existing.ShowsActions == fresh.ShowsActions)
                     {
                         if (existing.Text != fresh.Text)
@@ -1507,10 +1528,104 @@ namespace DevDeck.App.ViewModels
 
         private static CustomCommand Build(Segment segment) => new()
         {
-            Name = Name(segment.Text),
+            Name = segment.Name.Length > 0 ? segment.Name : Name(segment.Text),
             Command = segment.Text,
             Kind = CodeBlock.KindFor(segment.Language, segment.Text),
         };
+        #endregion
+
+        #region Chains
+        /// <summary>Puts a chain on the automation page and shows it there. Set by the window.</summary>
+        public Action<CommandChain>? AddChain { get; set; }
+
+        /// <summary>The deck's command of this name, if there is one. Set by the window.</summary>
+        public Func<string, CustomCommand?>? FindCommand { get; set; }
+
+        /// <summary>A command name the deck does not have yet. Set by the window.</summary>
+        public Func<string, string>? UniqueCommandName { get; set; }
+
+        /// <summary>
+        ///  Creates the chain an answer describes: its commands in the deck, then the chain itself.
+        /// </summary>
+        /// <remarks>
+        ///  Read from the whole reply rather than the block the button sits on, because the chain
+        ///  block is only a list of names - the scripts are in the blocks above it.
+        ///
+        ///  A command that is already in the deck under the same name is used as it is when the
+        ///  script is the same, so asking twice does not add it twice. When the script differs it
+        ///  is added beside the existing one under a new name, and the chain points at that: the
+        ///  user's own command is never overwritten by something a model wrote.
+        /// </remarks>
+        [RelayCommand]
+        private void CreateChain(Segment? segment)
+        {
+            if (segment is not { IsChain: true }
+                || Turns.FirstOrDefault(turn => turn.Segments.Contains(segment)) is not { } turn
+                || AddChain is not { } addChain)
+            {
+                return;
+            }
+
+            if (ChainPlan.Parse(turn.Raw.ToString()) is not { } plan)
+            {
+                Say(ChatRole.Notice, Strings.Text("AiNoChainInAnswer"));
+
+                return;
+            }
+
+            Dictionary<string, string> renamed = new(StringComparer.OrdinalIgnoreCase);
+            int added = 0;
+
+            foreach (PlannedCommand planned in plan.Commands)
+            {
+                CustomCommand? existing = FindCommand?.Invoke(planned.Name);
+
+                if (existing is not null && Same(existing.Command, planned.Body))
+                {
+                    continue;
+                }
+
+                CustomCommand command = planned.ToCommand();
+
+                if (existing is not null)
+                {
+                    command.Name = UniqueCommandName?.Invoke(planned.Name) ?? $"{planned.Name} 2";
+                    renamed[planned.Name] = command.Name;
+
+                    Say(ChatRole.Notice, Strings.Format("AiChainRenamed", planned.Name, command.Name));
+                }
+
+                addCommand(command);
+                added++;
+            }
+
+            List<string> steps = [.. plan.Steps.Select(step => renamed.TryGetValue(step, out string? to) ? to : step)];
+
+            List<string> missing = [.. steps
+                .Where(step => FindCommand?.Invoke(step) is null)
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
+
+            CommandChain chain = new()
+            {
+                Name = plan.Name,
+                Steps = steps,
+                StopOnFailure = plan.StopOnFailure,
+            };
+
+            addChain(chain);
+
+            Say(ChatRole.Notice, Strings.Format("AiChainCreated", chain.Name, steps.Count, added));
+
+            if (missing.Count > 0)
+            {
+                Say(ChatRole.Notice, Strings.Format(
+                    "AiChainMissing", string.Join(", ", missing.Select(step => $"\"{step}\""))));
+            }
+        }
+
+        /// <summary>The same script, give or take line endings and trailing space.</summary>
+        private static bool Same(string left, string right) =>
+            left.ReplaceLineEndings("\n").Trim() == right.ReplaceLineEndings("\n").Trim();
         #endregion
 
         /// <summary>Raised when the transcript should be scrolled down. Set by the view.</summary>

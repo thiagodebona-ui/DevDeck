@@ -199,7 +199,9 @@ A chain runs several commands **one after another**, each step waiting for the o
 - **Drag the grip** under the chains section to make it as tall or as short as you like.
 - **Steps can pass values along.** Each step receives the previous step's result as environment
   variables: `DEVDECK_PREVIOUS_LINE` (its last line), `DEVDECK_PREVIOUS` (everything it printed),
-  `DEVDECK_PREVIOUS_EXIT` and more. The example chain *Pass values between steps* shows how: it
+  `DEVDECK_PREVIOUS_EXIT` and more. A step that needs more than the one before it reads
+  `DEVDECK_CHAIN_OUTPUTS`, a folder with every earlier step's output as `step1.txt`, `step2.txt`
+  and so on. The example chain *Pass values between steps* shows how: it
   finds a file, measures it, and reports what it was given.
 - **Example chains** to copy from: *Example: log a message* (hand a file path to the next step),
   *Example: count, double, log* (a number changing as it travels, then logged), *Example: several
@@ -312,6 +314,9 @@ A chat panel for a language model of your choice.
 - Any code it writes comes with a **Run** button, whose output streams back into the conversation,
   and an **Add as command** button that puts it on your deck. It always asks before running
   anything.
+- **It builds chains too.** Ask for several commands that work together and a chain to run them,
+  and **Create chain** adds the commands to your deck and the chain to Automation in one click.
+  The steps it writes can read each other's output (see [Chains](#chains)).
 - **Prompts** keeps a library of reusable prompts, and **History** reopens earlier conversations.
 - The status bar shows the token count, the cost where the price is published, and how full the
   model's context is.

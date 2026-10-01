@@ -46,12 +46,95 @@ namespace DevDeck.Core
                   usual built-in commands.
                 - If the command deletes or overwrites anything, say so plainly in the explanation.
 
+                {Chains()}
+
                 Answer anything else briefly and normally.
                 """;
 
             return workspace.Length > 0
                 ? $"{briefing}{Environment.NewLine}{Environment.NewLine}The current workspace folder is: {workspace}"
                 : briefing;
+        }
+
+        /// <summary>
+        ///  How to hand back a chain: several commands, and the order to run them in.
+        /// </summary>
+        /// <remarks>
+        ///  The variables are spelled out because they are the only way one step can see another,
+        ///  and a model left to guess invents a pipe or a temp file of its own that the chain does
+        ///  not provide. The format is <see cref="ChainPlan"/>'s, and the example is in the
+        ///  machine's own script language so the model copies something that runs here.
+        /// </remarks>
+        private static string Chains()
+        {
+            bool windows = OperatingSystem.IsWindows();
+            string fence = windows ? "powershell" : (ScriptFile.FindBash() is not null ? "bash" : "shell");
+
+            string first = windows
+                ? "(Get-ChildItem -Recurse -File).Count"
+                : "find . -type f | wc -l";
+
+            string report = windows
+                ? """
+                  $folder = $env:DEVDECK_CHAIN_OUTPUTS
+                  $files = Get-Content (Join-Path $folder 'step1.txt') -Raw
+                  $todos = Get-Content (Join-Path $folder 'step2.txt') -Raw
+                  "Files: $($files.Trim())"
+                  "TODOs: $($todos.Trim())"
+                  """
+                : """
+                  folder="$DEVDECK_CHAIN_OUTPUTS"
+                  echo "Files: $(cat "$folder/step1.txt")"
+                  echo "TODOs: $(cat "$folder/step2.txt")"
+                  """;
+
+            string todos = windows
+                ? "(Get-ChildItem -Recurse -File | Select-String -Pattern 'TODO').Count"
+                : "grep -r TODO . | wc -l";
+
+            return $"""
+                When you are asked for a chain - several commands run one after another, an
+                automation, or commands whose output feeds another - answer with:
+                - One fenced block per command, with its name on the fence line: ```{fence} name="Count files"
+                  Give every command a short, distinct name.
+                - Then exactly one ```{ChainPlan.Fence} block: a "name:" line, a "stop-on-failure:"
+                  line (true or false), and a "steps:" list of command names in the order they run.
+                  A step may also name a command the user already has.
+
+                A step can read what earlier steps printed, through environment variables:
+                - DEVDECK_PREVIOUS        everything the step just before printed
+                - DEVDECK_PREVIOUS_LINE   the last non-empty line the step just before printed
+                - DEVDECK_PREVIOUS_EXIT   that step's exit code, "0" for success
+                - DEVDECK_CHAIN_OUTPUTS   a folder holding every earlier step's output, as
+                                          step1.txt, step2.txt and so on, numbered by position
+                - DEVDECK_STEP            this step's position, counting from 1
+                A step that combines the output of several others must read DEVDECK_CHAIN_OUTPUTS;
+                DEVDECK_PREVIOUS only ever holds the one step before. Steps that produce values
+                should print just the value, so the step that reads them does not have to parse.
+
+                For example:
+
+                ```{fence} name="Count files"
+                {first}
+                ```
+
+                ```{fence} name="Count TODOs"
+                {todos}
+                ```
+
+                ```{fence} name="Report"
+                {report}
+                ```
+
+                ```{ChainPlan.Fence}
+                name: Repository report
+                stop-on-failure: true
+                steps:
+                - Count files
+                - Count TODOs
+                - Report
+                ```
+                """;
         }
 
         /// <summary>Only the fences that this machine can actually run.</summary>

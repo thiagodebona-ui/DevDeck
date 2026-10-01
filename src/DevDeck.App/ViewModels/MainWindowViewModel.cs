@@ -148,6 +148,17 @@ namespace DevDeck.App.ViewModels
             Automation = new AutomationViewModel(settings, commands);
 
             commands.Renamed = Automation.Renamed;
+
+            // A chain the assistant wrote lands where chains live, and the page opens on it - the
+            // same as a command it wrote landing in the deck.
+            assistant.AddChain = chain =>
+            {
+                Automation.Add(chain);
+                Show("Automation");
+            };
+            assistant.FindCommand = name => commands.Commands.FirstOrDefault(
+                command => command.Name.Equals(name, StringComparison.OrdinalIgnoreCase))?.Source;
+            assistant.UniqueCommandName = commands.UniqueName;
             commands.WorkspaceChanged = Automation.Reload;
 
             // A long command is one the user walked away from, so finishing it is news. Anything
