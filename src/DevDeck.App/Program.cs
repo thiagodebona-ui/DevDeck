@@ -35,6 +35,11 @@ namespace DevDeck.App
             // below would find that copy still listening and hand it a "show" instead of opening.
             args = Relaunch.AwaitPredecessor(args);
 
+            // Taken off before the link parser sees it, which would otherwise read it as a request
+            // for nothing in particular and be right only by accident.
+            args = AutoStart.Strip(args, out bool atSignIn);
+            App.StartMinimised = atSignIn;
+
             // Whatever this copy was asked to do, before deciding whether this copy is the one that
             // will do it.
             LinkRequest request = DeepLink.FromArguments(args);

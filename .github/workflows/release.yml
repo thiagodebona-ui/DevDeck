@@ -71,10 +71,27 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+
+      # The release notes are this version's section of CHANGELOG.md - the same words the app's
+      # Changelog page shows - rather than a list of commit titles.
+      - name: Release notes from the changelog
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          awk -v v="$version" '
+            $0 ~ "^## v?" v "[[:space:]]*$" { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md | sed -e '1{/^$/d}' > notes.md
+          if [ ! -s notes.md ]; then echo "See CHANGELOG.md." > notes.md; fi
+          cat notes.md
 
       # Not marked pre-release, on purpose: GitHub's /releases/latest/download/... links, which the
       # README uses, skip pre-releases, and would then point at nothing.
@@ -83,5 +100,5 @@ jobs:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           name: DevDeck ${{ github.event.inputs.tag || github.ref_name }}
           make_latest: 'true'
-          generate_release_notes: true
+          body_path: notes.md
           files: dist/*

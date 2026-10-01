@@ -1,5 +1,18 @@
 ﻿# Changelog
 
+## 1.2.0
+
+- **A Changelog page.** A new section in the rail lists what every version brought, read from the
+  changelog built into the app, so it works offline. The first time a new version starts, it opens
+  on this page once. **Check for newer versions** adds what is waiting in any release you have not
+  installed yet, and links to its download.
+- **Start with the system.** Settings > Behaviour has a new switch: **Start DevDeck when I sign in**.
+  It is for your user only, and opens the deck minimised so it does not get in front of anything.
+  On Windows this is an entry under the registry's Run key, and on Linux an autostart file. Turning
+  it off removes it, and the tick box always shows what the system really has.
+- **Update checks show what changed.** When Settings finds a newer build, it lists the changelog of
+  every version between yours and that one, not just the version number.
+
 ## 1.1.0
 
 - **Examples of parameters and chains.** Nine small `Example:` commands - say hello with a

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
              x:Class="DevDeck.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -83,6 +84,11 @@
             </StackPanel>
             <CheckBox IsChecked="{Binding ConfirmPowerActions}" Content="{loc:T SettingsAskBeforePowerActions}" />
             <CheckBox IsChecked="{Binding AutoScrollLog}" Content="{loc:T SettingsFollowOutputAsItArrives}" />
+            <CheckBox IsChecked="{Binding StartWithSystem}" IsEnabled="{Binding CanAutoStart}"
+                      Content="{loc:T SetAutoStart}" />
+            <TextBlock Classes="note" Margin="24,0,0,0" Text="{Binding AutoStartNote}" />
+            <TextBlock Classes="note" Margin="24,0,0,0" Text="{Binding AutoStartStatus}"
+                       IsVisible="{Binding AutoStartStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <TextBlock Classes="note"
                        Text="{loc:T SettingsNotSleepingAndNotLockingAre}" />
           </StackPanel>
@@ -312,16 +318,33 @@
             <TextBlock Classes="note" Text="{Binding UpdateStatus}"
                        IsVisible="{Binding UpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
+            <!-- Every version between this build and the newest, so someone two releases behind
+                 reads both before deciding. -->
+            <StackPanel Spacing="8" IsVisible="{Binding HasChanges}">
+              <TextBlock Classes="label" Text="{loc:T SetWhatsNew}" />
+              <Border Background="{DynamicResource Ink}" BorderBrush="{DynamicResource Line}"
+                      BorderThickness="1" CornerRadius="2" Padding="12,10" MaxHeight="320">
+                <ScrollViewer>
+                  <ItemsControl ItemsSource="{Binding Changes}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="core:ChangelogEntry">
+                        <StackPanel Spacing="4" Margin="0,0,0,12">
+                          <TextBlock Text="{Binding Version}" FontWeight="SemiBold" FontSize="12.5"
+                                     Foreground="{DynamicResource Text}" />
+                          <SelectableTextBlock Text="{Binding Notes}" FontSize="11.5"
+                                               TextWrapping="Wrap" LineHeight="18"
+                                               Foreground="{DynamicResource TextMuted}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+
           </StackPanel>
         </Border>
 
-        <Border Classes="card">
-          <StackPanel Spacing="10">
-            <TextBlock Classes="group" Text="{loc:T SettingsNotBuiltYet}" />
-            <TextBlock Classes="note"
-                       Text="{loc:T SettingsStartingWithTheSystemIsStill}" />
-          </StackPanel>
-        </Border>
 
         <!-- Last, and edged in the warning colour. Nothing else on this page loses work, so the
              one control that does should not sit in the run of ordinary cards where a stray click

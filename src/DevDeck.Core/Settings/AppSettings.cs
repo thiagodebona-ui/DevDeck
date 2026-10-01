@@ -62,6 +62,12 @@ namespace DevDeck.Core
         public bool OfferAiSetup { get; set; } = true;
 
         /// <summary>
+        ///  The version whose changelog the user has been shown. A build that differs opens on the
+        ///  Changelog page once, so an update always says what it brought.
+        /// </summary>
+        public string LastSeenVersion { get; set; } = string.Empty;
+
+        /// <summary>
         ///  Endpoint, model and key of the provider in use, mirrored out of <see cref="AiProfiles"/>
         ///  on every save.
         /// </summary>

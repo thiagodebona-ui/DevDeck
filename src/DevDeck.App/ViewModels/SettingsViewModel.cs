@@ -209,6 +209,7 @@ namespace DevDeck.App.ViewModels
             OnPropertyChanged(nameof(Storage));
             OnPropertyChanged(nameof(SchemeNote));
             OnPropertyChanged(nameof(HotkeyNote));
+            OnPropertyChanged(nameof(AutoStartNote));
 
             settings.Language = value.Id;
             Save();
@@ -359,6 +360,38 @@ namespace DevDeck.App.ViewModels
             HasShim = CliShim.Exists;
         }
 
+        #region Starting with the system
+        /// <summary>Whether this platform can be set to start the deck at sign-in.</summary>
+        public bool CanAutoStart => AutoStart.IsAvailable;
+
+        public string AutoStartNote => CanAutoStart
+            ? Strings.Text("SetAutoStartNote")
+            : Strings.Text("SetAutoStartCannot");
+
+        /// <summary>Read from the system, not the settings file, so it shows what is true.</summary>
+        [ObservableProperty]
+        private bool startWithSystem = AutoStart.IsEnabled;
+
+        [ObservableProperty]
+        private string autoStartStatus = string.Empty;
+
+        partial void OnStartWithSystemChanged(bool value)
+        {
+            SchemeResult result = AutoStart.Set(value);
+
+            AutoStartStatus = result.Message;
+
+            // Put the tick back to what the system now says, so a refusal does not leave a box
+            // claiming something that did not happen. SetProperty raises nothing when it matches.
+            bool actual = AutoStart.IsEnabled;
+
+            if (actual != value)
+            {
+                Dispatcher.UIThread.Post(() => StartWithSystem = actual);
+            }
+        }
+        #endregion
+
         #region The key that works from anywhere
         /// <summary>Claims the hotkey. Set by the app, which owns the window to raise.</summary>
         /// <remarks>
@@ -440,6 +473,11 @@ namespace DevDeck.App.ViewModels
 
         public bool HasUpdate => UpdateUrl.Length > 0;
 
+        /// <summary>What every version between this build and the newest one changed.</summary>
+        public ObservableCollection<ChangelogEntry> Changes { get; } = [];
+
+        public bool HasChanges => Changes.Count > 0;
+
         /// <summary>Opens the release page. Set by the view, which owns the top level.</summary>
         public Action<string>? OpenUrl { get; set; }
 
@@ -449,6 +487,8 @@ namespace DevDeck.App.ViewModels
             IsChecking = true;
             UpdateStatus = "Asking…";
             UpdateUrl = string.Empty;
+            Changes.Clear();
+            OnPropertyChanged(nameof(HasChanges));
 
             try
             {
@@ -462,6 +502,22 @@ namespace DevDeck.App.ViewModels
                 {
                     UpdateUrl = found.Url;
                     UpdateStatus = Strings.Format("SetUpdateAvailable", found.Version, AppVersion.Display);
+
+                    IReadOnlyList<ChangelogEntry> changes = await Changelog.SinceAsync(found.Version, CancellationToken.None);
+
+                    // The release's own notes when the changelog could not be read or does not
+                    // mention it, so a newer build never arrives with nothing said about it.
+                    if (changes.Count == 0 && found.Notes.Trim().Length > 0)
+                    {
+                        changes = [new ChangelogEntry(found.Version.TrimStart('v', 'V'), Changelog.Plain(found.Notes))];
+                    }
+
+                    foreach (ChangelogEntry change in changes)
+                    {
+                        Changes.Add(change);
+                    }
+
+                    OnPropertyChanged(nameof(HasChanges));
                 }
                 else
                 {

@@ -72,6 +72,10 @@ namespace DevDeck.App
             "M2.5 5.2 H13.5 M2.5 10.8 H13.5 "
             + "M6.6 5.2 A1.5 1.5 0 1 1 6.59 5.2 Z M10.4 10.8 A1.5 1.5 0 1 1 10.39 10.8 Z");
 
+        /// <summary>A framed page of notes: what each version changed.</summary>
+        public static readonly Geometry Changelog = Geometry.Parse(
+            "M3.4 2.2 H12.6 V13.8 H3.4 Z M5.6 5 H10.4 M5.6 7.6 H10.4 M5.6 10.2 H8.4");
+
         /// <summary>A triangle pointing right, for every button that starts something.</summary>
         public static readonly Geometry Run = Geometry.Parse(
             "M4.5 2.8 L12.5 8 L4.5 13.2 Z");

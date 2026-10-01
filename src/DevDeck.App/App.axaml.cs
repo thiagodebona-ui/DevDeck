@@ -21,6 +21,9 @@ namespace DevDeck.App
         /// </remarks>
         internal static LinkRequest Arrived { get; set; } = LinkRequest.Nothing;
 
+        /// <summary>Whether this copy was started by signing in, and should open out of the way.</summary>
+        internal static bool StartMinimised { get; set; }
+
         private static readonly object handoffLock = new();
 
         private static readonly Queue<string> early = new();
@@ -89,9 +92,12 @@ namespace DevDeck.App
 
                 MainWindowViewModel model = new(settings);
 
+                // Minimised rather than hidden at sign-in: the deck is there on the taskbar and in
+                // the tray, but not in front of whatever the user logged in to do.
                 desktop.MainWindow = new MainWindow
                 {
                     DataContext = model,
+                    WindowState = StartMinimised ? WindowState.Minimized : WindowState.Normal,
                 };
 
                 // After the window is assigned, so anything the request does - switching section,

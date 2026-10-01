@@ -186,9 +186,21 @@ namespace DevDeck.App.ViewModels
                 new("Log", "NavLog", "NavLogBlurb", Icons.Log, new LogViewModel()),
                 new("Memory/CPU", "NavMemory", MemoryBlurb(), Icons.Memory, Memory),
                 new("Settings", "NavSettings", "NavSettingsBlurb", Icons.Settings, Preferences),
+                new("Changelog", "NavChangelog", "NavChangelogBlurb", Icons.Changelog, new ChangelogViewModel()),
             };
 
             selected = Sections[0];
+
+            // The first start of a new version opens on what it brought, once. An empty value is
+            // treated as different too: every build before this one wrote none, and those are
+            // exactly the users an update should tell.
+            if (settings.LastSeenVersion != AppVersion.Number)
+            {
+                selected = Sections.First(section => section.Name == "Changelog");
+
+                settings.LastSeenVersion = AppVersion.Number;
+                settings.Save();
+            }
 
             // The rail's busy mark. Hooked up after Sections exists, because the handler needs to
             // find the section it is about - and the deck is constructed well before the rail is.

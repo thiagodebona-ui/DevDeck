@@ -43,6 +43,9 @@
     <DataTemplate DataType="vm:SettingsViewModel">
       <views:SettingsView />
     </DataTemplate>
+    <DataTemplate DataType="vm:ChangelogViewModel">
+      <views:ChangelogView />
+    </DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>

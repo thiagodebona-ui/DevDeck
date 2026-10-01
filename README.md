@@ -1,12 +1,32 @@
+<div align="center">
+
+<img src="docs/images/icon.png" alt="DevDeck" width="168" />
+
 # DevDeck
 
-**Your everyday developer commands, one click away — no terminal hunting.**
+### Your everyday developer commands, one click away — no terminal hunting.
 
-DevDeck is a free desktop app for Windows that keeps the commands and scripts you run every day on
-a deck of buttons. Click one and it runs, with its output streaming live in the window. Around the
-deck sit the tools developers reach for all day: an HTTP client, a view of what is listening on
-your ports, automation that runs commands for you, a clipboard history, a text toolbox, a memory
-and CPU monitor, and an AI assistant that can work with your own local model.
+DevDeck is a free desktop app that keeps the commands and scripts you run every day on a deck of
+buttons. Click one and it runs, with its output streaming live in the window. Around the deck sit
+the tools developers reach for all day: an HTTP client, a view of what is listening on your ports,
+automation that runs commands for you, a clipboard history, a text toolbox, a memory and CPU
+monitor, and an AI assistant that can work with **your own local model**.
+
+<br />
+
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-latest-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
+[![UI](https://img.shields.io/badge/UI-Avalonia%2012-8B44AC?logo=avaloniaui&logoColor=white)](https://avaloniaui.net/)
+[![MVVM](https://img.shields.io/badge/MVVM-CommunityToolkit-0078D4)](https://github.com/CommunityToolkit/dotnet)
+[![Assistant](https://img.shields.io/badge/Assistant-Ollama%20%7C%20OpenAI--compatible-000000?logo=ollama&logoColor=white)](#assistant)
+[![Storage](https://img.shields.io/badge/Storage-JSON%20%2B%20encrypted%20vault-F7A41D)](#where-your-data-lives)
+<br />
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-2EA44F)](#download)
+[![Tests](https://img.shields.io/badge/Tests-xUnit-5E2B97)](tests/DevDeck.Core.Tests)
+[![Release](https://img.shields.io/github/v/release/thiagodebona-ui/DevDeck?label=Release&color=D4A017)](https://github.com/thiagodebona-ui/DevDeck/releases/latest)
+[![License](https://img.shields.io/badge/License-MIT%20%2B%20Commons%20Clause-blue)](LICENSE)
+
+</div>
 
 Everything runs on your machine. Nothing you type, paste or run is sent anywhere unless you point
 the Assistant or the HTTP client at a server yourself.
@@ -24,7 +44,7 @@ the Assistant or the HTTP client at a server yourself.
 - [Features at a glance](#features-at-a-glance)
 - [Commands](#commands) · [Automation](#automation) · [HTTP](#http) · [Running](#running) ·
   [Toolbox](#toolbox) · [Clipboard](#clipboard) · [Assistant](#assistant) ·
-  [Memory/CPU](#memorycpu) · [Log](#log) · [Settings](#settings)
+  [Memory/CPU](#memorycpu) · [Log](#log) · [Settings](#settings) · [Changelog](#changelog)
 - [Reaching DevDeck from anywhere](#reaching-devdeck-from-anywhere)
 - [Where your data lives](#where-your-data-lives)
 - [Building from source](#building-from-source)
@@ -325,10 +345,19 @@ each command. Filter it, show *Problems only*, or **Copy all** to paste into a b
   keep you shown as **available** in chat apps.
 - **Tell me when it is done:** a notification when a long command finishes, for any run over a
   time you choose.
+- **Start DevDeck when I sign in**, for your user only. It opens minimised, so it is ready
+  without getting in front of anything. Turn it off and the startup entry is removed.
 - **Global hotkey** to bring DevDeck to the front from anywhere.
 - **Secrets:** add, view the names of, and remove the values used by `{{secret:NAME}}`.
 - **Reset everything** to the defaults. Your old settings are kept beside the new ones with a date
   in the name, and DevDeck restarts itself on the fresh settings.
+
+## Changelog
+
+The **Changelog** page, at the bottom of the rail, lists what every version brought. It is built
+into the app, so it works offline. The first time a new version starts, DevDeck opens on this page
+once. **Check for newer versions** adds what is in any release you have not installed yet, with a
+link to download it. The same notes are in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

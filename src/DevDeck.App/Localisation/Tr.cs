@@ -518,8 +518,20 @@ namespace DevDeck.App.Localisation
             "SettingsAsksTheReleasePageWhetherThere",
             "SettingsCheckNow",
             "SettingsOpenTheReleasePage",
-            "SettingsNotBuiltYet",
-            "SettingsStartingWithTheSystemIsStill",
+            "SetWhatsNew",
+            "SetAutoStart",
+            "SetAutoStartNote",
+            "SetAutoStartCannot",
+            "SetAutoStartOn",
+            "SetAutoStartOff",
+            "SetAutoStartFailed",
+            "NavChangelog",
+            "NavChangelogBlurb",
+            "ChangelogThisVersion",
+            "ChangelogNotInstalled",
+            "ChangelogCheck",
+            "ChangelogAsking",
+            "ChangelogEmpty",
             "ConfirmTitle",
             "SettingsStartOver",
             "SettingsResetExplains",
@@ -2027,11 +2039,47 @@ namespace DevDeck.App.Localisation
         /// <summary>Open the release page</summary>
         public string SettingsOpenTheReleasePage => Strings.Text("SettingsOpenTheReleasePage");
 
-        /// <summary>Not built yet</summary>
-        public string SettingsNotBuiltYet => Strings.Text("SettingsNotBuiltYet");
+        /// <summary>What's new</summary>
+        public string SetWhatsNew => Strings.Text("SetWhatsNew");
 
-        /// <summary>Starting with the system is still to come. It is left out here rather </summary>
-        public string SettingsStartingWithTheSystemIsStill => Strings.Text("SettingsStartingWithTheSystemIsStill");
+        /// <summary>Start DevDeck when I sign in</summary>
+        public string SetAutoStart => Strings.Text("SetAutoStart");
+
+        /// <summary>For your user only. It opens minimised, so it is ready on the taskbar </summary>
+        public string SetAutoStartNote => Strings.Text("SetAutoStartNote");
+
+        /// <summary>On macOS a login item belongs to an app bundle. Add DevDeck under Syst</summary>
+        public string SetAutoStartCannot => Strings.Text("SetAutoStartCannot");
+
+        /// <summary>DevDeck will start the next time you sign in.</summary>
+        public string SetAutoStartOn => Strings.Text("SetAutoStartOn");
+
+        /// <summary>DevDeck will no longer start when you sign in.</summary>
+        public string SetAutoStartOff => Strings.Text("SetAutoStartOff");
+
+        /// <summary>Could not change the startup entry: {0}</summary>
+        public string SetAutoStartFailed => Strings.Text("SetAutoStartFailed");
+
+        /// <summary>Changelog</summary>
+        public string NavChangelog => Strings.Text("NavChangelog");
+
+        /// <summary>What each version brought, and what is waiting in a newer one.</summary>
+        public string NavChangelogBlurb => Strings.Text("NavChangelogBlurb");
+
+        /// <summary>This version</summary>
+        public string ChangelogThisVersion => Strings.Text("ChangelogThisVersion");
+
+        /// <summary>Not installed yet</summary>
+        public string ChangelogNotInstalled => Strings.Text("ChangelogNotInstalled");
+
+        /// <summary>Check for newer versions</summary>
+        public string ChangelogCheck => Strings.Text("ChangelogCheck");
+
+        /// <summary>Asking the release page…</summary>
+        public string ChangelogAsking => Strings.Text("ChangelogAsking");
+
+        /// <summary>This build carries no changelog.</summary>
+        public string ChangelogEmpty => Strings.Text("ChangelogEmpty");
 
         /// <summary>Are you sure?</summary>
         public string ConfirmTitle => Strings.Text("ConfirmTitle");

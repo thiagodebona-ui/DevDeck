@@ -7,4 +7,10 @@
     <RootNamespace>DevDeck.Core</RootNamespace>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The changelog travels inside the build, so the Changelog page can say what this version
+         brought without asking the network. -->
+    <EmbeddedResource Include="..\..\CHANGELOG.md" LogicalName="CHANGELOG.md" />
+  </ItemGroup>
 </Project>
