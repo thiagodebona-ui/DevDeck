@@ -5,9 +5,46 @@ using DevDeck.Core;
 
 namespace DevDeck.App.ViewModels
 {
+    /// <summary>One change on the Changelog page, with the mark drawn beside it.</summary>
+    internal sealed record ChangeLine(ChangelogItem Item)
+    {
+        public string Title => Item.Title;
+
+        public string Body => Item.Body;
+
+        public bool HasTitle => Item.Title.Length > 0;
+
+        /// <summary>A tick for a repair, a star for something new. See <see cref="ChangelogItem.IsFix"/>.</summary>
+        public Avalonia.Media.Geometry Icon => Item.IsFix ? Icons.Check : Icons.Star;
+
+        public bool IsFix => Item.IsFix;
+    }
+
     /// <summary>One version on the Changelog page.</summary>
     internal sealed record ChangelogRow(string Version, string Notes, bool IsCurrent, bool IsNewer)
     {
+        /// <summary>When the version came out, from its heading in the changelog.</summary>
+        public DateTime? Released { get; init; }
+
+        /// <summary>Its changes one by one; falls back to the notes as one change for an older format.</summary>
+        public IReadOnlyList<ChangeLine> Lines { get; init; } = [];
+
+        public bool HasReleased => Released is not null;
+
+        /// <summary>"Released 1 Oct 2026, 18:47", in the language the app is in.</summary>
+        public string ReleasedText => Released is { } at
+            ? Strings.Format("ChangelogReleased", at.ToString("d MMM yyyy, HH:mm",
+                System.Globalization.CultureInfo.GetCultureInfo(Strings.Language.Id)))
+            : string.Empty;
+
+        /// <summary>A row for one entry of the changelog.</summary>
+        public static ChangelogRow From(ChangelogEntry entry, bool isCurrent, bool isNewer) =>
+            new(entry.Version, entry.Notes, isCurrent, isNewer)
+            {
+                Released = entry.Released,
+                Lines = [.. (entry.Items is { Count: > 0 } items ? items : Changelog.Items(entry.Notes)).Select(item => new ChangeLine(item))],
+            };
+
         /// <summary>The badge beside the version, if it has one.</summary>
         public string Badge => IsCurrent
             ? Strings.Text("ChangelogThisVersion")
@@ -30,11 +67,7 @@ namespace DevDeck.App.ViewModels
         {
             foreach (ChangelogEntry entry in Changelog.Bundled)
             {
-                Entries.Add(new ChangelogRow(
-                    entry.Version,
-                    entry.Notes,
-                    IsCurrent: entry.Version == AppVersion.Number,
-                    IsNewer: false));
+                Entries.Add(ChangelogRow.From(entry, isCurrent: entry.Version == AppVersion.Number, isNewer: false));
             }
         }
 
@@ -98,7 +131,7 @@ namespace DevDeck.App.ViewModels
 
                 for (int i = 0; i < changes.Count; i++)
                 {
-                    Entries.Insert(i, new ChangelogRow(changes[i].Version, changes[i].Notes, IsCurrent: false, IsNewer: true));
+                    Entries.Insert(i, ChangelogRow.From(changes[i], isCurrent: false, isNewer: true));
                 }
 
                 Status = Strings.Format("SetUpdateAvailable", found.Version, AppVersion.Display);

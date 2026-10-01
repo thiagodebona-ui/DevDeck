@@ -220,5 +220,40 @@ namespace DevDeck.Core.Tests
             // Zero here would mean running on the first of the several events one save produces.
             Assert.True(new WatchRule().QuietMilliseconds > 0);
         }
+
+        /// <summary>A chain saved before steps could be switched off runs every step, as it did.</summary>
+        [Fact]
+        public void EveryStepIsOnUnlessSwitchedOff()
+        {
+            CommandChain chain = new() { Steps = ["Build", "Test", "Build"] };
+
+            Assert.True(chain.IsOn(0) && chain.IsOn(1) && chain.IsOn(2));
+
+            CommandChain read = System.Text.Json.JsonSerializer.Deserialize<CommandChain>("""{"Name":"Old","Steps":["A"]}""")!;
+
+            Assert.Empty(read.SkippedSteps);
+            Assert.True(read.IsOn(0));
+        }
+
+        /// <summary>By position, so one of two runs of the same command can be off.</summary>
+        [Fact]
+        public void OneOfTwoRunsOfACommandCanBeOff()
+        {
+            CommandChain chain = new() { Steps = ["Build", "Test", "Build"], SkippedSteps = [2] };
+
+            Assert.True(chain.IsOn(0));
+            Assert.False(chain.IsOn(2));
+        }
+
+        /// <summary>A step that is off and names nothing does not stop the chain from running.</summary>
+        [Fact]
+        public void AnOffStepThatIsMissingDoesNotBlockARun()
+        {
+            CommandChain chain = new() { Steps = ["Build", "Gone"], SkippedSteps = [1] };
+            CustomCommand[] deck = [new() { Name = "Build" }];
+
+            Assert.Equal(["Gone"], chain.Missing(deck));
+            Assert.Empty(chain.Missing(deck, onlyOn: true));
+        }
     }
 }

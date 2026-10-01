@@ -450,7 +450,44 @@ namespace DevDeck.App.ViewModels
                 item.InUseTip = users.Count > 0
                     ? Strings.Format("CmdInUseRow", string.Join(", ", users))
                     : null;
+                item.Links = LinksOf(item.Name);
             }
+        }
+
+        /// <summary>
+        ///  The chains and watches that run a command, with where in each chain it comes.
+        /// </summary>
+        /// <remarks>
+        ///  A command a chain runs twice gets both positions on its one pill - "Build, test, build"
+        ///  is a real chain, and "1, 3/3" says so where two pills would read as two chains.
+        /// </remarks>
+        private List<CommandLink> LinksOf(string name)
+        {
+            List<CommandLink> links = [];
+
+            foreach (CommandChain chain in settings.Chains)
+            {
+                List<int> at = [];
+
+                for (int step = 0; step < chain.Steps.Count; step++)
+                {
+                    if (chain.Steps[step].Equals(name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        at.Add(step + 1);
+                    }
+                }
+
+                if (at.Count > 0)
+                {
+                    links.Add(new CommandLink(chain.Name, IsWatch: false, $"{string.Join(", ", at)}/{chain.Steps.Count}"));
+                }
+            }
+
+            links.AddRange(settings.Watches
+                .Where(watch => watch.Command.Equals(name, StringComparison.OrdinalIgnoreCase))
+                .Select(watch => new CommandLink(watch.Name, IsWatch: true, string.Empty)));
+
+            return links;
         }
 
         private void DeleteChanged()

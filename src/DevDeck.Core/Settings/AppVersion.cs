@@ -39,8 +39,12 @@ namespace DevDeck.Core
             return Version.TryParse(numeric, out Version? parsed) ? parsed : new Version(0, 0, 0);
         }
 
-        /// <summary>"2.1.0, built 3 Sep 2026" - what the Settings tab shows.</summary>
-        public static string Display => $"Version {Number}, built {Built:d MMM yyyy}";
+        /// <summary>"Version 2.1.0, built 3 Sep 2026 18:47" - what Settings and the Changelog show.</summary>
+        /// <remarks>
+        ///  With the time, because several versions can come out on one day, and a date alone does
+        ///  not say which of them is installed.
+        /// </remarks>
+        public static string Display => $"Version {Number}, built {Built:d MMM yyyy HH:mm}";
 
         private static string Read()
         {

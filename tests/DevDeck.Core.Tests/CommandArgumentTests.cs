@@ -138,5 +138,61 @@ namespace DevDeck.Core.Tests
             Assert.Equal(string.Empty, errors.Trim());
             Assert.Equal(@"got: C:\some where", output.Trim());
         }
+
+        /// <summary>
+        ///  The reported failure: a command with a space in its name, switched to batch, with
+        ///  parameters. cmd.exe /c strips the first and last quote of a line with more than two, and
+        ///  the script's path came apart at its first space - "...\Example_ is not recognized".
+        /// </summary>
+        [Fact]
+        public void ABatchScriptWithASpaceInItsNameAndParametersRuns()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
+
+            CustomCommand command = With(
+                CommandKind.Batch,
+                new CommandArgument { Name = "Name", Value = "Thiaga" },
+                new CommandArgument { Name = "Greeting", Value = "Bom dia" });
+            command.Name = "Example: ask before running";
+            command.Command = "@echo %~2, %~1!";
+
+            Assert.Equal("Bom dia, Thiaga!", Run(command).Output);
+        }
+
+        /// <summary>A command line that starts with a quoted path, the same trap from the shell kind.</summary>
+        [Fact]
+        public void AShellLineStartingWithAQuotedPathRuns()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
+
+            CustomCommand command = With(CommandKind.Shell, new CommandArgument { Value = "two words" });
+            command.Command = $"\"{Environment.SystemDirectory}\\cmd.exe\" /c echo";
+
+            Assert.Equal("\"two words\"", Run(command).Output);
+        }
+
+        private static (string Output, string Errors) Run(CustomCommand command)
+        {
+            using ScriptFile file = ScriptFile.Create(command);
+            using System.Diagnostics.Process process = System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(file.FileName, file.Arguments)
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                })!;
+
+            string output = process.StandardOutput.ReadToEnd();
+            string errors = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            return (output.Trim(), errors.Trim());
+        }
     }
 }

@@ -86,7 +86,8 @@ jobs:
         run: |
           version="${TAG#v}"
           awk -v v="$version" '
-            $0 ~ "^## v?" v "[[:space:]]*$" { on = 1; next }
+            # The version alone, or the version and its release time: "## 1.2.8 - 2026-10-01 19:30".
+            $0 ~ "^## v?" v "([[:space:]]+-[[:space:]].*)?[[:space:]]*$" { on = 1; next }
             on && /^## / { exit }
             on { print }
           ' CHANGELOG.md | sed -e '1{/^$/d}' > notes.md

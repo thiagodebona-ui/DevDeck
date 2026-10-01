@@ -13,9 +13,9 @@ A release is not done until every step below is. Do all of them, without being a
 
 1. **Version:** bump `<Version>` in `Directory.Build.props`, the only place it is written. Bump the
    **patch** number (1.2.0 -> 1.2.1) unless told otherwise. "Minor change" means the patch number.
-2. **Changelog:** add a `## x.y.z` section at the top of `CHANGELOG.md`, newest first. The release
-   workflow uses it as the GitHub release notes, and the app's Changelog page shows it. A test
-   fails if the running version has no section.
+2. **Changelog:** add a `## x.y.z - YYYY-MM-DD HH:mm` section, with the release time, at the top
+   of `CHANGELOG.md`, newest first. The release workflow uses it as the GitHub release notes, and
+   the app's Changelog page shows it with its date. A test fails if the running version has none.
 3. **README:** update everything the release changes: badges, SDK and version mentions, feature
    sections. Search it for stale version numbers before committing.
 4. **Build and test:** `dotnet build DevDeck.Avalonia.sln -c Release` and

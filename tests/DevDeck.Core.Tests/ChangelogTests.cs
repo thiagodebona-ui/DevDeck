@@ -46,6 +46,52 @@ namespace DevDeck.Core.Tests
             Assert.Equal(AppVersion.Number, Changelog.Bundled[0].Version);
         }
 
+        /// <summary>A heading may carry its release time; one without still reads.</summary>
+        [Fact]
+        public void AHeadingsReleaseTimeIsRead()
+        {
+            IReadOnlyList<ChangelogEntry> found = Changelog.All(
+                "## 1.2.8 - 2026-10-01 19:30\n\n- One.\n\n## 1.2.7 - 2026-09-30\n\n- Two.\n\n## 1.2.6\n\n- Three.\n");
+
+            Assert.Equal(["1.2.8", "1.2.7", "1.2.6"], found.Select(entry => entry.Version));
+            Assert.Equal(new DateTime(2026, 10, 1, 19, 30, 0), found[0].Released);
+            Assert.Equal(new DateTime(2026, 9, 30), found[1].Released);
+            Assert.Null(found[2].Released);
+        }
+
+        /// <summary>Each bullet is a change, its wrapped lines joined, its bold lead-in its title.</summary>
+        [Fact]
+        public void EachBulletBecomesAChangeWithItsTitle()
+        {
+            IReadOnlyList<ChangelogItem> items = Changelog.Items(
+                "\n- **Run chain in the Assistant.** A chain the Assistant writes\n  now has `Run chain`.\n- No more crash at shutdown.\n");
+
+            Assert.Equal(2, items.Count);
+            Assert.Equal("Run chain in the Assistant.", items[0].Title);
+            Assert.Equal("A chain the Assistant writes now has `Run chain`.", items[0].Body);
+            Assert.False(items[0].IsFix);
+
+            Assert.Equal(string.Empty, items[1].Title);
+            Assert.True(items[1].IsFix);
+        }
+
+        [Fact]
+        public void ALineSplitsIntoPlainCodeAndBoldRuns()
+        {
+            IReadOnlyList<InlineRun> runs = Changelog.Runs("Press **Run** to start `build.ps1` now");
+
+            Assert.Equal(
+                [("Press ", false, false), ("Run", false, true), (" to start ", false, false), ("build.ps1", true, false), (" now", false, false)],
+                runs.Select(run => (run.Text, run.IsCode, run.IsBold)));
+        }
+
+        /// <summary>Every version this file describes says when it came out, so the page can show it.</summary>
+        [Fact]
+        public void EveryBundledVersionIsDated()
+        {
+            Assert.All(Changelog.Bundled, entry => Assert.NotNull(entry.Released));
+        }
+
         [Fact]
         public void TheSignInSwitchIsTakenOffAndReported()
         {

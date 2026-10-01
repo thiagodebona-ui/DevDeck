@@ -78,6 +78,37 @@
       <Setter Property="Opacity" Value="0.45" />
     </Style>
 
+    <!-- The pills under a command for the chains and watches that run it. A chain's pill is in
+         that chain's colour on every command it runs, which is what makes a chain visible in this
+         list; a watch's is plain. The colours are the theme's own, so they follow a theme change. -->
+    <Style Selector="Border.link">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="6,1,7,1" />
+      <Setter Property="Margin" Value="0,3,4,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+    <Style Selector="Border.link.h0"><Setter Property="BorderBrush" Value="{DynamicResource Accent}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource Accent}" /></Style>
+    <Style Selector="Border.link.h1"><Setter Property="BorderBrush" Value="{DynamicResource SynKeyword}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource SynKeyword}" /></Style>
+    <Style Selector="Border.link.h2"><Setter Property="BorderBrush" Value="{DynamicResource SynString}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource SynString}" /></Style>
+    <Style Selector="Border.link.h3"><Setter Property="BorderBrush" Value="{DynamicResource SynNumber}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource SynNumber}" /></Style>
+    <Style Selector="Border.link.h4"><Setter Property="BorderBrush" Value="{DynamicResource SynVariable}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource SynVariable}" /></Style>
+    <Style Selector="Border.link.h5"><Setter Property="BorderBrush" Value="{DynamicResource Good}" /><Setter Property="TextElement.Foreground" Value="{DynamicResource Good}" /></Style>
+
+    <Style Selector="Border.link Path">
+      <Setter Property="Stroke" Value="{Binding $parent[Border].(TextElement.Foreground)}" />
+      <Setter Property="StrokeThickness" Value="1.2" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Stretch" Value="None" />
+      <Setter Property="RenderTransform" Value="scale(0.7)" />
+      <Setter Property="Margin" Value="-3,-3,-2,-3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <!-- Fluent paints selection in its own accent blue, the one colour on this page that belongs
          to no state. Selection is quieter than a running process, so it gets a raised surface. -->
     <Style Selector="ListBox.commands ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
@@ -352,6 +383,28 @@
                                  Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
                       <TextBlock Text="{Binding Dates}" FontSize="10.5" TextTrimming="CharacterEllipsis"
                                  Foreground="{DynamicResource TextFaint}" />
+                      <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:CommandLink">
+                            <Border Classes="link"
+                                    Classes.h0="{Binding Hue0}" Classes.h1="{Binding Hue1}"
+                                    Classes.h2="{Binding Hue2}" Classes.h3="{Binding Hue3}"
+                                    Classes.h4="{Binding Hue4}" Classes.h5="{Binding Hue5}">
+                              <StackPanel Orientation="Horizontal" Spacing="3">
+                                <Path Data="{Binding Icon}" />
+                                <TextBlock Text="{Binding Label}" FontSize="10"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="170"
+                                           VerticalAlignment="Center" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                     </StackPanel>
                     <!-- The accent means running, here as everywhere else - but moving, because
                          a still dot is indistinguishable from a decoration until you have learnt

@@ -17,10 +17,18 @@ namespace DevDeck.App.ViewModels
     /// </remarks>
     internal sealed partial class StepRow : ObservableObject
     {
-        public StepRow(string name) => this.name = name;
+        public StepRow(string name, bool on = true)
+        {
+            this.name = name;
+            isOn = on;
+        }
 
         [ObservableProperty]
         private string name;
+
+        /// <summary>Whether the step runs. Off keeps it in the chain, in its place, for later.</summary>
+        [ObservableProperty]
+        private bool isOn;
 
         /// <summary>Set by the chain, so a row knows where it sits without holding the list.</summary>
         [ObservableProperty]
@@ -63,7 +71,7 @@ namespace DevDeck.App.ViewModels
         {
             this.chain = chain;
 
-            Steps = new ObservableCollection<StepRow>(chain.Steps.Select(step => new StepRow(step)));
+            Steps = new ObservableCollection<StepRow>(chain.Steps.Select((step, at) => Row(step, chain.IsOn(at))));
 
             Number();
         }
@@ -116,7 +124,7 @@ namespace DevDeck.App.ViewModels
                 return;
             }
 
-            Steps.Add(new StepRow(name));
+            Steps.Add(Row(name, on: true));
             Picked = null;
 
             Commit();
@@ -167,9 +175,28 @@ namespace DevDeck.App.ViewModels
         }
 
         /// <summary>Writes the rows back onto the chain that is saved, and renumbers them.</summary>
+        /// <summary>A row for a step, saved again whenever it is switched on or off.</summary>
+        private StepRow Row(string name, bool on)
+        {
+            StepRow row = new(name, on);
+
+            row.PropertyChanged += (_, change) =>
+            {
+                if (change.PropertyName == nameof(StepRow.IsOn))
+                {
+                    Commit();
+                }
+            };
+
+            return row;
+        }
+
         private void Commit()
         {
             chain.Steps = [.. Steps.Select(step => step.Name)];
+
+            // Read off the rows' order now, so a step moved up or down keeps its own switch.
+            chain.SkippedSteps = [.. Steps.Select((step, at) => (step, at)).Where(row => !row.step.IsOn).Select(row => row.at)];
 
             Number();
 
@@ -335,9 +362,9 @@ namespace DevDeck.App.ViewModels
         {
             Steps.Clear();
 
-            foreach (string step in chain.Steps)
+            for (int at = 0; at < chain.Steps.Count; at++)
             {
-                Steps.Add(new StepRow(step));
+                Steps.Add(Row(chain.Steps[at], chain.IsOn(at)));
             }
 
             Number();
@@ -965,7 +992,7 @@ namespace DevDeck.App.ViewModels
         ///  the copy in the assistant's transcript, a paste into a ticket. The heading's colour comes
         ///  from its level as well, so the mark is never the only thing saying how a step went.
         /// </remarks>
-        private const string Running = "▶", Passed = "✓", Failed = "✗", Halted = "■", Skipped = "⚠";
+        private const string Running = "▶", Passed = "✓", Failed = "✗", Halted = "■", Skipped = "⚠", Off = "○";
 
         /// <summary>A step's heading once it has been stopped, by the user or by its chain.</summary>
         private static OutputLine Halt(OutputLine heading, string title) => heading with
@@ -983,7 +1010,7 @@ namespace DevDeck.App.ViewModels
             }
 
             List<CustomCommand> all = [.. deck.Commands.Select(command => command.Source)];
-            IReadOnlyList<string> missing = chain.Source.Missing(all);
+            IReadOnlyList<string> missing = chain.Source.Missing(all, onlyOn: true);
 
             if (missing.Count > 0 && chain.StopOnFailure)
             {
@@ -1037,6 +1064,20 @@ namespace DevDeck.App.ViewModels
                     OutputLine heading = new(DateTime.Now, $"{Running}  {title}", LogLevel.Info, IsHeading: true);
 
                     chain.Write([heading]);
+
+                    // Switched off: said in the log so the numbering still adds up, and nothing else
+                    // touched - the next step is fed by the last one that ran, as with a gap.
+                    if (!chain.Source.IsOn(at - 1))
+                    {
+                        chain.Settle(heading, heading with
+                        {
+                            Text = $"{Off}  {title} · {Strings.Text("AutoStepOff")}",
+                            Level = LogLevel.Info,
+                            IsHeading = false,
+                        });
+
+                        continue;
+                    }
 
                     if (Find(step) is not { } command)
                     {

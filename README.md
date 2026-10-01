@@ -171,6 +171,8 @@ output streams into the pane below with the exit code and run time in the status
   part you want. The chain output and the Log page have it too.
 - **Commands in use stay put.** A command that a chain or a watch runs is greyed out in the list and
   cannot be selected or deleted; hover it to see what uses it.
+- **See what belongs together.** Under each command, a pill names every chain and watch that runs
+  it, with its place in the chain. A chain's pills share one colour, so its commands stand out.
 - **Arrange the list.** Arrow keys move through it, **Alt+Up** / **Alt+Down** or dragging reorders
   it, and **Delete** deletes the selected command. Each one shows when it was created and last ran.
 
@@ -202,6 +204,8 @@ A chain runs several commands **one after another**, each step waiting for the o
 - **Stop at the first step that fails**, or keep going so every step gets its answer.
 - All the steps' output lands in one log on the page, under a heading for each step that shows how
   it went: ✓ passed, ✗ failed (with its exit code) or ■ stopped.
+- Untick a step to **switch it off**: it stays in the chain, in its place, and is skipped when the
+  chain runs.
 - Several chains can run at the same time, each with its own **Stop**.
 - **Drag the grip** under the chains section to make it as tall or as short as you like.
 - **Steps can pass values along.** Each step receives the previous step's result as environment
@@ -381,7 +385,8 @@ each command. Filter it, show *Problems only*, or **Copy all** to paste into a b
 
 ## Changelog
 
-The **Changelog** page, at the bottom of the rail, lists what every version brought. It is built
+The **Changelog** page, at the bottom of the rail, lists what every version brought, one change per
+line, with the date and time each version was released. It is built
 into the app, so it works offline. The first time a new version starts, DevDeck opens on this page
 once. **Check for newer versions** adds what is in any release you have not installed yet, with a
 link to download it. The same notes are in [CHANGELOG.md](CHANGELOG.md).
@@ -455,7 +460,7 @@ DevDeck is built with [Avalonia](https://avaloniaui.net/) and
 **Making a release.**
 
 1. Set the new version in `Directory.Build.props` - the one place it is written.
-2. Add a `## <version>` section at the top of `CHANGELOG.md`. It becomes the release notes and the
+2. Add a `## <version> - <yyyy-MM-dd HH:mm>` section at the top of `CHANGELOG.md`. It becomes the release notes and the
    app's Changelog page, and the tests fail if it is missing.
 3. Commit, then push a tag for that version. GitHub Actions builds every platform and publishes
    the downloads (see `.github/workflows/release.yml`):

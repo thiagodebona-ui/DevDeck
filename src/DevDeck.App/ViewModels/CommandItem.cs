@@ -115,6 +115,57 @@ namespace DevDeck.App.ViewModels
     ///  The panel used to replace the item in the collection to force that redraw, which rebuilt
     ///  the row and stole focus out of the name box on every keystroke.
     /// </remarks>
+    /// <summary>
+    ///  One chain or watch that runs a command, as the pill under the command's name shows it.
+    /// </summary>
+    /// <remarks>
+    ///  Coloured by chain, and the colour is the point: every command in one chain carries the same
+    ///  one, so the list shows which commands belong together without opening Automation. The hue
+    ///  comes from the chain's name rather than its position, so a chain keeps its colour when others
+    ///  are added or deleted, and from one start to the next.
+    /// </remarks>
+    internal sealed record CommandLink(string Name, bool IsWatch, string Step)
+    {
+        /// <summary>How many colours there are: the theme's accent and its five syntax colours.</summary>
+        public const int Hues = 6;
+
+        /// <summary>
+        ///  The colour, from the name. Not string.GetHashCode, which is randomised per process and
+        ///  would repaint every chain on each start.
+        /// </summary>
+        public int Hue
+        {
+            get
+            {
+                uint hash = 2166136261;
+
+                foreach (char c in Name.ToUpperInvariant())
+                {
+                    hash = (hash ^ c) * 16777619;
+                }
+
+                return (int)(hash % Hues);
+            }
+        }
+
+        public bool Hue0 => !IsWatch && Hue == 0;
+
+        public bool Hue1 => !IsWatch && Hue == 1;
+
+        public bool Hue2 => !IsWatch && Hue == 2;
+
+        public bool Hue3 => !IsWatch && Hue == 3;
+
+        public bool Hue4 => !IsWatch && Hue == 4;
+
+        public bool Hue5 => !IsWatch && Hue == 5;
+
+        /// <summary>"Morning check · 2/3" for a chain step, the watch's name for a watch.</summary>
+        public string Label => Step.Length > 0 ? $"{Name} · {Step}" : Name;
+
+        public Avalonia.Media.Geometry Icon => IsWatch ? Icons.Bell : Icons.Automation;
+    }
+
     internal sealed partial class CommandItem : ObservableObject
     {
         private readonly CustomCommand command;
@@ -595,6 +646,13 @@ namespace DevDeck.App.ViewModels
         /// <summary>Why the row is out of reach, for its tooltip. Null when it is not.</summary>
         [ObservableProperty]
         private string? inUseTip;
+
+        /// <summary>The chains and watches that run this command, drawn as pills under its name.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasLinks))]
+        private IReadOnlyList<CommandLink> links = [];
+
+        public bool HasLinks => Links.Count > 0;
 
         public bool HasHistory => History.Count > 0;
 

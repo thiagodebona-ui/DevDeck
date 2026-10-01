@@ -89,7 +89,7 @@ namespace DevDeck.Core
                     string file = Write(command.Name, ".bat", BatchPreamble + command.Command,
                         new UTF8Encoding(false));
 
-                    return new ScriptFile("cmd.exe", $"/c \"{file}\"{ArgumentsFor(command)}", file);
+                    return new ScriptFile("cmd.exe", Cmd($"\"{file}\"{ArgumentsFor(command)}"), file);
                 }
 
                 case CommandKind.Bash:
@@ -120,10 +120,22 @@ namespace DevDeck.Core
 
                 default:
                     return windows
-                        ? new ScriptFile("cmd.exe", $"/c {command.Command}{ArgumentsFor(command)}", null)
+                        ? new ScriptFile("cmd.exe", Cmd(command.Command + ArgumentsFor(command)), null)
                         : new ScriptFile("/bin/sh", $"-c \"{Escape(command.Command + ArgumentsFor(command))}\"", null);
             }
         }
+
+        /// <summary>
+        ///  The arguments that have cmd.exe run one command line exactly as written.
+        /// </summary>
+        /// <remarks>
+        ///  /s and a pair of quotes round the whole line. Without them cmd applies its old rule to a
+        ///  line holding more than two quotes - strip the first and the last - and a script path with
+        ///  a space in it, followed by quoted parameters, came apart at the space: a command called
+        ///  "Example: ask before running" failed with "...\Example_ is not recognized". With /s the
+        ///  outer pair is the only thing taken off, whatever is inside it.
+        /// </remarks>
+        private static string Cmd(string line) => $"/s /c \"{line}\"";
 
         /// <summary>
         ///  Finds a bash on Windows, or null if there is none.

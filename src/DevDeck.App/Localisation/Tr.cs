@@ -70,6 +70,7 @@ namespace DevDeck.App.Localisation
             "AutoOutputStep",
             "AutoStepExit",
             "AutoStepStopped",
+            "AutoStepOff",
             "AutoOutputSkipped",
             "AutoWaitingFor",
             "AutoWhenFilesChange",
@@ -310,6 +311,7 @@ namespace DevDeck.App.Localisation
             "AutomationMoveStepDown",
             "AutomationRemoveStep",
             "AutomationStepIsMissing",
+            "AutomationStepOnTip",
             "AutomationSameStepTwiceIsFine",
             "AutomationStopAtTheFirstStepThat",
             "AutomationOffIsForAChainThat",
@@ -583,6 +585,10 @@ namespace DevDeck.App.Localisation
             "NavChangelogBlurb",
             "ChangelogThisVersion",
             "ChangelogNotInstalled",
+            "ChangelogReleased",
+            "SplashTagline",
+            "SplashVersion",
+            "SplashLoading",
             "ChangelogCheck",
             "ChangelogAsking",
             "ChangelogEmpty",
@@ -757,6 +763,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>stopped</summary>
         public string AutoStepStopped => Strings.Text("AutoStepStopped");
+
+        /// <summary>switched off</summary>
+        public string AutoStepOff => Strings.Text("AutoStepOff");
 
         /// <summary>Skipped - no command called "{0}".</summary>
         public string AutoOutputSkipped => Strings.Text("AutoOutputSkipped");
@@ -1477,6 +1486,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>No command by this name</summary>
         public string AutomationStepIsMissing => Strings.Text("AutomationStepIsMissing");
+
+        /// <summary>Run this step. Untick it to skip the step without taking it out of the</summary>
+        public string AutomationStepOnTip => Strings.Text("AutomationStepOnTip");
 
         /// <summary>A command may appear more than once - build, test, build is a real cha</summary>
         public string AutomationSameStepTwiceIsFine => Strings.Text("AutomationSameStepTwiceIsFine");
@@ -2296,6 +2308,18 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Not installed yet</summary>
         public string ChangelogNotInstalled => Strings.Text("ChangelogNotInstalled");
+
+        /// <summary>Released {0}</summary>
+        public string ChangelogReleased => Strings.Text("ChangelogReleased");
+
+        /// <summary>Your commands, chains and tools in one deck.</summary>
+        public string SplashTagline => Strings.Text("SplashTagline");
+
+        /// <summary>Version {0}</summary>
+        public string SplashVersion => Strings.Text("SplashVersion");
+
+        /// <summary>Getting your deck ready…</summary>
+        public string SplashLoading => Strings.Text("SplashLoading");
 
         /// <summary>Check for newer versions</summary>
         public string ChangelogCheck => Strings.Text("ChangelogCheck");

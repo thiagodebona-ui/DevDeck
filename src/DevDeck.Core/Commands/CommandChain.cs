@@ -31,14 +31,28 @@ namespace DevDeck.Core
         /// </remarks>
         public bool StopOnFailure { get; set; } = true;
 
+        /// <summary>
+        ///  The steps switched off, by position from zero: still in the chain, skipped when it runs.
+        /// </summary>
+        /// <remarks>
+        ///  Positions rather than names, because a chain may run one command twice and only one of
+        ///  the two be switched off. Empty for every chain saved before steps could be switched off,
+        ///  so they all run as they did.
+        /// </remarks>
+        public List<int> SkippedSteps { get; set; } = [];
+
+        /// <summary>Whether the step at <paramref name="position"/> runs.</summary>
+        public bool IsOn(int position) => !SkippedSteps.Contains(position);
+
         public override string ToString() => Name;
 
         /// <summary>The steps that no longer name a command that exists.</summary>
-        public IReadOnlyList<string> Missing(IEnumerable<CustomCommand> commands)
+        /// <param name="onlyOn">Only the steps that are switched on, which are the ones a run needs.</param>
+        public IReadOnlyList<string> Missing(IEnumerable<CustomCommand> commands, bool onlyOn = false)
         {
             HashSet<string> have = new(commands.Select(command => command.Name), StringComparer.OrdinalIgnoreCase);
 
-            return [.. Steps.Where(step => !have.Contains(step))];
+            return [.. Steps.Where((step, at) => !have.Contains(step) && (!onlyOn || IsOn(at)))];
         }
 
         /// <summary>The commands this chain runs, in order, skipping steps that no longer exist.</summary>

@@ -90,83 +90,113 @@ namespace DevDeck.App
                 // read as the last window going and take the app down with it.
                 desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-                MainWindowViewModel model = new(settings);
-
-                // Minimised rather than hidden at sign-in: the deck is there on the taskbar and in
-                // the tray, but not in front of whatever the user logged in to do.
-                desktop.MainWindow = new MainWindow
+                // Everything that builds the deck, run behind the splash: see below.
+                void Start()
                 {
-                    DataContext = model,
-                    WindowState = StartMinimised ? WindowState.Minimized : WindowState.Normal,
-                };
+                    MainWindowViewModel model = new(settings);
 
-                // After the window is assigned, so anything the request does - switching section,
-                // starting a run - happens on a deck that is actually on screen.
-                Dispatcher.UIThread.Post(() => model.Handle(Arrived));
-
-                // Later copies hand their request here rather than opening a second window. Posted
-                // onto the UI thread because it arrives on the pipe's own.
-                void Arrive(string payload) =>
-                    Dispatcher.UIThread.Post(() => model.Handle(DeepLink.Parse(payload)));
-
-                // Program is already listening; from here on what arrives goes straight to the deck.
-                Deliver(Arrive);
-
-                // After Surface is wired by the window, since the menu's first entry uses it.
-                Tray? tray = Tray.Attach(this, model);
-
-                // Claiming the key is the app's job rather than the settings page's: what the key
-                // does is raise a window, and a view model has none. Posted onto the UI thread
-                // because the press arrives on the hotkey thread's own message loop.
-                model.Preferences.ClaimHotkey = combination => GlobalHotkey.Register(
-                    combination,
-                    () => Dispatcher.UIThread.Post(() => model.Surface?.Invoke()));
-
-                // Applied at startup rather than only when the tick box is touched. The setting
-                // defaults to on and persists, so an app that only honoured it on a change would
-                // do nothing at all for the user who set it once and never opened Settings again -
-                // which is how the ported-but-inert version of this looked from outside.
-                KeepAwake.Set(settings.KeepAwake, settings.StayAvailable);
-
-                // The listener goes first so the pipe is free by the time the new copy looks for
-                // it; the new copy also waits for this process to exit, which covers the rest.
-                // Posted, so the status line and the dialog closing get to finish before the
-                // window goes.
-                model.Preferences.Restart = () =>
-                {
-                    SingleInstance.Stop();
-
-                    if (!Relaunch.Start())
+                    // Minimised rather than hidden at sign-in: the deck is there on the taskbar and in
+                    // the tray, but not in front of whatever the user logged in to do.
+                    desktop.MainWindow = new MainWindow
                     {
-                        // Staying, so this copy is still the one that answers links.
-                        SingleInstance.Listen(Arrive);
+                        DataContext = model,
+                        WindowState = StartMinimised ? WindowState.Minimized : WindowState.Normal,
+                    };
 
-                        return false;
+                    // After the window is assigned, so anything the request does - switching section,
+                    // starting a run - happens on a deck that is actually on screen.
+                    Dispatcher.UIThread.Post(() => model.Handle(Arrived));
+
+                    // Later copies hand their request here rather than opening a second window. Posted
+                    // onto the UI thread because it arrives on the pipe's own.
+                    void Arrive(string payload) =>
+                        Dispatcher.UIThread.Post(() => model.Handle(DeepLink.Parse(payload)));
+
+                    // Program is already listening; from here on what arrives goes straight to the deck.
+                    Deliver(Arrive);
+
+                    // After Surface is wired by the window, since the menu's first entry uses it.
+                    Tray? tray = Tray.Attach(this, model);
+
+                    // Claiming the key is the app's job rather than the settings page's: what the key
+                    // does is raise a window, and a view model has none. Posted onto the UI thread
+                    // because the press arrives on the hotkey thread's own message loop.
+                    model.Preferences.ClaimHotkey = combination => GlobalHotkey.Register(
+                        combination,
+                        () => Dispatcher.UIThread.Post(() => model.Surface?.Invoke()));
+
+                    // Applied at startup rather than only when the tick box is touched. The setting
+                    // defaults to on and persists, so an app that only honoured it on a change would
+                    // do nothing at all for the user who set it once and never opened Settings again -
+                    // which is how the ported-but-inert version of this looked from outside.
+                    KeepAwake.Set(settings.KeepAwake, settings.StayAvailable);
+
+                    // The listener goes first so the pipe is free by the time the new copy looks for
+                    // it; the new copy also waits for this process to exit, which covers the rest.
+                    // Posted, so the status line and the dialog closing get to finish before the
+                    // window goes.
+                    model.Preferences.Restart = () =>
+                    {
+                        SingleInstance.Stop();
+
+                        if (!Relaunch.Start())
+                        {
+                            // Staying, so this copy is still the one that answers links.
+                            SingleInstance.Listen(Arrive);
+
+                            return false;
+                        }
+
+                        Dispatcher.UIThread.Post(() => desktop.Shutdown());
+
+                        return true;
+                    };
+
+                    if (settings.Hotkey.Length > 0)
+                    {
+                        // Best effort. A key that another application has taken since last time is a
+                        // line in the log, not a dialog in front of a window the user has not seen yet.
+                        model.Preferences.ClaimHotkey(settings.Hotkey);
                     }
 
-                    Dispatcher.UIThread.Post(() => desktop.Shutdown());
+                    desktop.ShutdownRequested += (_, _) =>
+                    {
+                        tray?.Remove();
+                        GlobalHotkey.Unregister();
+                        SingleInstance.Stop();
 
-                    return true;
-                };
-
-                if (settings.Hotkey.Length > 0)
-                {
-                    // Best effort. A key that another application has taken since last time is a
-                    // line in the log, not a dialog in front of a window the user has not seen yet.
-                    model.Preferences.ClaimHotkey(settings.Hotkey);
+                        // Before the process goes, because the macOS and Linux inhibitors are separate
+                        // processes: left behind they would hold the machine awake with nothing on
+                        // screen to explain why.
+                        KeepAwake.Release();
+                    };
                 }
 
-                desktop.ShutdownRequested += (_, _) =>
+                // At sign-in the deck opens minimised and out of the way, so there is nothing to put
+                // a splash in front of, and the window is built straight away for the lifetime to show.
+                if (StartMinimised)
                 {
-                    tray?.Remove();
-                    GlobalHotkey.Unregister();
-                    SingleInstance.Stop();
+                    Start();
+                }
+                else
+                {
+                    // The splash is the first window, so it is on screen while the deck is built. The
+                    // build waits for it to be up - otherwise the work runs before the splash has drawn
+                    // a frame and there is nothing to see - and for a moment more, so it is seen.
+                    Splash splash = new();
 
-                    // Before the process goes, because the macOS and Linux inhibitors are separate
-                    // processes: left behind they would hold the machine awake with nothing on
-                    // screen to explain why.
-                    KeepAwake.Release();
-                };
+                    desktop.MainWindow = splash;
+
+                    splash.Opened += (_, _) => DispatcherTimer.RunOnce(
+                        () =>
+                        {
+                            Start();
+
+                            desktop.MainWindow?.Show();
+                            splash.Close();
+                        },
+                        Splash.Showing);
+                }
             }
 
             base.OnFrameworkInitializationCompleted();

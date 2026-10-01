@@ -1,0 +1,138 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DevDeck.App.Localisation"
+        x:Class="DevDeck.App.Views.Splash"
+        Title="DevDeck"
+        Width="440" Height="460"
+        CanResize="False"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Ink}">
+
+  <!-- What is on screen while the deck is being built: the app's mark, its name, and a sign that it
+       is on its way. The mark is drawn here from the theme's own brushes rather than shipped as a
+       picture, so it is in whatever palette the user chose and sharp at any scale.
+
+       The mark is the app in one image: a terminal window - the dots and the prompt across the
+       top - with DD for the name, sitting on a stack of layers that are the deck, joined down the
+       middle by a chain of dots, which are the chains that run its commands one after another. -->
+
+  <Window.Styles>
+    <!-- The bar of light under the name. Its margin slides rather than a transform, because a
+         style cannot animate a transform here: that is a crash at start-up, not a still bar. -->
+    <Style Selector="Border.slide">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite" Easing="SineEaseInOut">
+          <KeyFrame Cue="0%"><Setter Property="Margin" Value="-70,0,0,0" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Margin" Value="260,0,0,0" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The prompt's cursor, blinking. The one moving thing on the mark itself. -->
+    <Style Selector="TextBlock.caret">
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="Infinite">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="49%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.15" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.15" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- One layer of the deck: a flattened, rounded slab, outlined in the accent. -->
+    <Style Selector="Border.layer">
+      <Setter Property="Width" Value="104" />
+      <Setter Property="Height" Value="20" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+    </Style>
+  </Window.Styles>
+
+  <Border BorderBrush="{DynamicResource Line}" BorderThickness="1">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+      <!-- The mark. -->
+      <Panel Width="210" Height="210" HorizontalAlignment="Center">
+
+        <!-- The glow: the tile's own shape in the accent, blurred out behind it. -->
+        <Border Width="176" Height="176" CornerRadius="40" Background="{DynamicResource Accent}"
+                Opacity="0.45">
+          <Border.Effect>
+            <BlurEffect Radius="34" />
+          </Border.Effect>
+        </Border>
+
+        <!-- The tile. -->
+        <Border Width="176" Height="176" CornerRadius="40" BorderThickness="3"
+                BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Panel}"
+                ClipToBounds="True">
+          <Grid RowDefinitions="Auto,*,Auto" Margin="16,12,16,12">
+
+            <!-- The terminal's title bar: three dots, and the prompt at the other end. -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                <Ellipse Width="7" Height="7" Fill="{DynamicResource Accent}" />
+                <Ellipse Width="7" Height="7" Fill="{DynamicResource Accent}" Opacity="0.7" />
+                <Ellipse Width="7" Height="7" Fill="{DynamicResource Accent}" Opacity="0.45" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <TextBlock Text="&gt;" FontFamily="{DynamicResource MonoFont}" FontSize="13"
+                           FontWeight="Bold" Foreground="{DynamicResource Accent}" />
+                <TextBlock Classes="caret" Text="_" FontFamily="{DynamicResource MonoFont}" FontSize="13"
+                           FontWeight="Bold" Foreground="{DynamicResource Accent}" />
+              </StackPanel>
+            </Grid>
+
+            <!-- DD, with a second, softer copy just behind for depth. -->
+            <Panel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-4,0,0">
+              <TextBlock Text="DD" FontSize="66" FontWeight="Black" Margin="3,3,0,0"
+                         Foreground="{DynamicResource AccentSoft}" Opacity="0.35" />
+              <TextBlock Text="DD" FontSize="66" FontWeight="Black"
+                         Foreground="{DynamicResource Accent}" />
+            </Panel>
+
+            <!-- The deck: three layers, the front one brightest, joined by the chain. -->
+            <Panel Grid.Row="2" Height="54" HorizontalAlignment="Center">
+              <Border Classes="layer" VerticalAlignment="Top" Opacity="0.5" />
+              <Border Classes="layer" VerticalAlignment="Top" Margin="0,14,0,0" Opacity="0.75" />
+              <Border Classes="layer" VerticalAlignment="Top" Margin="0,28,0,0" />
+
+              <!-- The chain: a line down the middle, threaded through a dot on each layer. -->
+              <Border Width="2" Height="34" VerticalAlignment="Top" Margin="0,10,0,0"
+                      Background="{DynamicResource Text}" Opacity="0.85" />
+              <Ellipse Width="7" Height="7" VerticalAlignment="Top" Margin="0,7,0,0" Fill="{DynamicResource Text}" />
+              <Ellipse Width="7" Height="7" VerticalAlignment="Top" Margin="0,21,0,0" Fill="{DynamicResource Text}" />
+              <Ellipse Width="7" Height="7" VerticalAlignment="Top" Margin="0,35,0,0" Fill="{DynamicResource Text}" />
+            </Panel>
+
+          </Grid>
+        </Border>
+      </Panel>
+
+      <!-- The name, what it is, and that it is on its way. -->
+      <TextBlock Text="DevDeck" FontSize="32" FontWeight="Bold" Margin="0,14,0,0"
+                 HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
+      <TextBlock Text="{loc:T SplashTagline}" FontSize="13" Margin="0,6,0,0"
+                 HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="340" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextMuted}" />
+
+      <Border Width="260" Height="3" CornerRadius="2" ClipToBounds="True" Margin="0,26,0,0"
+              Background="{DynamicResource Track}">
+        <Border Classes="slide" Width="70" HorizontalAlignment="Left" CornerRadius="2"
+                Background="{DynamicResource Accent}" />
+      </Border>
+
+      <Grid ColumnDefinitions="*,Auto" Width="260" Margin="0,8,0,0">
+        <TextBlock Grid.Column="0" Text="{loc:T SplashLoading}" FontSize="11"
+                   Foreground="{DynamicResource TextFaint}" />
+        <TextBlock Grid.Column="1" Name="VersionText" FontSize="11"
+                   Foreground="{DynamicResource TextFaint}" />
+      </Grid>
+
+    </StackPanel>
+  </Border>
+</Window>

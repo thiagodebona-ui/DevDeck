@@ -361,16 +361,23 @@
                         <Border Background="{DynamicResource Steel}"
                                 BorderBrush="{DynamicResource Line}" BorderThickness="1"
                                 CornerRadius="2" Padding="8,4" Margin="0,0,0,4">
-                          <Grid ColumnDefinitions="22,*,Auto,Auto,Auto" ColumnSpacing="4">
+                          <Grid ColumnDefinitions="Auto,22,*,Auto,Auto,Auto" ColumnSpacing="4">
+
+                            <!-- Off keeps the step in its place for later and skips it when the
+                                 chain runs - quicker than removing it and adding it back. -->
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}" MinWidth="0"
+                                      Padding="0" Margin="0,0,4,0" VerticalAlignment="Center"
+                                      ToolTip.Tip="{loc:T AutomationStepOnTip}" />
 
                             <!-- The number, not a bullet: the whole point of a chain is the order,
                                  and a step being third is the fact the user is checking. -->
-                            <TextBlock Grid.Column="0" Text="{Binding Position}"
+                            <TextBlock Grid.Column="1" Text="{Binding Position}"
                                        FontSize="11" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextFaint}" />
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7"
-                                        VerticalAlignment="Center">
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="7"
+                                        VerticalAlignment="Center"
+                                        Opacity="{Binding IsOn, Converter={x:Static views:StepOpacity.Instance}}">
                               <TextBlock Text="{Binding Name}" FontSize="12"
                                          VerticalAlignment="Center"
                                          FontFamily="{DynamicResource MonoFont}"
@@ -381,7 +388,7 @@
                                          IsVisible="{Binding IsMissing}" />
                             </StackPanel>
 
-                            <Button Grid.Column="2" Classes="step"
+                            <Button Grid.Column="3" Classes="step"
                                     IsEnabled="{Binding CanMoveUp}"
                                     ToolTip.Tip="{loc:T AutomationMoveStepUp}"
                                     CommandParameter="{Binding}"
@@ -389,7 +396,7 @@
                               <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
                             </Button>
 
-                            <Button Grid.Column="3" Classes="step"
+                            <Button Grid.Column="4" Classes="step"
                                     IsEnabled="{Binding CanMoveDown}"
                                     ToolTip.Tip="{loc:T AutomationMoveStepDown}"
                                     CommandParameter="{Binding}"
@@ -397,7 +404,7 @@
                               <Path Classes="icon" Data="{x:Static app:Icons.Down}" />
                             </Button>
 
-                            <Button Grid.Column="4" Classes="step drop"
+                            <Button Grid.Column="5" Classes="step drop"
                                     ToolTip.Tip="{loc:T AutomationRemoveStep}"
                                     CommandParameter="{Binding}"
                                     Command="{Binding $parent[ItemsControl].((vm:ChainItem)DataContext).RemoveStepCommand}">
