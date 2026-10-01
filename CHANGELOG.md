@@ -1,5 +1,20 @@
 ﻿# Changelog
 
+## 1.2.5
+
+- **Commands in use are out of reach in the list.** A command that a chain or a watch runs is
+  greyed out and cannot be selected, so it cannot be deleted from under the thing that runs it.
+  Hover it to see which chain or watch uses it. It still runs from its chain, its watch, a link or
+  the palette.
+- **Reorder the deck.** Move the selected command with **Alt+Up** and **Alt+Down**, with the new
+  arrow buttons under **New command**, or by dragging it. The order is saved.
+- **Keyboard in the list.** The arrow keys move through the commands, skipping the ones in use, and
+  **Delete** deletes the selected one. After a delete the next command is selected, so pressing
+  Delete again works down the list.
+- **When it was made and last ran.** Each command shows, under its name, its kind, when it was
+  created and when it last ran - "PowerShell · created 20 Sep · ran 08:15". Commands created before
+  this version show only when they last ran.
+
 ## 1.2.4
 
 - **Help in the Assistant.** A **Help** button at the top of the Assistant lists what it can do -

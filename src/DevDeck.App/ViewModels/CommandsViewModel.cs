@@ -42,12 +42,23 @@ namespace DevDeck.App.ViewModels
 
             Commands.CollectionChanged += CommandsChanged;
 
-            // The reason Delete is off is a sentence built here, not a view string, so it has to
-            // be rebuilt by hand when the language changes.
-            Strings.Changed += UsageChanged;
+            // The reasons a row is out of reach, and the dates under each name, are built here
+            // rather than in a view, so they have to be rebuilt by hand when the language changes.
+            Strings.Changed += () =>
+            {
+                foreach (CommandItem item in Commands)
+                {
+                    item.Relabel();
+                }
 
-            selected =Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand)
-                ?? Commands.FirstOrDefault();
+                UsageChanged();
+            };
+
+            Mark();
+
+            // Never a row that is out of reach: it could be shown selected but not clicked back to.
+            selected = Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand && !c.IsInUse)
+                ?? Commands.FirstOrDefault(c => !c.IsInUse);
         }
 
         public ObservableCollection<CommandItem> Commands { get; }
@@ -148,7 +159,9 @@ namespace DevDeck.App.ViewModels
         {
             settings.SelectedCommand = value?.Name ?? string.Empty;
             OnPropertyChanged(nameof(CanExplain));
-            UsageChanged();
+            DeleteChanged();
+            MoveUpCommand.NotifyCanExecuteChanged();
+            MoveDownCommand.NotifyCanExecuteChanged();
         }
 
         partial void OnFollowChanged(bool value)
@@ -189,13 +202,24 @@ namespace DevDeck.App.ViewModels
         /// <summary>Adds a command, from the panel or from a code block in the assistant.</summary>
         public CommandItem Add(CustomCommand command)
         {
+            // Stamped on the way in, so every command added from now on can say how old it is.
+            command.Created ??= DateTime.Now;
+
             CommandItem item = new(command, () => Workspace) { Prompt = prompt };
 
             Attach(item);
 
             Commands.Add(item);
             settings.CustomCommands.Add(command);
-            Selected = item;
+
+            // A chain may already name it - a step left broken by an earlier delete - in which case
+            // its row is out of reach the moment it arrives, and selecting it would select nothing.
+            Mark();
+
+            if (!item.IsInUse)
+            {
+                Selected = item;
+            }
 
             OnPropertyChanged(nameof(HasCommands));
             Save();
@@ -364,18 +388,104 @@ namespace DevDeck.App.ViewModels
             : Strings.Text("Delete");
 
         /// <summary>
-        ///  Asks again whether the selected command is in use.
+        ///  Asks again which commands are in use, after a chain or a watch changed.
         /// </summary>
         /// <remarks>
-        ///  Called by the automation panel whenever a chain or a watch changes, and here whenever
-        ///  the selection does.
+        ///  Called by the automation panel. A selected command that has just been put in a chain
+        ///  loses the selection to the first one still in reach: a selected row the user cannot
+        ///  click is a selection they cannot see the edges of.
+        ///
+        ///  Only here, not when the selection changes. The palette, a link or Explain this failure
+        ///  may select an in-use command on purpose to show its output, and taking the selection
+        ///  straight back off it would show them some other command's instead.
         /// </remarks>
         public void UsageChanged()
+        {
+            Mark();
+
+            if (Selected is { IsInUse: true })
+            {
+                Selected = Commands.FirstOrDefault(command => !command.IsInUse);
+            }
+
+            DeleteChanged();
+        }
+
+        /// <summary>Puts each row's in-use mark and its reason on it.</summary>
+        private void Mark()
+        {
+            foreach (CommandItem item in Commands)
+            {
+                List<string> users = UsedBy(item.Name);
+
+                item.IsInUse = users.Count > 0;
+                item.InUseTip = users.Count > 0
+                    ? Strings.Format("CmdInUseRow", string.Join(", ", users))
+                    : null;
+            }
+        }
+
+        private void DeleteChanged()
         {
             OnPropertyChanged(nameof(CanDelete));
             OnPropertyChanged(nameof(DeleteTip));
             DeleteCommand.NotifyCanExecuteChanged();
         }
+
+        /// <summary>
+        ///  Moves a command to a new place in the deck, and in the saved list with it.
+        /// </summary>
+        /// <remarks>
+        ///  The saved list and the rows are kept in the same order - every other change to either
+        ///  is made to both at once - so one index serves both. The selection is put back
+        ///  afterwards because a moved row is, to the list, a row removed and another added, and
+        ///  the selection does not survive the trip on its own.
+        /// </remarks>
+        public void MoveTo(CommandItem item, int to)
+        {
+            int from = Commands.IndexOf(item);
+
+            if (from < 0 || to < 0 || to >= Commands.Count || from == to)
+            {
+                return;
+            }
+
+            CommandItem? keep = Selected;
+
+            Commands.Move(from, to);
+
+            CustomCommand saved = settings.CustomCommands[from];
+            settings.CustomCommands.RemoveAt(from);
+            settings.CustomCommands.Insert(to, saved);
+
+            Selected = keep;
+
+            MoveUpCommand.NotifyCanExecuteChanged();
+            MoveDownCommand.NotifyCanExecuteChanged();
+            Save();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanMoveUp))]
+        private void MoveUp()
+        {
+            if (Selected is { } item)
+            {
+                MoveTo(item, Commands.IndexOf(item) - 1);
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanMoveDown))]
+        private void MoveDown()
+        {
+            if (Selected is { } item)
+            {
+                MoveTo(item, Commands.IndexOf(item) + 1);
+            }
+        }
+
+        private bool CanMoveUp() => Selected is { } item && Commands.IndexOf(item) > 0;
+
+        private bool CanMoveDown() => Selected is { } item && Commands.IndexOf(item) < Commands.Count - 1;
 
         [RelayCommand(CanExecute = nameof(CanDelete))]
         private void Delete()
@@ -392,6 +502,8 @@ namespace DevDeck.App.ViewModels
                 doomed.StopCommand.Execute(null);
             }
 
+            int at = Commands.IndexOf(doomed);
+
             Commands.Remove(doomed);
             settings.CustomCommands.Remove(doomed.Source);
 
@@ -399,7 +511,11 @@ namespace DevDeck.App.ViewModels
             // behind, they would attach themselves to the next command that happened to reuse
             // the name and report a trend from a different command's runs.
             RunHistory.Instance.Forget(doomed.Name);
-            Selected = Commands.FirstOrDefault();
+
+            // The row that took its place, or the nearest one above, so Delete pressed again works
+            // down the list. Never a row out of reach, which would be selected but unclickable.
+            Selected = Commands.Skip(at).FirstOrDefault(command => !command.IsInUse)
+                ?? Commands.Take(at).LastOrDefault(command => !command.IsInUse);
 
             OnPropertyChanged(nameof(HasCommands));
             Save();
@@ -438,6 +554,9 @@ namespace DevDeck.App.ViewModels
             }
 
             RunningChanged();
+
+            MoveUpCommand.NotifyCanExecuteChanged();
+            MoveDownCommand.NotifyCanExecuteChanged();
         }
 
         private void Watch(CommandItem item) => item.PropertyChanged += ItemChanged;

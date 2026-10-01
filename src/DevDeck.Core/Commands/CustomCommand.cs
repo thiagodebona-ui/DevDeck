@@ -81,6 +81,15 @@ namespace DevDeck.Core
         /// </remarks>
         public List<CommandArgument> Arguments { get; set; } = [];
 
+        /// <summary>
+        ///  When it was added to the deck.
+        /// </summary>
+        /// <remarks>
+        ///  Null for every command saved before this existed. Left null rather than filled in with
+        ///  the first launch that knew about it, which would date a year-old command to today.
+        /// </remarks>
+        public DateTime? Created { get; set; }
+
         public override string ToString() => Name;
     }
 }

@@ -65,6 +65,19 @@
       <Setter Property="MinHeight" Value="0" />
     </Style>
 
+    <!-- A command a chain or a watch runs is out of reach here: it cannot be selected, so it
+         cannot be deleted from under the thing that runs it. The tip says what runs it, and shows
+         on the disabled row because that is the only row anyone will wonder about. -->
+    <Style Selector="ListBox.commands ListBoxItem" x:DataType="vm:CommandItem">
+      <Setter Property="IsEnabled" Value="{Binding !IsInUse}" />
+      <Setter Property="ToolTip.Tip" Value="{Binding InUseTip}" />
+      <Setter Property="ToolTip.ShowOnDisabled" Value="True" />
+    </Style>
+
+    <Style Selector="ListBox.commands ListBoxItem:disabled">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
     <!-- Fluent paints selection in its own accent blue, the one colour on this page that belongs
          to no state. Selection is quieter than a running process, so it gets a raised surface. -->
     <Style Selector="ListBox.commands ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
@@ -274,6 +287,19 @@
                   </Button>
                 </Grid>
 
+                <!-- Moving is also Alt+Up and Alt+Down, or dragging the row. A row of its own, because
+                     beside New command they squeezed its label down to one word. -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                  <Button Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                          Command="{Binding MoveUpCommand}" ToolTip.Tip="{loc:T CmdMoveUp}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
+                  </Button>
+                  <Button Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                          Command="{Binding MoveDownCommand}" ToolTip.Tip="{loc:T CmdMoveDown}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Down}" />
+                  </Button>
+                </Grid>
+
                 <!-- The project already says how to build itself. Reading that is faster and more
                      accurate than retyping it, and it is what makes the deck useful on a repository
                      the user has just opened. -->
@@ -312,7 +338,9 @@
                        Foreground="{DynamicResource TextFaint}"
                        Text="{loc:T CommandsNoCommandsYetAddOneAnd}" />
 
-            <ListBox Classes="commands"
+            <!-- Arrows move through it, Alt+Up and Alt+Down move the selected command, Delete
+                 deletes it, and a row can be dragged to a new place. See the view's code. -->
+            <ListBox Name="CommandList" Classes="commands"
                      Background="Transparent" BorderThickness="0"
                      ItemsSource="{Binding Commands}"
                      SelectedItem="{Binding Selected}">
@@ -322,7 +350,7 @@
                     <StackPanel Grid.Column="0" Spacing="1">
                       <TextBlock Text="{Binding Name}" FontSize="13"
                                  Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding Kind}" FontSize="10.5"
+                      <TextBlock Text="{Binding Dates}" FontSize="10.5" TextTrimming="CharacterEllipsis"
                                  Foreground="{DynamicResource TextFaint}" />
                     </StackPanel>
                     <!-- The accent means running, here as everywhere else - but moving, because

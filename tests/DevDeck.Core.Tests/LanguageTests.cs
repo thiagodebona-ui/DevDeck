@@ -13,6 +13,7 @@ namespace DevDeck.Core.Tests
     ///  language nobody on the team reads. These tests are the only thing standing between a typo
     ///  in a translation and a crash in the wild.
     /// </remarks>
+    [Collection("Strings")]
     public class LanguageTests
     {
         [Fact]

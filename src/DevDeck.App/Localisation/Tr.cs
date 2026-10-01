@@ -94,6 +94,12 @@ namespace DevDeck.App.Localisation
             "CmdInUse",
             "CmdInUseChain",
             "CmdInUseWatch",
+            "CmdCreated",
+            "CmdLastRan",
+            "CmdNeverRun",
+            "CmdMoveUp",
+            "CmdMoveDown",
+            "CmdInUseRow",
             "CmdStopAllCount",
             "CmdStopAll",
             "CmdNotRunYet",
@@ -811,6 +817,24 @@ namespace DevDeck.App.Localisation
 
         /// <summary>the watch "{0}"</summary>
         public string CmdInUseWatch => Strings.Text("CmdInUseWatch");
+
+        /// <summary>created {0}</summary>
+        public string CmdCreated => Strings.Text("CmdCreated");
+
+        /// <summary>ran {0}</summary>
+        public string CmdLastRan => Strings.Text("CmdLastRan");
+
+        /// <summary>never run</summary>
+        public string CmdNeverRun => Strings.Text("CmdNeverRun");
+
+        /// <summary>Move up (Alt+Up)</summary>
+        public string CmdMoveUp => Strings.Text("CmdMoveUp");
+
+        /// <summary>Move down (Alt+Down)</summary>
+        public string CmdMoveDown => Strings.Text("CmdMoveDown");
+
+        /// <summary>Used by {0}, so it cannot be selected or deleted. Take it out of there</summary>
+        public string CmdInUseRow => Strings.Text("CmdInUseRow");
 
         /// <summary>Stop all ({0})</summary>
         public string CmdStopAllCount => Strings.Text("CmdStopAllCount");

@@ -248,6 +248,7 @@ namespace DevDeck.App.ViewModels
 
                 command.Name = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Dates));
                 OnPropertyChanged(nameof(Typical));
                 OnPropertyChanged(nameof(HasHistory));
             }
@@ -322,6 +323,7 @@ namespace DevDeck.App.ViewModels
 
                 command.Kind = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Dates));
             }
         }
 
@@ -373,6 +375,30 @@ namespace DevDeck.App.ViewModels
 
         /// <summary>Past runs of this command, newest first.</summary>
         public IReadOnlyList<RunRecord> History => RunHistory.Instance.For(Name);
+
+        /// <summary>The small line under the name in the deck: its kind, when it was made and last ran.</summary>
+        public string Dates => $"{Kind} · " + CommandDates.Describe(
+            command.Created,
+            History.FirstOrDefault()?.At,
+            DateTime.Now,
+            System.Globalization.CultureInfo.GetCultureInfo(Strings.Language.Id));
+
+        /// <summary>Asks the row to read its date line again, after a run or a change of language.</summary>
+        public void Relabel() => OnPropertyChanged(nameof(Dates));
+
+        /// <summary>
+        ///  Whether a chain or a watch runs this command, which takes its row out of reach in the deck.
+        /// </summary>
+        /// <remarks>
+        ///  Set by the deck, which is the one that can see the chains and watches. Only the row is
+        ///  affected: the command still runs, from its chain, its watch, a link or the palette.
+        /// </remarks>
+        [ObservableProperty]
+        private bool isInUse;
+
+        /// <summary>Why the row is out of reach, for its tooltip. Null when it is not.</summary>
+        [ObservableProperty]
+        private string? inUseTip;
 
         public bool HasHistory => History.Count > 0;
 
@@ -686,6 +712,7 @@ namespace DevDeck.App.ViewModels
             });
 
             OnPropertyChanged(nameof(History));
+            OnPropertyChanged(nameof(Dates));
             OnPropertyChanged(nameof(HasHistory));
             OnPropertyChanged(nameof(Typical));
         }

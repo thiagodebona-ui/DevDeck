@@ -164,8 +164,10 @@ output streams into the pane below with the exit code and run time in the status
   browser bookmark, a document or a chat message.
 - **Select text** shows the output as plain text, so you can select across lines and copy just the
   part you want. The chain output and the Log page have it too.
-- **Commands in use stay put.** A command that a chain or a watch runs cannot be deleted; hover the
-  delete button to see what uses it.
+- **Commands in use stay put.** A command that a chain or a watch runs is greyed out in the list and
+  cannot be selected or deleted; hover it to see what uses it.
+- **Arrange the list.** Arrow keys move through it, **Alt+Up** / **Alt+Down** or dragging reorders
+  it, and **Delete** deletes the selected command. Each one shows when it was created and last ran.
 
 **Starter commands** include *Where am I*, *What changed vs main*, *Today's commits*,
 *TODOs and FIXMEs*, *What is taking up space*, *Heavy build folders*, *Outdated packages*,
