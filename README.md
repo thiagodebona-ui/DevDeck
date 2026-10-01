@@ -14,8 +14,8 @@ monitor, and an AI assistant that can work with **your own local model**.
 
 <br />
 
-[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![C#](https://img.shields.io/badge/C%23-latest-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
+[![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
 [![UI](https://img.shields.io/badge/UI-Avalonia%2012-8B44AC?logo=avaloniaui&logoColor=white)](https://avaloniaui.net/)
 [![MVVM](https://img.shields.io/badge/MVVM-CommunityToolkit-0078D4)](https://github.com/CommunityToolkit/dotnet)
 [![Assistant](https://img.shields.io/badge/Assistant-Ollama%20%7C%20OpenAI--compatible-000000?logo=ollama&logoColor=white)](#assistant)
@@ -397,7 +397,7 @@ On macOS the files live in `~/Library/Application Support/DevDeck`, and on Linux
 
 ## Building from source
 
-You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) (or newer) and Python 3 if you
+You need the [.NET 10 SDK](https://dotnet.microsoft.com/download) (or newer) and Python 3 if you
 change any user-visible text.
 
 ```sh
@@ -425,12 +425,17 @@ missing.
 DevDeck is built with [Avalonia](https://avaloniaui.net/) and
 [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet).
 
-**Making a release.** Push a version tag and GitHub Actions builds every platform and publishes
-the downloads (see `.github/workflows/release.yml`):
+**Making a release.**
+
+1. Set the new version in `Directory.Build.props` - the one place it is written.
+2. Add a `## <version>` section at the top of `CHANGELOG.md`. It becomes the release notes and the
+   app's Changelog page, and the tests fail if it is missing.
+3. Commit, then push a tag for that version. GitHub Actions builds every platform and publishes
+   the downloads (see `.github/workflows/release.yml`):
 
 ```sh
-git tag v1.0.1
-git push origin v1.0.1
+git tag v<version>
+git push origin v<version>
 ```
 
 ---

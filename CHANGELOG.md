@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 1.2.1
+
+- **Runs on .NET 10.** DevDeck moves from .NET 8 to .NET 10, the current long-term support release,
+  and its code to C# 14. The download still carries its own runtime, so there is nothing to install.
+- **The README's release steps are current.** They showed an old version number as the example, and
+  did not mention the changelog entry each release now needs.
+
 ## 1.2.0
 
 - **A Changelog page.** A new section in the rail lists what every version brought, read from the

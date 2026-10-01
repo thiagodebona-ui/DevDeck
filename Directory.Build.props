@@ -1,12 +1,14 @@
 <Project>
   <PropertyGroup>
-    <!-- net8.0 with no -windows suffix: this is the whole point of the V3 tree. -->
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- net10.0 (the current LTS) with no -windows suffix: this is the whole point of the V3 tree. -->
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>latest</LangVersion>
+    <!-- C# 14, the language .NET 10 ships with. Pinned rather than latest, so the language does
+         not change underneath the code when a newer SDK is installed. -->
+    <LangVersion>14</LangVersion>
     <!-- The single source of truth for the version, as in V2. -->
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Product>DevDeck</Product>
     <!-- Keep the build warning-free: nullable problems fail rather than accumulate. -->
     <WarningsAsErrors>nullable</WarningsAsErrors>
