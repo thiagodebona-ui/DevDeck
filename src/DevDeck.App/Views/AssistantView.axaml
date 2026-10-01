@@ -407,6 +407,25 @@
                   </ItemsControl>
                 </Border>
 
+                <!-- Under a run's output, once it has finished: ask the model why it went the way
+                     it did, or take the output out of the conversation. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                  <StackPanel.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsOutput" />
+                      <Binding Path="IsDone" />
+                    </MultiBinding>
+                  </StackPanel.IsVisible>
+                  <Button Classes="small" Content="{loc:T AiAskWhy}"
+                          ToolTip.Tip="{loc:T AiAskWhyTip}"
+                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).AskWhyCommand}"
+                          CommandParameter="{Binding}" />
+                  <Button Classes="small" Content="{loc:T Delete}"
+                          ToolTip.Tip="{loc:T AiRemoveOutputTip}"
+                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RemoveOutputCommand}"
+                          CommandParameter="{Binding}" />
+                </StackPanel>
+
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

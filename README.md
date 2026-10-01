@@ -152,6 +152,8 @@ output streams into the pane below with the exit code and run time in the status
   offered back. A parameter row with the same name fills it in instead, so nothing is asked.
 - **Secrets that never show.** Write `{{secret:API_TOKEN}}` and the value is filled in from
   DevDeck's encrypted vault at run time. It never appears in the command or the settings file.
+- **Change the language, keep the script.** With a model set up in **Settings > AI**, changing
+  **Run with** has the AI rewrite the body for the new language, with **Undo** to go back.
 - **Readable output.** Colours from tools that print them are shown as colours, not escape codes.
   A compiler error such as `Program.cs:42` becomes a link that opens the file at that line in
   your editor.
@@ -322,6 +324,8 @@ A chat panel for a language model of your choice.
 - **It builds chains too.** Ask for several commands that work together and a chain to run them,
   and **Create chain** adds the commands to your deck and the chain to Automation in one click.
   **Run chain** runs it right in the conversation, with every step's output.
+- Under any output in the chat, **Ask AI why** asks the model to explain what it did, and **Delete**
+  removes it.
   The steps it writes can read each other's output (see [Chains](#chains)).
 - **Prompts** keeps a library of reusable prompts, and **History** reopens earlier conversations.
 - **Help** lists what it can do, with an example prompt for each that you can click to try, and

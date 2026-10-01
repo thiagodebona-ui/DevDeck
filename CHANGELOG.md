@@ -1,5 +1,22 @@
 ﻿# Changelog
 
+## 1.2.7
+
+- **Change the language, and the AI rewrites the script.** When the Assistant has a model set up
+  and answering, changing a command's **Run with** - PowerShell to bash, say - has the AI convert
+  the body to the new language. A strip under the body says it is converting and **Run** waits;
+  afterwards it says what changed, with **Undo** to put the original script and language back. The
+  conversion keeps `{{placeholders}}` and secrets as they are, and moves how parameters are read
+  to the new language's way. With no model set up, the language just changes, as before.
+- **Each run's output starts clean.** A line from an earlier run could stay on screen under the new
+  output, as if this run had printed it. The output list now starts over on every run.
+- **Ask AI why, or delete, under any output in the chat.** Output from **Run** on a code block or
+  from **Run chain** now has **Ask AI why**, which sends the model what ran and what it printed and
+  asks why it behaved that way - passed or failed - and **Delete**, which takes the output out of the
+  conversation.
+- **No script line in the output.** The `powershell.exe -NoProfile ...` line every run started with
+  is gone from the output. It is in the Log page instead, for when it is needed.
+
 ## 1.2.6
 
 - **No more crash when Windows shuts down.** With the floating memory widget open, signing out or

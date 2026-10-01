@@ -122,6 +122,15 @@ namespace DevDeck.App.Views
 
         private void OutputChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            // The chain's log is cleared as a run starts. See CommandsView.Restart for why the list
+            // starts over rather than being trusted to drop every old row.
+            if (e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                CommandsView.Restart(ChainOutput);
+
+                return;
+            }
+
             if (e.Action != NotifyCollectionChangedAction.Add || scrollQueued)
             {
                 return;

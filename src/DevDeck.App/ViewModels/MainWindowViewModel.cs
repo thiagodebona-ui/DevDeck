@@ -195,6 +195,9 @@ namespace DevDeck.App.ViewModels
 
             assistant.ShowSettings = () => Show("Settings");
 
+            // A command whose language is changed is rewritten for it, when a model is answering.
+            commands.Converter = (() => assistant.IsReady, assistant.ConvertAsync);
+
             Sections = new ObservableCollection<Section>
             {
                 new("Commands", "NavCommands", "NavCommandsBlurb", Icons.Commands, commands),

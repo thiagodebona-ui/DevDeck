@@ -31,12 +31,8 @@ namespace DevDeck.App.ViewModels
         LogLevel Level,
         IReadOnlyList<AnsiSpan>? Spans = null,
         IReadOnlyList<SourceLink>? Links = null,
-        bool IsHeading = false,
-        bool IsLaunch = false)
+        bool IsHeading = false)
     {
-        // IsLaunch marks the line a run starts with - the interpreter and the script it was handed.
-        // It belongs on the command's own page, as a record of what was started, and nowhere that
-        // reads the command's output as its answer: a chain's log, the next step, the assistant.
 
         public bool IsError => Level == LogLevel.Error;
 
@@ -183,6 +179,187 @@ namespace DevDeck.App.ViewModels
         /// </remarks>
         public Func<CommandItem, IReadOnlyList<CommandParameter>, Task<IReadOnlyDictionary<string, string>?>>? Prompt { get; set; }
 
+        #region Converting to another language
+        /// <summary>Whether a model is set up and answering, so a conversion is worth asking for. Set by the deck.</summary>
+        public Func<bool>? CanConvert { get; set; }
+
+        /// <summary>Rewrites a script from one kind to another, or returns null. Set by the deck.</summary>
+        public Func<string, CommandKind, CommandKind, CancellationToken, Task<string?>>? Convert { get; set; }
+
+        /// <summary>True while the model is rewriting the body, which is when Run is held back.</summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RunCommand))]
+        private bool isConverting;
+
+        /// <summary>What the last conversion did, shown under the body. Empty when there is nothing to say.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasConvertNote))]
+        private string convertNote = string.Empty;
+
+        public bool HasConvertNote => ConvertNote.Length > 0;
+
+        /// <summary>Whether the body is a conversion that Undo can take back.</summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(UndoConvertCommand))]
+        private bool canUndoConvert;
+
+        /// <summary>
+        ///  The script and kind before the first change of kind, kept until the conversion settles.
+        /// </summary>
+        /// <remarks>
+        ///  Every conversion starts from this rather than from whatever is in the body, so switching
+        ///  PowerShell to batch to bash in quick succession converts the original PowerShell to
+        ///  bash, not a half-finished batch translation of it.
+        /// </remarks>
+        private (string Body, CommandKind Kind)? original;
+
+        private CancellationTokenSource? converting;
+
+        /// <summary>Set while the body or kind is being changed here, so the change is not taken as the user's.</summary>
+        private bool applying;
+
+        /// <summary>
+        ///  Rewrites the body for the kind just chosen, when a model is set up.
+        /// </summary>
+        /// <remarks>
+        ///  Automatic rather than a button, because changing Run with is already the request:
+        ///  nobody wants a PowerShell script fed to bash. When no model is set up, or it is not
+        ///  answering, the kind simply changes as it always did.
+        ///
+        ///  The body is only replaced if it is still what was sent. A user who starts editing
+        ///  while the model is working has taken the script back, and their edit wins.
+        /// </remarks>
+        private async Task ConvertAsync(CommandKind from, CommandKind to)
+        {
+            if (Convert is not { } convert || CanConvert?.Invoke() != true)
+            {
+                return;
+            }
+
+            // Back to the language it started in: the original is the answer, nothing to ask.
+            if (original is { } start && start.Kind == to)
+            {
+                converting?.Cancel();
+                Apply(start.Body);
+                Settle(string.Empty, undo: false);
+
+                return;
+            }
+
+            original ??= (Body, from);
+
+            if (original.Value.Body.Trim().Length == 0)
+            {
+                original = null;
+
+                return;
+            }
+
+            converting?.Cancel();
+
+            using CancellationTokenSource mine = new();
+            converting = mine;
+
+            (string source, CommandKind kind) = original.Value;
+            string sent = Body;
+
+            IsConverting = true;
+            CanUndoConvert = false;
+            ConvertNote = Strings.Format("CmdConverting", to);
+
+            try
+            {
+                string? script = await convert(source, kind, to, mine.Token);
+
+                if (mine.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (script is null)
+                {
+                    Settle(Strings.Text("CmdConvertNothing"), undo: false);
+                }
+                else if (Body != sent)
+                {
+                    Settle(Strings.Text("CmdConvertEdited"), undo: false);
+                }
+                else
+                {
+                    Apply(script);
+                    Settle(Strings.Format("CmdConverted", kind, to), undo: true);
+                }
+            }
+            catch (OperationCanceledException) when (mine.IsCancellationRequested)
+            {
+                // Superseded by another change of kind, which has its own conversion running.
+            }
+            catch (Exception exception)
+            {
+                Settle(Strings.Format("CmdConvertFailed", exception.Message), undo: false);
+            }
+            finally
+            {
+                if (ReferenceEquals(converting, mine))
+                {
+                    converting = null;
+                    IsConverting = false;
+                }
+            }
+        }
+
+        /// <summary>Puts the original script and language back.</summary>
+        [RelayCommand(CanExecute = nameof(CanUndoConvert))]
+        private void UndoConvert()
+        {
+            if (original is not { } start)
+            {
+                return;
+            }
+
+            applying = true;
+
+            try
+            {
+                Body = start.Body;
+                Kind = start.Kind;
+            }
+            finally
+            {
+                applying = false;
+            }
+
+            Settle(string.Empty, undo: false);
+        }
+
+        private void Apply(string body)
+        {
+            applying = true;
+
+            try
+            {
+                Body = body;
+            }
+            finally
+            {
+                applying = false;
+            }
+        }
+
+        /// <summary>Ends a conversion: what to say about it, and whether it can be undone.</summary>
+        private void Settle(string note, bool undo)
+        {
+            ConvertNote = note;
+            CanUndoConvert = undo;
+
+            // Only a conversion that can be undone needs its original kept.
+            if (!undo)
+            {
+                original = null;
+            }
+        }
+        #endregion
+
         /// <summary>
         ///  Parameter values handed over by a link or a command line, used once.
         /// </summary>
@@ -313,6 +490,13 @@ namespace DevDeck.App.ViewModels
 
                 command.Command = value;
                 OnPropertyChanged();
+
+                // The user's own edit after a conversion: the script is theirs now, and Undo would
+                // throw that edit away along with the conversion.
+                if (!applying && !IsConverting && original is not null)
+                {
+                    Settle(string.Empty, undo: false);
+                }
             }
         }
 
@@ -326,9 +510,16 @@ namespace DevDeck.App.ViewModels
                     return;
                 }
 
+                CommandKind from = command.Kind;
+
                 command.Kind = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Dates));
+
+                if (!applying)
+                {
+                    _ = ConvertAsync(from, value);
+                }
             }
         }
 
@@ -571,7 +762,10 @@ namespace DevDeck.App.ViewModels
                     environment = merged;
                 }
 
-                Append($"{script.FileName} {script.Arguments}", LogLevel.Info, launch: true);
+                // To the app's log rather than the run's output. The output is what the command said;
+                // the interpreter and the temporary script it was handed are plumbing, and a line of
+                // them at the top of every run pushed the answer down and wrapped across the panel.
+                AppLog.Instance.Info("run", $"{Name}: {script.FileName} {script.Arguments}");
 
 
                 if (Detached)
@@ -647,7 +841,7 @@ namespace DevDeck.App.ViewModels
         [RelayCommand(CanExecute = nameof(IsRunning))]
         private void Stop() => cancellation?.Cancel();
 
-        private bool CanRun() => !IsRunning;
+        private bool CanRun() => !IsRunning && !IsConverting;
 
         /// <summary>
         ///  Collects the values for a parameterised command, from the panel if it can and from the
@@ -726,7 +920,7 @@ namespace DevDeck.App.ViewModels
         ///  model's context.
         /// </remarks>
         public string Tail(int lines = 200) =>
-            string.Join(Environment.NewLine, Output.Where(line => !line.IsLaunch).TakeLast(lines).Select(line => line.Text));
+            string.Join(Environment.NewLine, Output.TakeLast(lines).Select(line => line.Text));
 
         /// <summary>
         ///  Starts a detached command in its own window and lets go of it.
@@ -782,9 +976,7 @@ namespace DevDeck.App.ViewModels
         ///  input and rendering are served first - output that is a frame late is not a problem;
         ///  a window that will not respond to a click is.
         /// </remarks>
-        private void Append(string line, LogLevel level) => Append(line, level, launch: false);
-
-        private void Append(string line, LogLevel level, bool launch)
+        private void Append(string line, LogLevel level)
         {
             // Parsed off the UI thread, where there is time for it: by the time the batch flushes,
             // the panel only has to draw what is already decided.
@@ -817,8 +1009,7 @@ namespace DevDeck.App.ViewModels
                     text,
                     level,
                     spans,
-                    links.Count > 0 ? links : null,
-                    IsLaunch: launch));
+                    links.Count > 0 ? links : null));
 
                 if (flushQueued)
                 {

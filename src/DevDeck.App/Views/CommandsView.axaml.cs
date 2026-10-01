@@ -136,6 +136,19 @@ namespace DevDeck.App.Views
         ///  running in the background goes on producing output, and following a list that is not
         ///  on screen scrolls a control the user is not looking at.
         /// </remarks>
+        /// <summary>Re-attaches a list to the collection it already shows, so every row is made afresh.</summary>
+        /// <remarks>
+        ///  SetCurrentValue rather than an assignment, so the binding in the XAML stays in charge
+        ///  and the list still follows the selection to another command afterwards.
+        /// </remarks>
+        internal static void Restart(ItemsControl list)
+        {
+            object? source = list.ItemsSource;
+
+            list.SetCurrentValue(ItemsControl.ItemsSourceProperty, null);
+            list.SetCurrentValue(ItemsControl.ItemsSourceProperty, source);
+        }
+
         private void Follow()
         {
             if (watched is not null)
@@ -189,6 +202,17 @@ namespace DevDeck.App.Views
 
         private void OutputChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            // A run clears its output before it starts. The list is then detached and attached again
+            // rather than left to work the clear out for itself: rows here wrap to different heights,
+            // and a row from the last run could survive the clear and sit under the new output as
+            // if this run had printed it.
+            if (e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                Restart(Output);
+
+                return;
+            }
+
             if (model is not { Follow: true } || e.Action != NotifyCollectionChangedAction.Add)
             {
                 return;

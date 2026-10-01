@@ -167,13 +167,6 @@
       <Setter Property="Foreground" Value="{DynamicResource Good}" />
     </Style>
 
-    <!-- The line a run starts with: what was launched, kept as a record but set back so the
-         output itself is what the eye lands on. -->
-    <Style Selector="SelectableTextBlock.out.launch">
-      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
-      <Setter Property="FontSize" Value="11" />
-    </Style>
-
     <!-- The coloured path. Same metrics as the plain one, so a log with colour in it does not
          reflow relative to one without. -->
     <Style Selector="SelectableTextBlock.ansi">
@@ -400,7 +393,27 @@
                 <TextBlock Classes="label" Text="{loc:T CommandsBody}" />
                 <views:CodeEditor Text="{Binding Selected.Body, Mode=TwoWay}"
                                   Language="{Binding Selected.Kind}"
+                                  IsEnabled="{Binding !Selected.IsConverting}"
                                   Height="200" />
+
+                <!-- Changing Run with has the assistant's model rewrite the body for the new
+                     language, when one is set up. This says it is happening - the editor is held
+                     still meanwhile - and afterwards what it did, with the way back. -->
+                <Border Margin="0,6,0,0" Padding="10,6" CornerRadius="2"
+                        Background="{DynamicResource Steel}"
+                        BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                        IsVisible="{Binding Selected.HasConvertNote}">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                    <Ellipse Grid.Column="0" Classes="working turning" VerticalAlignment="Center"
+                             IsVisible="{Binding Selected.IsConverting}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Selected.ConvertNote}" FontSize="12"
+                               TextWrapping="Wrap" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Text}" />
+                    <Button Grid.Column="2" Content="{loc:T CmdUndoConvert}"
+                            IsVisible="{Binding Selected.CanUndoConvert}"
+                            Command="{Binding Selected.UndoConvertCommand}" />
+                  </Grid>
+                </Border>
                 <TextBlock Classes="label" Margin="0,6,0,0"
                            Text="{loc:T CommandsWriteNameOrNameDefaultTo}"
                            TextWrapping="Wrap" />
@@ -507,7 +520,6 @@
                                          Classes.err="{Binding IsError}"
                                          Classes.warn="{Binding IsWarning}"
                                          Classes.notice="{Binding IsNotice}"
-                                         Classes.launch="{Binding IsLaunch}"
                                          Text="{Binding Text}" />
 
                     <SelectableTextBlock Grid.Column="1" Classes="ansi"

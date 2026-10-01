@@ -101,6 +101,12 @@ namespace DevDeck.App.Localisation
             "CmdMoveUp",
             "CmdMoveDown",
             "CmdInUseRow",
+            "CmdConverting",
+            "CmdConverted",
+            "CmdConvertNothing",
+            "CmdConvertEdited",
+            "CmdConvertFailed",
+            "CmdUndoConvert",
             "CmdStopAllCount",
             "CmdStopAll",
             "CmdNotRunYet",
@@ -640,6 +646,9 @@ namespace DevDeck.App.Localisation
             "AiChainCreated",
             "AiChainMissing",
             "AiChainHeader",
+            "AiAskWhy",
+            "AiAskWhyTip",
+            "AiRemoveOutputTip",
             "AiChainRenamed",
             "AiConfirmBlurb",
             "AiNotRun",
@@ -841,6 +850,24 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Used by {0}, so it cannot be selected or deleted. Take it out of there</summary>
         public string CmdInUseRow => Strings.Text("CmdInUseRow");
+
+        /// <summary>Converting to {0} with AI…</summary>
+        public string CmdConverting => Strings.Text("CmdConverting");
+
+        /// <summary>Converted from {0} to {1} by AI. Read it before you run it.</summary>
+        public string CmdConverted => Strings.Text("CmdConverted");
+
+        /// <summary>The AI did not send back a script, so the body was left as it was.</summary>
+        public string CmdConvertNothing => Strings.Text("CmdConvertNothing");
+
+        /// <summary>The script was edited while it was being converted, so your version wa</summary>
+        public string CmdConvertEdited => Strings.Text("CmdConvertEdited");
+
+        /// <summary>Could not convert with AI: {0}</summary>
+        public string CmdConvertFailed => Strings.Text("CmdConvertFailed");
+
+        /// <summary>Undo</summary>
+        public string CmdUndoConvert => Strings.Text("CmdUndoConvert");
 
         /// <summary>Stop all ({0})</summary>
         public string CmdStopAllCount => Strings.Text("CmdStopAllCount");
@@ -2458,6 +2485,15 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Chain "{0}"</summary>
         public string AiChainHeader => Strings.Text("AiChainHeader");
+
+        /// <summary>Ask AI why</summary>
+        public string AiAskWhy => Strings.Text("AiAskWhy");
+
+        /// <summary>Sends what ran and what it printed to the model, and asks why it behav</summary>
+        public string AiAskWhyTip => Strings.Text("AiAskWhyTip");
+
+        /// <summary>Takes this output out of the conversation.</summary>
+        public string AiRemoveOutputTip => Strings.Text("AiRemoveOutputTip");
 
         /// <summary>"{0}" is already in the deck with a different script, so this one was </summary>
         public string AiChainRenamed => Strings.Text("AiChainRenamed");

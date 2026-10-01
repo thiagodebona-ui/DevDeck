@@ -1084,9 +1084,7 @@ namespace DevDeck.App.ViewModels
                         // starts, and a removal is it trimming its own log - neither is output.
                         if (change.Action == NotifyCollectionChangedAction.Add && change.NewItems is { } lines)
                         {
-                            // Not the line the step was launched with: the chain's log is what the
-                            // steps said, and how each was started is on its own page.
-                            chain.Write(lines.OfType<OutputLine>().Where(line => !line.IsLaunch));
+                            chain.Write(lines.OfType<OutputLine>());
                         }
                     };
 

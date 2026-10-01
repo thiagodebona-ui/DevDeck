@@ -88,6 +88,32 @@ namespace DevDeck.App.ViewModels
         private Func<CommandItem, IReadOnlyList<CommandParameter>, Task<IReadOnlyDictionary<string, string>?>>? prompt;
 
         /// <summary>
+        ///  How a command's body is rewritten when its Run with changes, supplied by the window from
+        ///  the assistant. Handed to every item, as <see cref="Prompt"/> is.
+        /// </summary>
+        public (Func<bool> Ready, Func<string, CommandKind, CommandKind, CancellationToken, Task<string?>> Convert)? Converter
+        {
+            get => converter;
+            set
+            {
+                converter = value;
+
+                foreach (CommandItem item in Commands)
+                {
+                    Equip(item);
+                }
+            }
+        }
+
+        private (Func<bool> Ready, Func<string, CommandKind, CommandKind, CancellationToken, Task<string?>> Convert)? converter;
+
+        private void Equip(CommandItem item)
+        {
+            item.CanConvert = converter?.Ready;
+            item.Convert = converter?.Convert;
+        }
+
+        /// <summary>
         ///  Sends the selected command's failure to the assistant, and shows it.
         /// </summary>
         /// <remarks>
@@ -206,6 +232,8 @@ namespace DevDeck.App.ViewModels
             command.Created ??= DateTime.Now;
 
             CommandItem item = new(command, () => Workspace) { Prompt = prompt };
+
+            Equip(item);
 
             Attach(item);
 

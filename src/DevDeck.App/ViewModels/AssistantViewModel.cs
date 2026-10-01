@@ -147,6 +147,19 @@ namespace DevDeck.App.ViewModels
         /// <summary>Output is machine text and is set solid, so it never gets the prose treatment.</summary>
         public bool IsMono => Role == ChatRole.Output;
 
+        /// <summary>
+        ///  For output: what produced it - the script, or a chain's steps with theirs - written as
+        ///  the model should read it. Empty for every other kind of turn.
+        /// </summary>
+        public string Ran { get; init; } = string.Empty;
+
+        /// <summary>For output: the name of what ran, a command or a chain.</summary>
+        public string RanName { get; init; } = string.Empty;
+
+        /// <summary>For output: whether the run is over, which is when it can be asked about or removed.</summary>
+        [ObservableProperty]
+        private bool isDone;
+
         /// <summary>Who said it, as drawn above the turn.</summary>
         /// <remarks>
         ///  Looked up rather than stored, so a transcript already on screen is relabelled when the
@@ -771,6 +784,104 @@ namespace DevDeck.App.ViewModels
         ///  question, and the command itself goes in above it, because "why did this fail" is not
         ///  answerable without knowing what was run.
         /// </remarks>
+        /// <summary>
+        ///  Asks the model why a run from the transcript behaved as it did.
+        /// </summary>
+        /// <remarks>
+        ///  Not only for failures, unlike Explain this failure: a script that exits 0 and prints the
+        ///  wrong thing is the more puzzling case, and the one a model is most use on. What ran goes
+        ///  in with what it printed, since the output alone says what happened but not why.
+        ///
+        ///  The output is clipped to its tail, where the answer and the error nearly always are, so
+        ///  a chatty run does not crowd out the question in a small model's context.
+        /// </remarks>
+        [RelayCommand]
+        private void AskWhy(Turn? turn)
+        {
+            if (turn is not { IsOutput: true, IsDone: true } || IsBusy)
+            {
+                return;
+            }
+
+            const int MostOutput = 8000;
+
+            string printed = turn.Raw.ToString().Trim();
+
+            if (printed.Length > MostOutput)
+            {
+                printed = "[earlier output left out]\n" + printed[^MostOutput..];
+            }
+
+            Ask($"""
+                I ran "{turn.RanName}" and got the output below. Explain why it behaved this way: what
+                happened, and if anything looks wrong, why it happened and what I should change.
+
+                This is what ran:
+
+                {turn.Ran}
+
+                This is the output:
+
+                ```
+                {printed}
+                ```
+                """);
+        }
+
+        /// <summary>Takes a run's output out of the transcript.</summary>
+        /// <remarks>
+        ///  Only from the screen: output is never part of what is sent to the model or saved with
+        ///  the conversation, so there is nothing else to take it out of.
+        /// </remarks>
+        [RelayCommand]
+        private void RemoveOutput(Turn? turn)
+        {
+            if (turn is not { IsOutput: true, IsDone: true })
+            {
+                return;
+            }
+
+            Turns.Remove(turn);
+            OnPropertyChanged(nameof(IsEmpty));
+        }
+
+        /// <summary>A chain's steps and the scripts behind them, as the model should read them.</summary>
+        private string Describe(ChainItem chain)
+        {
+            StringBuilder steps = new();
+            int at = 0;
+
+            foreach (string step in chain.Source.Steps)
+            {
+                at++;
+                steps.Append($"Step {at}: {step}\n");
+
+                if (FindCommand?.Invoke(step) is { } command)
+                {
+                    steps.Append($"```{ScriptConversion.Fence(command.Kind)}\n{command.Command.Trim()}\n```\n");
+                }
+            }
+
+            return $"The chain \"{chain.Name}\" ({(chain.StopOnFailure ? "stops at the first failure" : "carries on after a failure")}):\n\n{steps}".TrimEnd();
+        }
+
+        /// <summary>Puts a question in the box and sends it, or leaves it there when nothing is answering.</summary>
+        private void Ask(string question)
+        {
+            Prompt = question;
+
+            if (SendCommand.CanExecute(null))
+            {
+                SendCommand.Execute(null);
+            }
+            else
+            {
+                // The endpoint is not up. The question is left in the box rather than thrown away,
+                // so pressing Send after fixing that sends the same thing.
+                Status = Strings.Text("AiQuestionReady");
+            }
+        }
+
         public void Explain(string command, string body, string output, int exitCode)
         {
             if (IsBusy)
@@ -778,7 +889,7 @@ namespace DevDeck.App.ViewModels
                 return;
             }
 
-            Prompt = $"""
+            Ask($"""
                 This command failed with exit code {exitCode}. What went wrong, and what should I change?
 
                 It is called "{command}" and this is what it runs:
@@ -792,18 +903,7 @@ namespace DevDeck.App.ViewModels
                 ```
                 {output.Trim()}
                 ```
-                """;
-
-            if (SendCommand.CanExecute(null))
-            {
-                SendCommand.Execute(null);
-            }
-            else
-            {
-                // The endpoint is not up. The question is left in the box rather than thrown away,
-                // so pressing Send after fixing that sends the same thing.
-                Status = Strings.Text("AiQuestionReady");
-            }
+                """);
         }
 
         [RelayCommand(CanExecute = nameof(CanSend))]
@@ -1457,7 +1557,12 @@ namespace DevDeck.App.ViewModels
 
             IsRunning = true;
 
-            Turn output = new(ChatRole.Output, $"$ {created.Name}\n");
+            Turn output = new(ChatRole.Output, $"$ {created.Name}\n")
+            {
+                RanName = created.Name,
+                Ran = $"```{ScriptConversion.Fence(created.Kind)}\n{created.Command.Trim()}\n```",
+            };
+
             AddTurn(output);
 
             running = new CancellationTokenSource();
@@ -1534,6 +1639,7 @@ namespace DevDeck.App.ViewModels
             {
                 script?.Dispose();
 
+                output.IsDone = true;
                 IsRunning = false;
                 running?.Dispose();
                 running = null;
@@ -1573,6 +1679,25 @@ namespace DevDeck.App.ViewModels
             Command = segment.Text,
             Kind = CodeBlock.KindFor(segment.Language, segment.Text),
         };
+        #endregion
+
+        #region Converting commands
+        /// <summary>
+        ///  Rewrites a command's script in another language, with the model the assistant is set to.
+        /// </summary>
+        /// <remarks>
+        ///  Asked for by the deck when a command's Run with changes. It goes to the same endpoint as
+        ///  the chat but not into it: a conversion is not part of the conversation, and putting it
+        ///  in the transcript would fill it with scripts nobody asked about there.
+        /// </remarks>
+        public async Task<string?> ConvertAsync(string body, CommandKind from, CommandKind to, CancellationToken token)
+        {
+            StringBuilder reply = new();
+
+            await Client().StreamAsync(ScriptConversion.Messages(body, from, to), delta => reply.Append(delta), token);
+
+            return ScriptConversion.Extract(reply.ToString());
+        }
         #endregion
 
         #region Help
@@ -1694,7 +1819,12 @@ namespace DevDeck.App.ViewModels
             IsRunning = true;
             runningChain = chain;
 
-            Turn output = new(ChatRole.Output, Strings.Format("AiChainHeader", chain.Name) + "\n");
+            Turn output = new(ChatRole.Output, Strings.Format("AiChainHeader", chain.Name) + "\n")
+            {
+                RanName = chain.Name,
+                Ran = Describe(chain),
+            };
+
             AddTurn(output);
 
             // The chain writes its log on the UI thread a line at a time. Gathered and handed to the
@@ -1757,6 +1887,7 @@ namespace DevDeck.App.ViewModels
             finally
             {
                 chain.Output.CollectionChanged -= Copy;
+                output.IsDone = true;
                 runningChain = null;
                 IsRunning = false;
 
