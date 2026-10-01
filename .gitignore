@@ -19,3 +19,6 @@ conversations/
 out/
 *.zip
 *.tar.gz
+
+# Personal Claude Code notes: local paths and accounts.
+CLAUDE.local.md
