@@ -13,6 +13,9 @@ namespace DevDeck.App.Views
         {
             InitializeComponent();
 
+            // The rail is the user's own list of places: the ones they use most belong at the top.
+            ListReorder.Attach(Rail, (item, to) => (DataContext as MainWindowViewModel)?.MoveSection((Section)item, to));
+
             // The watches have to start whether or not their panel is ever looked at, and the
             // notification needs a window to fall back to - both of which are the window's job
             // rather than the automation view's.
@@ -71,8 +74,27 @@ namespace DevDeck.App.Views
         ///  pin the deck over everything else for the rest of the session, which is not what asking
         ///  for a window is asking for.
         /// </remarks>
+        /// <summary>
+        ///  Set once this window has really closed, which during a sign-out or shutdown it does
+        ///  while hidden. A closed window throws if shown, so anything still asking for it - the
+        ///  tray, the hotkey, a link arriving late - has to be told no rather than crash the app
+        ///  on the way out.
+        /// </summary>
+        private bool closed;
+
+        protected override void OnClosed(EventArgs e)
+        {
+            closed = true;
+            base.OnClosed(e);
+        }
+
         private void Surface()
         {
+            if (closed)
+            {
+                return;
+            }
+
             if (!IsVisible)
             {
                 Show();

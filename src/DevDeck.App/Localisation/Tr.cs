@@ -68,7 +68,8 @@ namespace DevDeck.App.Localisation
             "AutoNothingToRun",
             "AutoFinishedAll",
             "AutoOutputStep",
-            "AutoOutputExited",
+            "AutoStepExit",
+            "AutoStepStopped",
             "AutoOutputSkipped",
             "AutoWaitingFor",
             "AutoWhenFilesChange",
@@ -262,6 +263,7 @@ namespace DevDeck.App.Localisation
             "AssistantCopyWholeConversation",
             "AssistantAddAsCommand",
             "AssistantCreateChain",
+            "AssistantRunChain",
             "AssistantAskItSomething",
             "AssistantAnyCodeItWritesGetsA",
             "AssistantRunThisScriptNow",
@@ -637,6 +639,7 @@ namespace DevDeck.App.Localisation
             "AiNoChainInAnswer",
             "AiChainCreated",
             "AiChainMissing",
+            "AiChainHeader",
             "AiChainRenamed",
             "AiConfirmBlurb",
             "AiNotRun",
@@ -740,8 +743,11 @@ namespace DevDeck.App.Localisation
         /// <summary>Step {0} of {1} · {2}</summary>
         public string AutoOutputStep => Strings.Text("AutoOutputStep");
 
-        /// <summary>{0} exited with code {1}.</summary>
-        public string AutoOutputExited => Strings.Text("AutoOutputExited");
+        /// <summary>exit code {0}</summary>
+        public string AutoStepExit => Strings.Text("AutoStepExit");
+
+        /// <summary>stopped</summary>
+        public string AutoStepStopped => Strings.Text("AutoStepStopped");
 
         /// <summary>Skipped - no command called "{0}".</summary>
         public string AutoOutputSkipped => Strings.Text("AutoOutputSkipped");
@@ -1321,6 +1327,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Create chain</summary>
         public string AssistantCreateChain => Strings.Text("AssistantCreateChain");
+
+        /// <summary>Run chain</summary>
+        public string AssistantRunChain => Strings.Text("AssistantRunChain");
 
         /// <summary>Ask it something.</summary>
         public string AssistantAskItSomething => Strings.Text("AssistantAskItSomething");
@@ -2446,6 +2455,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>These steps name commands the deck does not have: {0}. The chain marks</summary>
         public string AiChainMissing => Strings.Text("AiChainMissing");
+
+        /// <summary>Chain "{0}"</summary>
+        public string AiChainHeader => Strings.Text("AiChainHeader");
 
         /// <summary>"{0}" is already in the deck with a different script, so this one was </summary>
         public string AiChainRenamed => Strings.Text("AiChainRenamed");

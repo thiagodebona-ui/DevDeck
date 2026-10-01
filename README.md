@@ -127,6 +127,9 @@ and **one file watch** so there is something to click straight away. Pick a fold
 | **Log** | Everything DevDeck itself did this session, for when something needs explaining. |
 | **Settings** | Theme, language, AI, keep-awake, notifications, hotkey and more. |
 
+Drag a section in the left menu, or use **Alt+Up** / **Alt+Down**, to put the sections in your own
+order.
+
 ---
 
 ## Commands
@@ -146,7 +149,7 @@ output streams into the pane below with the exit code and run time in the status
   environment as `DEVDECK_ARG_NAME`.
 - **Parameters that ask you.** Write `{{branch}}` in a command and DevDeck asks for a value each
   time it runs. `{{branch:main}}` offers `main` as the default, and values you have typed before are
-  offered back.
+  offered back. A parameter row with the same name fills it in instead, so nothing is asked.
 - **Secrets that never show.** Write `{{secret:API_TOKEN}}` and the value is filled in from
   DevDeck's encrypted vault at run time. It never appears in the command or the settings file.
 - **Readable output.** Colours from tools that print them are shown as colours, not escape codes.
@@ -195,8 +198,8 @@ A chain runs several commands **one after another**, each step waiting for the o
 - Build a chain by picking commands from your deck. Reorder steps with the arrows; the same command
   may appear twice (build, test, build is a real chain).
 - **Stop at the first step that fails**, or keep going so every step gets its answer.
-- All the steps' output lands in one log on the page, under a heading for each step with its exit
-  code.
+- All the steps' output lands in one log on the page, under a heading for each step that shows how
+  it went: ✓ passed, ✗ failed (with its exit code) or ■ stopped.
 - Several chains can run at the same time, each with its own **Stop**.
 - **Drag the grip** under the chains section to make it as tall or as short as you like.
 - **Steps can pass values along.** Each step receives the previous step's result as environment
@@ -318,6 +321,7 @@ A chat panel for a language model of your choice.
   anything.
 - **It builds chains too.** Ask for several commands that work together and a chain to run them,
   and **Create chain** adds the commands to your deck and the chain to Automation in one click.
+  **Run chain** runs it right in the conversation, with every step's output.
   The steps it writes can read each other's output (see [Chains](#chains)).
 - **Prompts** keeps a library of reusable prompts, and **History** reopens earlier conversations.
 - **Help** lists what it can do, with an example prompt for each that you can click to try, and

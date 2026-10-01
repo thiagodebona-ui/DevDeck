@@ -360,7 +360,7 @@
                               <Border DockPanel.Dock="Bottom" Padding="10,7"
                                       IsVisible="{Binding ShowsActions}"
                                       BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
-                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                                   <TextBlock Grid.Column="0" Text="{Binding Caption}" FontSize="11"
                                              VerticalAlignment="Center"
                                              Foreground="{DynamicResource TextFaint}" />
@@ -380,10 +380,17 @@
                                   <!-- The chain block is a list of names, so instead of Run it has the
                                        one action that makes sense of it: add the commands above it to
                                        the deck, and the chain to the automation page. -->
-                                  <Button Grid.Column="3" Classes="small go"
+                                  <Button Grid.Column="3" Classes="small"
                                           IsVisible="{Binding IsChain}"
                                           Content="{loc:T AssistantCreateChain}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CreateChainCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <!-- Runs it here, making it first if Create chain has not, with
+                                       every step's output streamed into the conversation. -->
+                                  <Button Grid.Column="4" Classes="small go" Margin="6,0,0,0"
+                                          IsVisible="{Binding IsChain}"
+                                          Content="{loc:T AssistantRunChain}"
+                                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunChainCommand}"
                                           CommandParameter="{Binding}" />
                                 </Grid>
                               </Border>

@@ -273,6 +273,15 @@ namespace DevDeck.Core
         /// </remarks>
         public List<string> AutomationClosed { get; set; } = [];
 
+        /// <summary>
+        ///  The rail's sections in the order the user put them, by section name.
+        /// </summary>
+        /// <remarks>
+        ///  Empty until the rail is rearranged, which keeps the shipped order. A section this list
+        ///  does not name - one added by a later version - goes at the end rather than being lost.
+        /// </remarks>
+        public List<string> SectionOrder { get; set; } = [];
+
         /// <summary>How tall the chains section on the Automation page is, as last dragged.</summary>
         /// <remarks>
         ///  The section used to be as tall as its contents - the step list, the options and a

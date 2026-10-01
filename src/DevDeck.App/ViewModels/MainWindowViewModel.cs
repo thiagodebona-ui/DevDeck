@@ -89,8 +89,12 @@ namespace DevDeck.App.ViewModels
 
     internal sealed partial class MainWindowViewModel : ObservableObject
     {
+        private readonly AppSettings settings;
+
         public MainWindowViewModel(AppSettings settings)
         {
+            this.settings = settings;
+
             Title = $"DevDeck {AppVersion.Number}";
             Platform = $"{Describe()} · {AppVersion.Display}";
 
@@ -149,11 +153,13 @@ namespace DevDeck.App.ViewModels
 
             commands.Renamed = Automation.Renamed;
 
-            // A chain the assistant wrote lands where chains live, and the page opens on it - the
-            // same as a command it wrote landing in the deck.
-            assistant.AddChain = chain =>
+            // A chain the assistant wrote lands where chains live, and is run from there even when
+            // it is started from the transcript. Create chain opens the page on it - the same as a
+            // command it wrote landing in the deck; Run chain stays in the conversation.
+            assistant.Automation = Automation;
+            assistant.ShowChain = chain =>
             {
-                Automation.Add(chain);
+                Automation.SelectedChain = chain;
                 Show("Automation");
             };
             assistant.FindCommand = name => commands.Commands.FirstOrDefault(
@@ -204,6 +210,8 @@ namespace DevDeck.App.ViewModels
                 new("Changelog", "NavChangelog", "NavChangelogBlurb", Icons.Changelog, new ChangelogViewModel()),
             };
 
+            Arrange(Sections, settings.SectionOrder);
+
             selected = Sections[0];
 
             // The first start of a new version opens on what it brought, once. An empty value is
@@ -235,6 +243,55 @@ namespace DevDeck.App.ViewModels
         public string Platform { get; }
 
         public ObservableCollection<Section> Sections { get; }
+
+        /// <summary>Puts the sections in the user's saved order. Ones it does not name keep their place at the end.</summary>
+        private static void Arrange(ObservableCollection<Section> sections, List<string> order)
+        {
+            if (order.Count == 0)
+            {
+                return;
+            }
+
+            // Stable, so the sections the saved order does not mention stay in their shipped order.
+            List<Section> arranged = [.. sections.OrderBy(section =>
+            {
+                int at = order.IndexOf(section.Name);
+
+                return at < 0 ? int.MaxValue : at;
+            })];
+
+            sections.Clear();
+
+            foreach (Section section in arranged)
+            {
+                sections.Add(section);
+            }
+        }
+
+        /// <summary>
+        ///  Moves a section to a new place in the rail, and remembers the order.
+        /// </summary>
+        /// <remarks>
+        ///  The selection is put back afterwards: to the list a moved row is a row removed and
+        ///  another added, and losing the selection here would blank the page being looked at.
+        /// </remarks>
+        public void MoveSection(Section section, int to)
+        {
+            int from = Sections.IndexOf(section);
+
+            if (from < 0 || to < 0 || to >= Sections.Count || from == to)
+            {
+                return;
+            }
+
+            Section? keep = Selected;
+
+            Sections.Move(from, to);
+            Selected = keep;
+
+            settings.SectionOrder = [.. Sections.Select(each => each.Name)];
+            settings.Save();
+        }
 
         /// <summary>
         ///  Held by name as well as by section, because the window's own lifecycle depends on it.

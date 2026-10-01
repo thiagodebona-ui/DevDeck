@@ -62,6 +62,69 @@ namespace DevDeck.Core
         public static bool Any(string body) => Placeholder().IsMatch(body);
 
         /// <summary>
+        ///  The values a run already has without asking: the command's own parameter rows, then
+        ///  whatever a link or the command line supplied, which wins over a row of the same name.
+        /// </summary>
+        /// <remarks>
+        ///  A row and a placeholder of the same name are the same parameter as far as anyone
+        ///  filling them in is concerned. They used to be two unrelated mechanisms - a row was only
+        ///  ever passed to the script as an argument, and a placeholder always asked - so a user who
+        ///  filled in Name under Parameters was then asked for Name again in a box, with their
+        ///  value nowhere in it.
+        ///
+        ///  Only rows that are switched on, named and not empty count. An empty row is a parameter
+        ///  the user has not decided on yet, and that is exactly what the box is for.
+        /// </remarks>
+        public static Dictionary<string, string> Given(
+            IEnumerable<CommandArgument> rows,
+            IReadOnlyDictionary<string, string>? supplied = null)
+        {
+            Dictionary<string, string> given = new(StringComparer.OrdinalIgnoreCase);
+
+            foreach (CommandArgument row in rows)
+            {
+                string name = row.Name.Trim();
+
+                if (row.Enabled && name.Length > 0 && row.Value.Length > 0)
+                {
+                    given.TryAdd(name, row.Value);
+                }
+            }
+
+            foreach ((string name, string value) in supplied ?? new Dictionary<string, string>())
+            {
+                given[name] = value;
+            }
+
+            return given;
+        }
+
+        /// <summary>
+        ///  Whether every placeholder already has a value, so the run need not ask at all.
+        /// </summary>
+        /// <remarks>
+        ///  A secret counts as answered when the vault has it, since it is filled from there and
+        ///  never typed. One the vault lacks still needs the box, which is where that is said.
+        /// </remarks>
+        public static bool Answered(
+            IReadOnlyList<CommandParameter> parameters,
+            IReadOnlyDictionary<string, string> given,
+            Func<string, string?> secrets) =>
+            parameters.All(parameter => parameter.IsSecret
+                ? secrets(parameter.Name) is not null
+                : given.ContainsKey(parameter.Name));
+
+        /// <summary>The parameters with what is already known put in as their starting values.</summary>
+        public static IReadOnlyList<CommandParameter> Prefill(
+            IReadOnlyList<CommandParameter> parameters,
+            IReadOnlyDictionary<string, string> given) =>
+        [
+            .. parameters.Select(parameter => !parameter.IsSecret && given.TryGetValue(parameter.Name, out string? value)
+                ? parameter with { Default = value }
+                : parameter),
+        ];
+
+        /// <summary>
         ///  The parameters in a body, in the order they first appear and without repeats.
         /// </summary>
         /// <remarks>

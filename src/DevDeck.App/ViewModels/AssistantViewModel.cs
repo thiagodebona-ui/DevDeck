@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -61,6 +62,9 @@ namespace DevDeck.App.ViewModels
         public bool IsChain { get; }
 
         public bool IsScript => !IsChain;
+
+        /// <summary>The chain made from this block, once Create chain or Run chain has made it.</summary>
+        public ChainItem? Chain { get; set; }
 
         /// <summary>
         ///  Whether this block carries Run and Add.
@@ -1406,7 +1410,11 @@ namespace DevDeck.App.ViewModels
             Segment? wanted = pending;
             pending = null;
 
-            if (wanted is not null)
+            if (wanted is { IsChain: true })
+            {
+                RunChainCommand.Execute(wanted);
+            }
+            else if (wanted is not null)
             {
                 RunCodeCommand.Execute(wanted);
             }
@@ -1536,6 +1544,7 @@ namespace DevDeck.App.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(RunCodeCommand))]
+        [NotifyCanExecuteChangedFor(nameof(RunChainCommand))]
         [NotifyCanExecuteChangedFor(nameof(StopCodeCommand))]
         [NotifyPropertyChangedFor(nameof(RunLabel))]
         private bool isRunning;
@@ -1545,7 +1554,18 @@ namespace DevDeck.App.ViewModels
         public string RunLabel => IsRunning ? "Running" : "Run";
 
         [RelayCommand(CanExecute = nameof(IsRunning))]
-        private void StopCode() => running?.Cancel();
+        private void StopCode()
+        {
+            // A chain is stopped through its page, which also stops the step it is on.
+            if (runningChain is { } chain)
+            {
+                Automation?.StopChainCommand.Execute(chain);
+
+                return;
+            }
+
+            running?.Cancel();
+        }
 
         private static CustomCommand Build(Segment segment) => new()
         {
@@ -1600,8 +1620,17 @@ namespace DevDeck.App.ViewModels
         #endregion
 
         #region Chains
-        /// <summary>Puts a chain on the automation page and shows it there. Set by the window.</summary>
-        public Action<CommandChain>? AddChain { get; set; }
+        /// <summary>
+        ///  The automation page, where a chain from an answer is added and run. Set by the window.
+        /// </summary>
+        /// <remarks>
+        ///  A reference one way only: the automation page knows nothing of the assistant, so the
+        ///  two can still be built in either order.
+        /// </remarks>
+        public AutomationViewModel? Automation { get; set; }
+
+        /// <summary>Opens the automation page on a chain. Set by the window.</summary>
+        public Action<ChainItem>? ShowChain { get; set; }
 
         /// <summary>The deck's command of this name, if there is one. Set by the window.</summary>
         public Func<string, CustomCommand?>? FindCommand { get; set; }
@@ -1609,10 +1638,140 @@ namespace DevDeck.App.ViewModels
         /// <summary>A command name the deck does not have yet. Set by the window.</summary>
         public Func<string, string>? UniqueCommandName { get; set; }
 
+        /// <summary>The chain running from the transcript, so Stop knows what to stop.</summary>
+        private ChainItem? runningChain;
+
+        /// <summary>Creates the chain an answer describes, and opens it on the automation page.</summary>
+        [RelayCommand]
+        private void CreateChain(Segment? segment)
+        {
+            if (Make(segment) is { } chain)
+            {
+                ShowChain?.Invoke(chain);
+            }
+        }
+
         /// <summary>
-        ///  Creates the chain an answer describes: its commands in the deck, then the chain itself.
+        ///  Runs the chain an answer describes, here, with every step's output in the transcript.
         /// </summary>
         /// <remarks>
+        ///  The chain equivalent of Run on a code block, and for the same reason: the answer and
+        ///  what it did are read in one place, without going to another page to watch it. It is
+        ///  run by the automation page all the same - created there first if it is not yet - so it
+        ///  behaves exactly as it does when started from there, stop-on-failure and all.
+        ///
+        ///  Gated by the same once-a-session question as a code block, because it is the same
+        ///  thing: scripts a model wrote, about to run against the user's project.
+        /// </remarks>
+        [RelayCommand(CanExecute = nameof(CanRunCode))]
+        private async Task RunChain(Segment? segment)
+        {
+            if (segment is not { IsChain: true } || IsRunning || Automation is not { } automation)
+            {
+                return;
+            }
+
+            if (workingDirectory().Length == 0)
+            {
+                Say(ChatRole.Problem, Strings.Text("AiNeedWorkspace"));
+                return;
+            }
+
+            if (!acceptedRunningGeneratedCode)
+            {
+                pending = segment;
+                IsConfirmingRun = true;
+                OnPropertyChanged(nameof(ConfirmBlurb));
+
+                return;
+            }
+
+            if (Make(segment) is not { } chain)
+            {
+                return;
+            }
+
+            IsRunning = true;
+            runningChain = chain;
+
+            Turn output = new(ChatRole.Output, Strings.Format("AiChainHeader", chain.Name) + "\n");
+            AddTurn(output);
+
+            // The chain writes its log on the UI thread a line at a time. Gathered and handed to the
+            // transcript once per pass, as a code block's output is, so a chatty step does not
+            // re-split the whole turn for every line it prints.
+            StringBuilder batch = new();
+            bool queued = false;
+
+            void Copy(object? sender, NotifyCollectionChangedEventArgs change)
+            {
+                if (change.NewItems is not { } lines
+                    || change.Action is not (NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Replace))
+                {
+                    return;
+                }
+
+                // A replacement is a step's heading settling to its tick or cross. The transcript is
+                // written forwards only, so the outcome goes in as a line of its own under the
+                // step's output, which reads the same way: what ran, what it said, how it went.
+                foreach (OutputLine line in lines.OfType<OutputLine>())
+                {
+                    batch.Append(line.Text).Append('\n');
+                }
+
+                if (queued)
+                {
+                    return;
+                }
+
+                queued = true;
+
+                Dispatcher.UIThread.Post(
+                    () =>
+                    {
+                        output.Append(batch.ToString());
+                        batch.Clear();
+                        queued = false;
+                        ScrollToEnd?.Invoke();
+                    },
+                    DispatcherPriority.Background);
+            }
+
+            chain.Output.CollectionChanged += Copy;
+
+            try
+            {
+                await automation.RunChainCommand.ExecuteAsync(chain);
+
+                // Behind the last batch, at the same priority, so the summary lands after it.
+                await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+                output.Append("\n" + chain.Status);
+                Status = chain.Status;
+            }
+            catch (Exception exception)
+            {
+                output.Append("\n" + Strings.Format("AiCouldNotRunLine", exception.Message));
+                Status = Strings.Format("AiCouldNotRun", exception.Message);
+            }
+            finally
+            {
+                chain.Output.CollectionChanged -= Copy;
+                runningChain = null;
+                IsRunning = false;
+
+                ScrollToEnd?.Invoke();
+            }
+        }
+
+        /// <summary>
+        ///  The chain an answer describes, made if it has not been already.
+        /// </summary>
+        /// <remarks>
+        ///  Remembered on the block, so Create chain and then Run chain - or Run chain twice - use
+        ///  the one chain rather than adding "Report 2" and "Report 3". Made again if it has since
+        ///  been deleted on the automation page.
+        ///
         ///  Read from the whole reply rather than the block the button sits on, because the chain
         ///  block is only a list of names - the scripts are in the blocks above it.
         ///
@@ -1621,21 +1780,28 @@ namespace DevDeck.App.ViewModels
         ///  is added beside the existing one under a new name, and the chain points at that: the
         ///  user's own command is never overwritten by something a model wrote.
         /// </remarks>
-        [RelayCommand]
-        private void CreateChain(Segment? segment)
+        private ChainItem? Make(Segment? segment)
         {
-            if (segment is not { IsChain: true }
-                || Turns.FirstOrDefault(turn => turn.Segments.Contains(segment)) is not { } turn
-                || AddChain is not { } addChain)
+            if (segment is not { IsChain: true } || Automation is not { } automation)
             {
-                return;
+                return null;
+            }
+
+            if (segment.Chain is { } made && automation.Chains.Contains(made))
+            {
+                return made;
+            }
+
+            if (Turns.FirstOrDefault(turn => turn.Segments.Contains(segment)) is not { } turn)
+            {
+                return null;
             }
 
             if (ChainPlan.Parse(turn.Raw.ToString()) is not { } plan)
             {
                 Say(ChatRole.Notice, Strings.Text("AiNoChainInAnswer"));
 
-                return;
+                return null;
             }
 
             Dictionary<string, string> renamed = new(StringComparer.OrdinalIgnoreCase);
@@ -1670,14 +1836,14 @@ namespace DevDeck.App.ViewModels
                 .Where(step => FindCommand?.Invoke(step) is null)
                 .Distinct(StringComparer.OrdinalIgnoreCase)];
 
-            CommandChain chain = new()
+            ChainItem chain = automation.Add(new CommandChain
             {
                 Name = plan.Name,
                 Steps = steps,
                 StopOnFailure = plan.StopOnFailure,
-            };
+            });
 
-            addChain(chain);
+            segment.Chain = chain;
 
             Say(ChatRole.Notice, Strings.Format("AiChainCreated", chain.Name, steps.Count, added));
 
@@ -1686,6 +1852,8 @@ namespace DevDeck.App.ViewModels
                 Say(ChatRole.Notice, Strings.Format(
                     "AiChainMissing", string.Join(", ", missing.Select(step => $"\"{step}\""))));
             }
+
+            return chain;
         }
 
         /// <summary>The same script, give or take line endings and trailing space.</summary>

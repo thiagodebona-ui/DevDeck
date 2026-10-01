@@ -280,6 +280,36 @@ namespace DevDeck.App.ViewModels
         internal void Write(string text, LogLevel level, bool heading = false) =>
             Write([new OutputLine(DateTime.Now, text, level, IsHeading: heading)]);
 
+        /// <summary>
+        ///  Swaps a step's heading for its finished form, in place.
+        /// </summary>
+        /// <remarks>
+        ///  The heading is how a step's result is shown: written when the step starts, then
+        ///  replaced with a tick or a cross when it ends. One line per step that says what it was
+        ///  and how it went, rather than a heading above and an "exited with code 0" below - the
+        ///  outcome is where the eye already is, and a run of passing steps reads as a column of
+        ///  ticks.
+        ///
+        ///  Found by reference from the end, because it is nearly always recent and a log of a
+        ///  thousand lines should not be walked from the top. A heading already trimmed off the
+        ///  front of a very long log is written again at the end instead, so the outcome is not
+        ///  lost with it.
+        /// </remarks>
+        internal void Settle(OutputLine heading, OutputLine settled)
+        {
+            for (int at = Output.Count - 1; at >= 0; at--)
+            {
+                if (ReferenceEquals(Output[at], heading))
+                {
+                    Output[at] = settled;
+
+                    return;
+                }
+            }
+
+            Write([settled]);
+        }
+
         [RelayCommand]
         private void ClearOutput()
         {
@@ -927,6 +957,23 @@ namespace DevDeck.App.ViewModels
         ///  Each step is also handed the one before it, through the environment - see
         ///  <see cref="RunContext.Chain"/> for what a step can read and why it is passed that way.
         /// </remarks>
+        /// <summary>
+        ///  The marks on a step's heading in the chain log.
+        /// </summary>
+        /// <remarks>
+        ///  Characters rather than icons, so they go wherever the log goes: the page, Select text,
+        ///  the copy in the assistant's transcript, a paste into a ticket. The heading's colour comes
+        ///  from its level as well, so the mark is never the only thing saying how a step went.
+        /// </remarks>
+        private const string Running = "▶", Passed = "✓", Failed = "✗", Halted = "■", Skipped = "⚠";
+
+        /// <summary>A step's heading once it has been stopped, by the user or by its chain.</summary>
+        private static OutputLine Halt(OutputLine heading, string title) => heading with
+        {
+            Text = $"{Halted}  {title} · {Strings.Text("AutoStepStopped")}",
+            Level = LogLevel.Warning,
+        };
+
         [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task RunChain(ChainItem? which)
         {
@@ -985,10 +1032,15 @@ namespace DevDeck.App.ViewModels
                         return;
                     }
 
-                    chain.Write(Strings.Format("AutoOutputStep", at, total, step), LogLevel.Info, heading: true);
+                    // Written now as running, and settled to a tick or a cross when the step ends.
+                    string title = Strings.Format("AutoOutputStep", at, total, step);
+                    OutputLine heading = new(DateTime.Now, $"{Running}  {title}", LogLevel.Info, IsHeading: true);
+
+                    chain.Write([heading]);
 
                     if (Find(step) is not { } command)
                     {
+                        chain.Settle(heading, heading with { Text = $"{Skipped}  {title}", Level = LogLevel.Warning });
                         chain.Write(Strings.Format("AutoOutputSkipped", step), LogLevel.Warning);
 
                         if (chain.StopOnFailure)
@@ -1016,6 +1068,7 @@ namespace DevDeck.App.ViewModels
                         }
                         catch (OperationCanceledException)
                         {
+                            chain.Settle(heading, Halt(heading, title));
                             chain.Status = Strings.Format("AutoStoppedAfter", at - 1, total);
 
                             return;
@@ -1031,7 +1084,9 @@ namespace DevDeck.App.ViewModels
                         // starts, and a removal is it trimming its own log - neither is output.
                         if (change.Action == NotifyCollectionChangedAction.Add && change.NewItems is { } lines)
                         {
-                            chain.Write(lines.OfType<OutputLine>());
+                            // Not the line the step was launched with: the chain's log is what the
+                            // steps said, and how each was started is on its own page.
+                            chain.Write(lines.OfType<OutputLine>().Where(line => !line.IsLaunch));
                         }
                     };
 
@@ -1059,9 +1114,16 @@ namespace DevDeck.App.ViewModels
                         chain.Current = null;
                     }
 
-                    chain.Write(
-                        Strings.Format("AutoOutputExited", command.Name, command.LastExitCode),
-                        command.State == RunState.Succeeded ? LogLevel.Success : LogLevel.Error);
+                    chain.Settle(heading, command.State switch
+                    {
+                        RunState.Succeeded => heading with { Text = $"{Passed}  {title}", Level = LogLevel.Success },
+                        RunState.Stopped => Halt(heading, title),
+                        _ => heading with
+                        {
+                            Text = $"{Failed}  {title} · {Strings.Format("AutoStepExit", command.LastExitCode)}",
+                            Level = LogLevel.Error,
+                        },
+                    });
 
                     // Read before the failure checks below, so that a step written to explain a
                     // failure still receives what failed.

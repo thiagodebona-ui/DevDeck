@@ -167,6 +167,13 @@
       <Setter Property="Foreground" Value="{DynamicResource Good}" />
     </Style>
 
+    <!-- The line a run starts with: what was launched, kept as a record but set back so the
+         output itself is what the eye lands on. -->
+    <Style Selector="SelectableTextBlock.out.launch">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
     <!-- The coloured path. Same metrics as the plain one, so a log with colour in it does not
          reflow relative to one without. -->
     <Style Selector="SelectableTextBlock.ansi">
@@ -500,6 +507,7 @@
                                          Classes.err="{Binding IsError}"
                                          Classes.warn="{Binding IsWarning}"
                                          Classes.notice="{Binding IsNotice}"
+                                         Classes.launch="{Binding IsLaunch}"
                                          Text="{Binding Text}" />
 
                     <SelectableTextBlock Grid.Column="1" Classes="ansi"

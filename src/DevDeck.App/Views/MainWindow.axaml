@@ -161,7 +161,8 @@
                    Text="{Binding Platform}" FontSize="10.5" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextFaint}" />
 
-        <ListBox Classes="rail"
+        <!-- Rearranged by dragging a section or with Alt+Up and Alt+Down, as the deck is. -->
+        <ListBox Name="Rail" Classes="rail"
                  ItemsSource="{Binding Sections}"
                  SelectedItem="{Binding Selected}"
                  BorderThickness="0">

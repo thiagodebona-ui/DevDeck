@@ -133,6 +133,18 @@
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
     </Style>
 
+    <!-- Fluent shrinks a pressed button to 98% about its centre. On a header the width of the page
+         that pulls the left edge in by a dozen pixels or more - the chevron jumped, the pointer was
+         left outside the shrunken button, and the release did not count as a click. Only a press
+         on the title, further in, ever folded the section. -->
+    <Style Selector="Button.fold:pressed">
+      <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <Style Selector="Button.fold:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
     <!-- The chain's combined output. The same metrics as the deck's, so a log reads the same on
          either page. -->
     <Style Selector="ListBox.output">
@@ -186,6 +198,20 @@
       <Setter Property="Foreground" Value="{DynamicResource Accent}" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Margin" Value="0,6,0,2" />
+    </Style>
+
+    <!-- A finished step's heading carries its outcome: a tick in green, a cross in red, a stop or
+         a skip in amber. After the plain heading style, so these win over its accent colour. -->
+    <Style Selector="SelectableTextBlock.out.heading.notice">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.heading.err">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.out.heading.warn">
+      <Setter Property="Foreground" Value="{DynamicResource Warn}" />
     </Style>
 
     <Style Selector="SelectableTextBlock.ansi">

@@ -9,6 +9,19 @@ namespace DevDeck.App.Views
     {
         private MemoryWidget? widget;
 
+        /// <summary>
+        ///  Set once the main window has really closed, as opposed to hidden.
+        /// </summary>
+        /// <remarks>
+        ///  At sign-out or shutdown Windows closes every window the app has, the hidden main window
+        ///  included, and then the widget. The widget closing used to bring the main window back -
+        ///  which had just been closed, and a closed Avalonia window throws when shown, so the app
+        ///  died with an error on the shutdown screen. There is nothing to come back to by then.
+        /// </remarks>
+        private static bool deckClosed;
+
+        private static bool watchingDeck;
+
         public MemoryView()
         {
             InitializeComponent();
@@ -34,6 +47,12 @@ namespace DevDeck.App.Views
                 widget.Close();
                 widget = null;
                 return false;
+            }
+
+            if (!watchingDeck && Deck() is { } deck)
+            {
+                watchingDeck = true;
+                deck.Closed += (_, _) => deckClosed = true;
             }
 
             widget = new MemoryWidget { DataContext = DataContext };
@@ -71,7 +90,7 @@ namespace DevDeck.App.Views
         /// </remarks>
         private static void ShowApp()
         {
-            if (Deck() is not { } main)
+            if (deckClosed || Deck() is not { } main)
             {
                 return;
             }

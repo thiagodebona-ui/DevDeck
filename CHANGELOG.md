@@ -1,5 +1,27 @@
 ﻿# Changelog
 
+## 1.2.6
+
+- **No more crash when Windows shuts down.** With the floating memory widget open, signing out or
+  shutting down made DevDeck fail with an error on the shutdown screen: the widget closing tried to
+  bring back a main window Windows had already closed. It now lets the app go quietly.
+- **Parameter rows fill in placeholders.** A row under **Parameters** named like a `{{placeholder}}`
+  in the body now fills it in, so the "Values for this run" box no longer asks for something you
+  have already typed. If only some have values, the box opens with those already filled in.
+- **Run chain in the Assistant.** A chain the Assistant writes now has **Run chain** beside
+  **Create chain**. It creates the chain if needed, asks once per session as **Run** does, and
+  streams every step's output into the conversation. **Create chain** pressed twice opens the chain
+  it already made instead of adding a second one.
+- **Clearer chain output.** Each step's heading shows how it went - ▶ running, ✓ passed in green,
+  ✗ failed in red with its exit code, ■ stopped - in place of the separate "exited with code 0"
+  lines. The `powershell.exe -NoProfile ...` line a step starts with is no longer in the chain's
+  log, and is no longer passed to the next step as part of its output.
+- **Rearrange the left menu.** Drag a section, or use **Alt+Up** / **Alt+Down**, to put the menu in
+  the order you want. The order is saved.
+- **The section arrows on the Automation page work.** Clicking the arrow itself, not only the title,
+  now folds and opens the section. A pressed button shrank slightly, which moved the arrow out from
+  under the pointer.
+
 ## 1.2.5
 
 - **Commands in use are out of reach in the list.** A command that a chain or a watch runs is

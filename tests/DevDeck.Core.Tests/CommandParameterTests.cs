@@ -171,5 +171,75 @@ namespace DevDeck.Core.Tests
         {
             Assert.Equal("Base branch", new CommandParameter("base_branch", string.Empty, false).Label);
         }
+
+        private static readonly IReadOnlyList<CommandParameter> NameAndGreeting =
+            CommandParameters.Find("$name = '{{Name:world}}'\n$greeting = '{{Greeting:Hello}}'");
+
+        private static string? NoSecrets(string name) => null;
+
+        /// <summary>
+        ///  The case that was reported: both placeholders filled in under Parameters, and the box
+        ///  still opened asking for them.
+        /// </summary>
+        [Fact]
+        public void RowsNamedLikeThePlaceholdersAnswerThem()
+        {
+            Dictionary<string, string> given = CommandParameters.Given(
+            [
+                new CommandArgument { Name = "Name", Value = "Thiaga" },
+                new CommandArgument { Name = "greeting", Value = "holaaaa que tal" },
+            ]);
+
+            Assert.True(CommandParameters.Answered(NameAndGreeting, given, NoSecrets));
+            Assert.Equal("Thiaga", given["name"]);
+        }
+
+        /// <summary>An empty or switched-off row is not an answer, so the box still asks for it.</summary>
+        [Fact]
+        public void AnEmptyOrDisabledRowStillLeavesItToTheBox()
+        {
+            Dictionary<string, string> given = CommandParameters.Given(
+            [
+                new CommandArgument { Name = "Name", Value = string.Empty },
+                new CommandArgument { Name = "Greeting", Value = "Hi", Enabled = false },
+            ]);
+
+            Assert.False(CommandParameters.Answered(NameAndGreeting, given, NoSecrets));
+            Assert.Empty(given);
+        }
+
+        /// <summary>Half answered: the box opens with what is known already filled in.</summary>
+        [Fact]
+        public void APartAnswerBecomesTheStartingValue()
+        {
+            Dictionary<string, string> given = CommandParameters.Given([new CommandArgument { Name = "Name", Value = "Ana" }]);
+
+            Assert.False(CommandParameters.Answered(NameAndGreeting, given, NoSecrets));
+
+            IReadOnlyList<CommandParameter> asked = CommandParameters.Prefill(NameAndGreeting, given);
+
+            Assert.Equal("Ana", asked[0].Default);
+            Assert.Equal("Hello", asked[1].Default);
+        }
+
+        /// <summary>A link names a value for this one run, so it wins over the saved row.</summary>
+        [Fact]
+        public void ALinkWinsOverTheRow()
+        {
+            Dictionary<string, string> given = CommandParameters.Given(
+                [new CommandArgument { Name = "Name", Value = "Ana" }],
+                new Dictionary<string, string> { ["Name"] = "Bia" });
+
+            Assert.Equal("Bia", given["Name"]);
+        }
+
+        [Fact]
+        public void ASecretIsAnsweredByTheVaultOnly()
+        {
+            IReadOnlyList<CommandParameter> parameters = CommandParameters.Find("echo {{secret:TOKEN}}");
+
+            Assert.False(CommandParameters.Answered(parameters, new Dictionary<string, string>(), NoSecrets));
+            Assert.True(CommandParameters.Answered(parameters, new Dictionary<string, string>(), name => "s3cret"));
+        }
     }
 }

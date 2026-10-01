@@ -31,8 +31,13 @@ namespace DevDeck.App.ViewModels
         LogLevel Level,
         IReadOnlyList<AnsiSpan>? Spans = null,
         IReadOnlyList<SourceLink>? Links = null,
-        bool IsHeading = false)
+        bool IsHeading = false,
+        bool IsLaunch = false)
     {
+        // IsLaunch marks the line a run starts with - the interpreter and the script it was handed.
+        // It belongs on the command's own page, as a record of what was started, and nowhere that
+        // reads the command's output as its answer: a chain's log, the next step, the assistant.
+
         public bool IsError => Level == LogLevel.Error;
 
         public bool IsWarning => Level == LogLevel.Warning;
@@ -566,7 +571,7 @@ namespace DevDeck.App.ViewModels
                     environment = merged;
                 }
 
-                Append($"{script.FileName} {script.Arguments}", LogLevel.Info);
+                Append($"{script.FileName} {script.Arguments}", LogLevel.Info, launch: true);
 
 
                 if (Detached)
@@ -659,34 +664,29 @@ namespace DevDeck.App.ViewModels
 
             Supplied = null;
 
-            if (supplied is { Count: > 0 }
-                && parameters.All(parameter => supplied.ContainsKey(parameter.Name)))
+            // The parameter rows first, then what a link named: see CommandParameters.Given.
+            Dictionary<string, string> given = CommandParameters.Given(command.Arguments, supplied);
+
+            if (CommandParameters.Answered(parameters, given, SecretVault.Instance.Value))
             {
-                // Every one of them was named, so there is nothing left to ask about and asking
-                // anyway would turn a one-click link into a dialog.
-                return parameters.ToDictionary(
-                    parameter => parameter.Name,
-                    parameter => supplied[parameter.Name],
-                    StringComparer.OrdinalIgnoreCase);
+                // Every one of them has a value already, so there is nothing left to ask about, and
+                // asking anyway would turn a filled-in command or a one-click link into a dialog.
+                return parameters
+                    .Where(parameter => !parameter.IsSecret)
+                    .ToDictionary(parameter => parameter.Name, parameter => given[parameter.Name], StringComparer.OrdinalIgnoreCase);
             }
 
             if (Prompt is null)
             {
-                return parameters.ToDictionary(p => p.Name, p => p.Default, StringComparer.OrdinalIgnoreCase);
+                return parameters.ToDictionary(
+                    p => p.Name,
+                    p => given.TryGetValue(p.Name, out string? value) ? value : p.Default,
+                    StringComparer.OrdinalIgnoreCase);
             }
 
-            // A partly-filled request still helps: what it named becomes the starting value in the
-            // box, so the user confirms rather than retypes.
-            IReadOnlyList<CommandParameter> asked = supplied is null
-                ? parameters
-                :
-                [
-                    .. parameters.Select(parameter => supplied.TryGetValue(parameter.Name, out string? given)
-                        ? parameter with { Default = given }
-                        : parameter),
-                ];
-
-            return await Prompt(this, asked);
+            // A partly-answered run still helps: what is already known becomes the starting value
+            // in the box, so the user confirms rather than retypes.
+            return await Prompt(this, CommandParameters.Prefill(parameters, given));
         }
 
         /// <summary>
@@ -726,7 +726,7 @@ namespace DevDeck.App.ViewModels
         ///  model's context.
         /// </remarks>
         public string Tail(int lines = 200) =>
-            string.Join(Environment.NewLine, Output.TakeLast(lines).Select(line => line.Text));
+            string.Join(Environment.NewLine, Output.Where(line => !line.IsLaunch).TakeLast(lines).Select(line => line.Text));
 
         /// <summary>
         ///  Starts a detached command in its own window and lets go of it.
@@ -782,7 +782,9 @@ namespace DevDeck.App.ViewModels
         ///  input and rendering are served first - output that is a frame late is not a problem;
         ///  a window that will not respond to a click is.
         /// </remarks>
-        private void Append(string line, LogLevel level)
+        private void Append(string line, LogLevel level) => Append(line, level, launch: false);
+
+        private void Append(string line, LogLevel level, bool launch)
         {
             // Parsed off the UI thread, where there is time for it: by the time the batch flushes,
             // the panel only has to draw what is already decided.
@@ -815,7 +817,8 @@ namespace DevDeck.App.ViewModels
                     text,
                     level,
                     spans,
-                    links.Count > 0 ? links : null));
+                    links.Count > 0 ? links : null,
+                    IsLaunch: launch));
 
                 if (flushQueued)
                 {

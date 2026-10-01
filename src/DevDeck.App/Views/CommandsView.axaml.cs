@@ -1,13 +1,10 @@
 ﻿using System.Collections.Specialized;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
-using CommunityToolkit.Mvvm.Input;
 using DevDeck.App.ViewModels;
 using DevDeck.Core;
 
@@ -44,14 +41,10 @@ namespace DevDeck.App.Views
             TextMode.Wire(SelectOutput, Output, () => string.Join(
                 Environment.NewLine, Output.Items.OfType<OutputLine>().Select(line => line.Text)));
 
-            // Tunnelling, so these see the keys and the pointer before the list does: the list
-            // treats Alt+Up as a plain Up and moves the selection, and marks a press on a row
-            // handled as it selects it.
+            // Dragging a row and Alt+Up / Alt+Down are shared with the rail. Delete is only here:
+            // tunnelling, so it is seen before the list, which would otherwise take the key.
+            ListReorder.Attach(CommandList, (item, to) => model?.MoveTo((CommandItem)item, to));
             CommandList.AddHandler(KeyDownEvent, ListKeyDown, RoutingStrategies.Tunnel);
-            CommandList.AddHandler(PointerPressedEvent, DragStart, RoutingStrategies.Tunnel, handledEventsToo: true);
-            CommandList.AddHandler(PointerMovedEvent, DragMove, RoutingStrategies.Tunnel, handledEventsToo: true);
-            CommandList.AddHandler(PointerReleasedEvent, DragEnd, RoutingStrategies.Tunnel, handledEventsToo: true);
-            CommandList.AddHandler(PointerCaptureLostEvent, (_, _) => dragged = null);
 
             DataContextChanged += (_, _) =>
             {
@@ -73,158 +66,24 @@ namespace DevDeck.App.Views
             };
         }
 
-        #region Keyboard and dragging in the command list
-        /// <summary>The row being dragged, once a press on it has moved far enough to be a drag.</summary>
-        private CommandItem? dragged;
-
-        private Point dragFrom;
-
-        private bool dragging;
-
-        /// <summary>How far a press has to travel before it is a drag rather than a click.</summary>
-        private const double DragThreshold = 6;
-
-        /// <summary>
-        ///  Delete deletes, Alt+Up and Alt+Down move. Up and Down alone are the list's own.
-        /// </summary>
+        /// <summary>Delete deletes the selected command. Up and Down alone are the list's own.</summary>
         private void ListKeyDown(object? sender, KeyEventArgs e)
         {
-            if (model is null)
+            if (model is null || e.Key != Key.Delete || e.KeyModifiers != KeyModifiers.None)
             {
                 return;
             }
 
-            if (e.Key == Key.Delete && e.KeyModifiers == KeyModifiers.None)
+            // Refused quietly for a command in use, as the button is - except that nothing in use
+            // can be selected, so in practice this only ever deletes.
+            if (model.DeleteCommand.CanExecute(null))
             {
-                // Refused quietly for a command in use, as the button is - except that nothing in
-                // use can be selected, so in practice this only ever deletes.
-                if (model.DeleteCommand.CanExecute(null))
-                {
-                    model.DeleteCommand.Execute(null);
-                    Refocus();
-                }
-
-                e.Handled = true;
-
-                return;
-            }
-
-            if (e.KeyModifiers == KeyModifiers.Alt && e.Key is Key.Up or Key.Down)
-            {
-                IRelayCommand move = e.Key == Key.Up ? model.MoveUpCommand : model.MoveDownCommand;
-
-                if (move.CanExecute(null))
-                {
-                    move.Execute(null);
-                    Refocus();
-                }
-
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        ///  Puts keyboard focus back on the selected row.
-        /// </summary>
-        /// <remarks>
-        ///  A row that is moved or deleted takes the focus with it, and the arrows then go nowhere
-        ///  until the list is clicked again. Posted, because the row's new container is only made
-        ///  on the next layout pass.
-        /// </remarks>
-        private void Refocus() => Dispatcher.UIThread.Post(() =>
-        {
-            if (model?.Selected is { } selected && CommandList.ContainerFromItem(selected) is { } row)
-            {
-                row.Focus(NavigationMethod.Directional);
-            }
-        }, DispatcherPriority.Background);
-
-        private void DragStart(object? sender, PointerPressedEventArgs e)
-        {
-            dragging = false;
-            dragged = null;
-
-            if (!e.GetCurrentPoint(CommandList).Properties.IsLeftButtonPressed)
-            {
-                return;
-            }
-
-            // Disabled rows are not hit at all, so a command in use can never be picked up here.
-            dragged = (e.Source as Visual)?.FindAncestorOfType<ListBoxItem>(includeSelf: true)?.DataContext as CommandItem;
-            dragFrom = e.GetPosition(CommandList);
-        }
-
-        /// <summary>
-        ///  Moves the dragged row to wherever the pointer is, as it goes.
-        /// </summary>
-        /// <remarks>
-        ///  Live rather than on release, so the list itself is the drop indicator: the row is
-        ///  already where it will land. That avoids drawing an insertion line, which in a
-        ///  virtualising list means tracking rows that may not exist yet.
-        /// </remarks>
-        private void DragMove(object? sender, PointerEventArgs e)
-        {
-            if (dragged is null || model is null || !e.GetCurrentPoint(CommandList).Properties.IsLeftButtonPressed)
-            {
-                return;
-            }
-
-            Point at = e.GetPosition(CommandList);
-
-            if (!dragging)
-            {
-                if (Math.Abs(at.Y - dragFrom.Y) < DragThreshold && Math.Abs(at.X - dragFrom.X) < DragThreshold)
-                {
-                    return;
-                }
-
-                dragging = true;
-                e.Pointer.Capture(CommandList);
-            }
-
-            int to = RowAt(at);
-
-            if (to >= 0)
-            {
-                model.MoveTo(dragged, to);
+                model.DeleteCommand.Execute(null);
+                ListReorder.Refocus(CommandList);
             }
 
             e.Handled = true;
         }
-
-        private void DragEnd(object? sender, PointerReleasedEventArgs e)
-        {
-            if (dragging)
-            {
-                e.Pointer.Capture(null);
-                e.Handled = true;
-                Refocus();
-            }
-
-            dragging = false;
-            dragged = null;
-        }
-
-        /// <summary>The index of the row under a point in the list, or -1 between rows or past the end.</summary>
-        private int RowAt(Point at)
-        {
-            for (int index = 0; index < CommandList.ItemCount; index++)
-            {
-                if (CommandList.ContainerFromIndex(index) is not { } row
-                    || row.TranslatePoint(default, CommandList) is not { } top)
-                {
-                    continue;
-                }
-
-                if (at.Y >= top.Y && at.Y < top.Y + row.Bounds.Height)
-                {
-                    return index;
-                }
-            }
-
-            return -1;
-        }
-        #endregion
 
         private async Task Copy(string text)
         {
