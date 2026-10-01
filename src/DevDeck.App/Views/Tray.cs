@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using DevDeck.App.ViewModels;
 using DevDeck.Core;
 
@@ -177,13 +178,21 @@ namespace DevDeck.App.Views
             return item;
         }
 
-        private void Quit()
+        /// <summary>
+        ///  Ends the app from the menu.
+        /// </summary>
+        /// <remarks>
+        ///  Posted, not done here. This runs inside the click handler of the icon's own menu, and
+        ///  on Windows that menu is still in its native modal loop at this point: disposing the
+        ///  icon underneath it and shutting the dispatcher down from inside it froze the app with
+        ///  its window still on screen. Once the menu has closed, the lifetime's
+        ///  ShutdownRequested takes the icon down along with everything else.
+        /// </remarks>
+        private static void Quit()
         {
-            Remove();
-
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.Shutdown();
+                Dispatcher.UIThread.Post(() => desktop.Shutdown(), DispatcherPriority.Background);
             }
         }
     }

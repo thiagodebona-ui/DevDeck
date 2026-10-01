@@ -556,7 +556,7 @@
         <TextBox Grid.Column="1" Margin="0,0,8,0" Name="UrlBox"
                  Text="{Binding Url, Mode=TwoWay}"
                  PastingFromClipboard="UrlPasting"
-                 Watermark="{loc:T HttpLocalhost5000HealthOrPasteA}"
+                 PlaceholderText="{loc:T HttpLocalhost5000HealthOrPasteA}"
                  ToolTip.Tip="{loc:T HttpACurlCommandPastedHereIs}" />
 
         <Button Grid.Column="2" Classes="go" Content="{loc:T Send}" Margin="0,0,6,0"
@@ -666,9 +666,9 @@
                           IsChecked="{Binding Enabled, Mode=TwoWay}"
                           ToolTip.Tip="{loc:T HttpSendThisHeader}" />
                 <TextBox Grid.Column="1" Margin="0,0,6,0" AttachedToVisualTree="CompleteHere"
-                         Text="{Binding Name, Mode=TwoWay}" Watermark="{loc:T Name}" />
+                         Text="{Binding Name, Mode=TwoWay}" PlaceholderText="{loc:T Name}" />
                 <TextBox Grid.Column="2" Margin="0,0,6,0" AttachedToVisualTree="CompleteHere"
-                         Text="{Binding Value, Mode=TwoWay}" Watermark="{loc:T HttpValue}" />
+                         Text="{Binding Value, Mode=TwoWay}" PlaceholderText="{loc:T HttpValue}" />
                 <Button Grid.Column="3" Classes="bare" Content="✕"
                         Command="{Binding $parent[ItemsControl].((vm:HttpViewModel)DataContext).RemoveHeaderCommand}"
                         CommandParameter="{Binding}" />
@@ -682,7 +682,7 @@
 
         <TextBox Grid.Row="3" Classes="mono" Name="BodyBox"
                  Text="{Binding Body, Mode=TwoWay}"
-                 Watermark="{loc:T HttpBodyJSONIsDetectedFromThe}" />
+                 PlaceholderText="{loc:T HttpBodyJSONIsDetectedFromThe}" />
 
         <GridSplitter Grid.Row="4" Classes="pane" ResizeDirection="Rows" />
 
@@ -796,7 +796,7 @@
                            VerticalAlignment="Center" FontSize="11"
                            Foreground="{DynamicResource TextMuted}" />
                 <TextBox Grid.Column="1" Text="{Binding HeaderFilter, Mode=TwoWay}"
-                         Watermark="{loc:T HttpFilterHeaders}"
+                         PlaceholderText="{loc:T HttpFilterHeaders}"
                          FontSize="11.5" Padding="6,3" MinHeight="0" />
               </Grid>
             </Border>

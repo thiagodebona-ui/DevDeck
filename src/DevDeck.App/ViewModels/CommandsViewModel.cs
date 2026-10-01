@@ -42,7 +42,11 @@ namespace DevDeck.App.ViewModels
 
             Commands.CollectionChanged += CommandsChanged;
 
-            selected = Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand)
+            // The reason Delete is off is a sentence built here, not a view string, so it has to
+            // be rebuilt by hand when the language changes.
+            Strings.Changed += UsageChanged;
+
+            selected =Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand)
                 ?? Commands.FirstOrDefault();
         }
 
@@ -144,6 +148,7 @@ namespace DevDeck.App.ViewModels
         {
             settings.SelectedCommand = value?.Name ?? string.Empty;
             OnPropertyChanged(nameof(CanExplain));
+            UsageChanged();
         }
 
         partial void OnFollowChanged(bool value)
@@ -318,10 +323,64 @@ namespace DevDeck.App.ViewModels
             Kind = CommandKind.Shell,
         });
 
-        [RelayCommand]
+        /// <summary>
+        ///  The chains and watches that would break if <paramref name="name"/> went away.
+        /// </summary>
+        /// <remarks>
+        ///  Read from the saved lists rather than from the automation panel, which this panel must
+        ///  not hold - see <see cref="Renamed"/>. They are the same objects the automation panel
+        ///  edits, so this is never stale; it only needs asking again, which is what
+        ///  <see cref="UsageChanged"/> is for.
+        /// </remarks>
+        private List<string> UsedBy(string name)
+        {
+            List<string> users = [];
+
+            users.AddRange(settings.Chains
+                .Where(chain => chain.Steps.Any(step => step.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                .Select(chain => Strings.Format("CmdInUseChain", chain.Name)));
+
+            users.AddRange(settings.Watches
+                .Where(watch => watch.Command.Equals(name, StringComparison.OrdinalIgnoreCase))
+                .Select(watch => Strings.Format("CmdInUseWatch", watch.Name)));
+
+            return users;
+        }
+
+        /// <summary>
+        ///  Whether the selected command can be deleted: it exists, and nothing runs it.
+        /// </summary>
+        /// <remarks>
+        ///  Refused rather than allowed with a warning. A chain step or a watch that names a
+        ///  command that has gone is only found out when it runs - usually a watch firing while the
+        ///  user is in another application - so the moment to say so is the delete, while the user
+        ///  is looking at the thing they are about to break.
+        /// </remarks>
+        public bool CanDelete => Selected is { } command && UsedBy(command.Name).Count == 0;
+
+        /// <summary>What the delete button says when hovered: what it does, or why it will not.</summary>
+        public string DeleteTip => Selected is { } command && UsedBy(command.Name) is { Count: > 0 } users
+            ? Strings.Format("CmdInUse", string.Join(", ", users))
+            : Strings.Text("Delete");
+
+        /// <summary>
+        ///  Asks again whether the selected command is in use.
+        /// </summary>
+        /// <remarks>
+        ///  Called by the automation panel whenever a chain or a watch changes, and here whenever
+        ///  the selection does.
+        /// </remarks>
+        public void UsageChanged()
+        {
+            OnPropertyChanged(nameof(CanDelete));
+            OnPropertyChanged(nameof(DeleteTip));
+            DeleteCommand.NotifyCanExecuteChanged();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanDelete))]
         private void Delete()
         {
-            if (Selected is not { } doomed)
+            if (Selected is not { } doomed || !CanDelete)
             {
                 return;
             }

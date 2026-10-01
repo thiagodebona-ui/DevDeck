@@ -51,7 +51,7 @@ namespace DevDeck.App.Views
                 // The widget was the only thing on screen if the main window had been closed behind
                 // it. Closing it as well would leave the app running with nothing to click, so the
                 // window comes back instead.
-                if (Main() is { IsVisible: false })
+                if (Deck() is { IsVisible: false })
                 {
                     ShowApp();
                 }
@@ -71,7 +71,7 @@ namespace DevDeck.App.Views
         /// </remarks>
         private static void ShowApp()
         {
-            if (Main() is not { } main)
+            if (Deck() is not { } main)
             {
                 return;
             }
@@ -98,7 +98,7 @@ namespace DevDeck.App.Views
             }
         }
 
-        private static Window? Main() =>
+        private static Window? Deck() =>
             Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                 ? desktop.MainWindow
                 : null;

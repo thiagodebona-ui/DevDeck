@@ -53,11 +53,15 @@ namespace DevDeck.Core
             new("Midnight", "Midnight", IsDark: true),
             new("Nord", "Nord", IsDark: true),
             new("Gruvbox", "Gruvbox Dark", IsDark: true),
+            new("Darcula", "Darcula", IsDark: true),
             new("SolarizedDark", "Solarized Dark", IsDark: true),
             new("Contrast", "High Contrast", IsDark: true),
             Light,
             new("SolarizedLight", "Solarized Light", IsDark: false),
             new("Paper", "Paper", IsDark: false),
+            new("OneLight", "One Light", IsDark: false),
+            new("NordLight", "Nord Light", IsDark: false),
+            new("GruvboxLight", "Gruvbox Light", IsDark: false),
         ];
 
         public static bool IsSystem(ThemePalette palette) =>

@@ -1,0 +1,42 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Darcula, after the JetBrains palette and the Visual Studio port of it: charcoal rather
+       than black, grey-blue text, and the orange keywords that make the scheme recognisable.
+       The accent is the scheme's focus blue, not the orange - orange is spent on keywords, and an
+       accent that matches the code reads as part of it. Dark text on it, because white on this
+       blue is under 4:1. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#2B2B2B" />
+  <SolidColorBrush x:Key="Panel" Color="#313335" />
+  <SolidColorBrush x:Key="Steel" Color="#3C3F41" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#45494A" />
+  <SolidColorBrush x:Key="SteelHover" Color="#4E5254" />
+  <SolidColorBrush x:Key="Line" Color="#555A5C" />
+  <SolidColorBrush x:Key="CodeBg" Color="#232525" />
+
+  <SolidColorBrush x:Key="Text" Color="#A9B7C6" />
+  <SolidColorBrush x:Key="TextMuted" Color="#8C9399" />
+  <SolidColorBrush x:Key="TextFaint" Color="#6E7377" />
+
+  <SolidColorBrush x:Key="Accent" Color="#4A88C7" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#5E9BD6" />
+  <SolidColorBrush x:Key="OnAccent" Color="#10202F" />
+
+  <SolidColorBrush x:Key="Good" Color="#6A9955" />
+  <SolidColorBrush x:Key="Bad" Color="#E06C6A" />
+  <SolidColorBrush x:Key="Warn" Color="#D9A343" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#3C3F41" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#CC7832" />
+  <SolidColorBrush x:Key="SynString" Color="#6A8759" />
+  <SolidColorBrush x:Key="SynComment" Color="#808080" />
+  <SolidColorBrush x:Key="SynNumber" Color="#6897BB" />
+  <SolidColorBrush x:Key="SynVariable" Color="#9876AA" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#232525" />
+
+</ResourceDictionary>

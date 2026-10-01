@@ -38,6 +38,9 @@ namespace DevDeck.App.Views
         {
             InitializeComponent();
 
+            TextMode.Wire(SelectOutput, Output, () => string.Join(
+                Environment.NewLine, Output.Items.OfType<OutputLine>().Select(line => line.Text)));
+
             DataContextChanged += (_, _) =>
             {
                 if (model is not null)

@@ -47,6 +47,16 @@ namespace DevDeck.App.ViewModels
                 : string.Empty;
         }
 
+        /// <summary>
+        ///  The assistant's endpoint, which the AI card edits in place.
+        /// </summary>
+        /// <remarks>
+        ///  The assistant itself rather than a second copy of its settings. Settings are not read
+        ///  back after startup, so two panels each holding their own copy would disagree until
+        ///  the next launch - and the one the user had just changed would not be the one asked.
+        /// </remarks>
+        public AssistantViewModel? Ai { get; init; }
+
         /// <summary>The environment variables every command gets, as editable rows.</summary>
         public ObservableCollection<ArgumentRow> Variables { get; }
 

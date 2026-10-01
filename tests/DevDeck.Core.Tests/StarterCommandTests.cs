@@ -34,7 +34,7 @@ namespace DevDeck.Core.Tests
         public void TheWorkedChainActuallyReadsWhatItIsHanded()
         {
             CommandChain chain = Assert.Single(
-                Chains.Where(one => one.Steps.Count > 1 && one.StopOnFailure));
+                Chains, one => one.Steps.Count > 1 && one.StopOnFailure);
 
             IEnumerable<CustomCommand> fed = chain.Steps
                 .Skip(1)

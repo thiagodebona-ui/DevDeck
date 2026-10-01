@@ -141,14 +141,14 @@
       <TextBox DockPanel.Dock="Top" Classes="pad" Height="34" Margin="0,0,0,10"
                AcceptsReturn="False"
                Text="{Binding Pattern, Mode=TwoWay}"
-               Watermark="{loc:T ToolboxThePattern}"
+               PlaceholderText="{loc:T ToolboxThePattern}"
                IsVisible="{Binding Selected.NeedsPattern}" />
 
       <Grid RowDefinitions="*,Auto,*">
 
         <TextBox Grid.Row="0" Classes="pad"
                  Text="{Binding Input, Mode=TwoWay}"
-                 Watermark="{loc:T ToolboxPasteHere}"
+                 PlaceholderText="{loc:T ToolboxPasteHere}"
                  IsVisible="{Binding !Selected.Generates}" />
 
         <!-- A generator has no input, so the output takes the whole area rather than leaving an

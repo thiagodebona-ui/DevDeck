@@ -551,6 +551,12 @@ namespace DevDeck.App.ViewModels
             selectedChain = Chains.FirstOrDefault();
             selectedWatch = Watches.FirstOrDefault();
 
+            // The deck will not delete a command a chain or a watch runs, so it has to hear about
+            // every change to which commands those name - a chain added or removed here, and a
+            // step or a watch's command edited inside one (see Wrap).
+            Chains.CollectionChanged += (_, _) => deck.UsageChanged();
+            Watches.CollectionChanged += (_, _) => deck.UsageChanged();
+
             Check();
         }
 
@@ -704,10 +710,24 @@ namespace DevDeck.App.ViewModels
         }
 
         /// <summary>A chain, with the step picker pointed at the deck.</summary>
-        private ChainItem Wrap(CommandChain chain) => new(chain)
+        private ChainItem Wrap(CommandChain chain)
         {
-            Choices = () => deck.Commands.Select(command => command.Name),
-        };
+            ChainItem item = new(chain)
+            {
+                Choices = () => deck.Commands.Select(command => command.Name),
+            };
+
+            // Summary is raised on every change to the steps, which is the change the deck needs.
+            item.PropertyChanged += (_, change) =>
+            {
+                if (change.PropertyName == nameof(ChainItem.Summary))
+                {
+                    deck.UsageChanged();
+                }
+            };
+
+            return item;
+        }
 
         private WatchItem Wrap(WatchRule rule)
         {
@@ -716,6 +736,14 @@ namespace DevDeck.App.ViewModels
                 Fallback = () => deck.Workspace,
                 Busy = watch => Find(watch.Command) is { IsRunning: true },
                 Choices = () => deck.Commands.Select(command => command.Name),
+            };
+
+            item.PropertyChanged += (_, change) =>
+            {
+                if (change.PropertyName == nameof(WatchItem.Command))
+                {
+                    deck.UsageChanged();
+                }
             };
 
             item.Fire = (watch, change) => Dispatcher.UIThread.Post(() =>

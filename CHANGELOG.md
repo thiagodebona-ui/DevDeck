@@ -1,5 +1,26 @@
 ﻿# Changelog
 
+## 1.2.2
+
+- **A command that a chain or a watch runs cannot be deleted.** The delete button is off for it,
+  and hovering it names the chains and watches that use it. Take the command out of those first.
+  Before, deleting it left a broken step or a watch that fired at nothing.
+- **Select output across lines.** **Select text**, on the command output, the chain output and the
+  Log page, shows the output as plain text you can drag across, select all and copy. Turn it off to
+  go back to the live, coloured output.
+- **AI settings are on the Settings page.** The provider, endpoint, model and key moved to a new
+  **AI** section in Settings. The Assistant shows what it is using, with a button that opens those
+  settings. Changes are saved as you make them, not only after the next question. **Refresh** now
+  lines up with the model drop-down.
+- **Four more themes:** Darcula, after the JetBrains and Visual Studio scheme, and three light
+  ones: One Light, Nord Light and Gruvbox Light.
+- **Tips on the Behaviour settings.** Hover any switch under Settings > Behaviour to see what it
+  does.
+- **Quit from the tray no longer freezes.** It closed the tray icon while its own menu was still
+  open, which could hang the app with its window on screen.
+- **No build warnings.** The views use the current Avalonia names for placeholders and window
+  decorations.
+
 ## 1.2.1
 
 - **Runs on .NET 10.** DevDeck moves from .NET 8 to .NET 10, the current long-term support release,

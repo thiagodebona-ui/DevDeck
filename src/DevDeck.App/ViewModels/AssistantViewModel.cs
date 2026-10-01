@@ -361,6 +361,8 @@ namespace DevDeck.App.ViewModels
 
             Reload();
 
+            Strings.Changed += () => OnPropertyChanged(nameof(Using));
+
             // Probed rather than assumed: V2 would not let you type until something had answered,
             // because sending into a dead endpoint only ever produced an error bubble.
             _ = CheckAsync();
@@ -383,19 +385,62 @@ namespace DevDeck.App.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(NeedsKey))]
+        [NotifyPropertyChangedFor(nameof(Using))]
         private AiPreset provider;
 
         [ObservableProperty]
         private string baseUrl;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Using))]
         private string model;
 
         /// <summary>Set while a provider switch is rewriting the model, so it is not announced.</summary>
         private bool switchingProvider;
 
+        /// <summary>
+        ///  Set while the model list is being replaced, so the half-built state is not saved.
+        /// </summary>
+        /// <remarks>
+        ///  Clearing the list clears the selection with it (see <see cref="TakeModels"/>), and a
+        ///  save at that instant would write an empty model and an empty list into the profile -
+        ///  which a provider switch then reads straight back.
+        /// </remarks>
+        private bool holding;
+
         [ObservableProperty]
         private string apiKey;
+
+        /// <summary>
+        ///  Opens the settings page, where the endpoint is configured. Set by the window.
+        /// </summary>
+        public Action? ShowSettings { get; set; }
+
+        [RelayCommand]
+        private void OpenAiSettings() => ShowSettings?.Invoke();
+
+        /// <summary>What this panel will ask, in one line: the model, and whose it is.</summary>
+        public string Using => Strings.Format("AiUsing", Model, Provider.Name);
+
+        partial void OnBaseUrlChanged(string value) => SaveQuietly();
+
+        partial void OnApiKeyChanged(string value) => SaveQuietly();
+
+        /// <summary>
+        ///  Saves the endpoint as it is edited.
+        /// </summary>
+        /// <remarks>
+        ///  The endpoint is configured on the settings page now, and nothing there sends a question
+        ///  - so waiting for the next answer to save it, as this panel used to, would lose a key
+        ///  typed in and never used before a restart.
+        /// </remarks>
+        private void SaveQuietly()
+        {
+            if (!switchingProvider && !holding)
+            {
+                Save();
+            }
+        }
 
         [ObservableProperty]
         private string prompt = string.Empty;
@@ -533,6 +578,8 @@ namespace DevDeck.App.ViewModels
             {
                 Hint = Strings.Format("AiModelOn", value, BaseUrl);
             }
+
+            SaveQuietly();
         }
 
         public bool NeedsKey => Provider.NeedsKey;
@@ -568,6 +615,8 @@ namespace DevDeck.App.ViewModels
 
             switchingProvider = false;
 
+            Save();
+
             // A different endpoint is a different question about whether anything is there.
             _ = CheckAsync();
         }
@@ -591,6 +640,22 @@ namespace DevDeck.App.ViewModels
         ///  it is still true, and put back afterwards.
         /// </remarks>
         private void TakeModels(List<string> names)
+        {
+            holding = true;
+
+            try
+            {
+                Replace(names);
+            }
+            finally
+            {
+                holding = false;
+            }
+
+            SaveQuietly();
+        }
+
+        private void Replace(List<string> names)
         {
             string chosen = Model;
 

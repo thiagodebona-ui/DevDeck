@@ -1,0 +1,41 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- One Light: a neutral grey-white with a single blue accent. The quietest of the light
+       themes - no tint in the surfaces at all, so nothing competes with the output. Green and
+       red are taken a step darker than the editor scheme, which is tuned for code on white
+       rather than for status text on a tinted panel. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#FAFAFA" />
+  <SolidColorBrush x:Key="Panel" Color="#F0F0F1" />
+  <SolidColorBrush x:Key="Steel" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="SteelHover" Color="#EAEAEB" />
+  <SolidColorBrush x:Key="Line" Color="#DBDBDC" />
+  <SolidColorBrush x:Key="CodeBg" Color="#F5F5F6" />
+
+  <SolidColorBrush x:Key="Text" Color="#383A42" />
+  <SolidColorBrush x:Key="TextMuted" Color="#5F626C" />
+  <SolidColorBrush x:Key="TextFaint" Color="#8F9098" />
+
+  <SolidColorBrush x:Key="Accent" Color="#3A6FE0" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#4078F2" />
+  <SolidColorBrush x:Key="OnAccent" Color="#FFFFFF" />
+
+  <SolidColorBrush x:Key="Good" Color="#3F8A3E" />
+  <SolidColorBrush x:Key="Bad" Color="#CA4B3F" />
+  <SolidColorBrush x:Key="Warn" Color="#986801" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#FFFFFF" Opacity="0.94" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#A626A4" />
+  <SolidColorBrush x:Key="SynString" Color="#3F8A3E" />
+  <SolidColorBrush x:Key="SynComment" Color="#A0A1A7" />
+  <SolidColorBrush x:Key="SynNumber" Color="#986801" />
+  <SolidColorBrush x:Key="SynVariable" Color="#C0453A" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#E5E5E6" />
+
+</ResourceDictionary>

@@ -424,10 +424,15 @@
                      to the deck to watch it, where the output was split across as many commands
                      as the chain had steps and only the selected one was on screen. -->
                 <StackPanel Spacing="6">
-                  <Grid ColumnDefinitions="*,Auto">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
                     <TextBlock Grid.Column="0" Classes="label" VerticalAlignment="Center"
                                Text="{loc:T AutomationChainOutput}" />
-                    <Button Grid.Column="1" Content="{loc:T Clear}"
+                    <ToggleButton Name="SelectChainOutput" Grid.Column="1" Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                                  FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
+                                  Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                                  BorderBrush="{DynamicResource Line}" />
+                    <Button Grid.Column="2" Content="{loc:T Clear}"
                             Command="{Binding ClearOutputCommand}"
                             IsEnabled="{Binding HasOutput}" />
                   </Grid>
@@ -593,7 +598,7 @@
                     <TextBlock Classes="label" Text="{loc:T AutomationFilesSeparatedBySemicolons}" />
                     <TextBox Text="{Binding Pattern, Mode=TwoWay}"
                              FontFamily="{DynamicResource MonoFont}"
-                             Watermark="*.cs;*.axaml" />
+                             PlaceholderText="*.cs;*.axaml" />
                   </StackPanel>
                 </Grid>
 

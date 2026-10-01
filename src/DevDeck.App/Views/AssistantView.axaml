@@ -152,7 +152,7 @@
   <Grid RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 
     <!-- Endpoint first: an assistant that cannot reach a model is the commonest failure, so what
-         it is pointed at is visible rather than buried in settings. -->
+         it is pointed at is always in sight, with the way to change it one click away. -->
     <Border Grid.Row="0" Padding="22,16,22,14"
             BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
       <StackPanel Spacing="12">
@@ -213,46 +213,21 @@
                   Command="{Binding ClearCommand}" />
         </Grid>
 
-        <Grid ColumnDefinitions="180,*,200,Auto">
-          <StackPanel Grid.Column="0" Margin="0,0,10,0">
-            <TextBlock Classes="label" Text="{loc:T AssistantProvider}" />
-            <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding Provider}"
-                      HorizontalAlignment="Stretch">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:AssistantViewModel">
-                  <TextBlock Text="{Binding}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </StackPanel>
-
-          <StackPanel Grid.Column="1" Margin="0,0,10,0">
-            <TextBlock Classes="label" Text="{loc:T AssistantEndpoint}" />
-            <TextBox Text="{Binding BaseUrl}" FontSize="12" />
-          </StackPanel>
-
-          <!-- The model belongs here as well as in settings: it is the one endpoint setting that
-               gets changed mid-conversation, and going elsewhere for it is two clicks away from
-               the answer that prompted it. -->
-          <StackPanel Grid.Column="2" Margin="0,0,8,0">
-            <TextBlock Classes="label" Text="{loc:T AssistantModel}" />
-            <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding Model}"
-                      HorizontalAlignment="Stretch" />
-          </StackPanel>
-
-          <Button Grid.Column="3" Classes="small" VerticalAlignment="Bottom"
-                  Command="{Binding RefreshModelsCommand}">
+        <!-- What the next question goes to, and nothing to change it with. The endpoint is set up
+             once on the settings page; a second set of the same fields here meant two places to
+             look when it was wrong, and a model picked mid-conversation that settings did not show. -->
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" Text="{Binding Using}" FontSize="12"
+                     FontFamily="{DynamicResource MonoFont}" TextTrimming="CharacterEllipsis"
+                     VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+          <Button Grid.Column="1" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding OpenAiSettingsCommand}">
             <StackPanel Classes="iconLabel">
-              <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
-              <TextBlock Text="{loc:T Refresh}" />
+              <Path Classes="icon" Data="{x:Static app:Icons.Settings}" />
+              <TextBlock Text="{loc:T AssistantAiSettings}" />
             </StackPanel>
           </Button>
         </Grid>
-
-        <StackPanel IsVisible="{Binding NeedsKey}">
-          <TextBlock Classes="label" Text="{loc:T AssistantAPIKey}" />
-          <TextBox Text="{Binding ApiKey}" PasswordChar="•" FontSize="12" />
-        </StackPanel>
 
       </StackPanel>
     </Border>

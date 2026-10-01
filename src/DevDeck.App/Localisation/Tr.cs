@@ -91,6 +91,9 @@ namespace DevDeck.App.Localisation
             "CmdImportedSome",
             "CmdCopiedLink",
             "CmdNewCommand",
+            "CmdInUse",
+            "CmdInUseChain",
+            "CmdInUseWatch",
             "CmdStopAllCount",
             "CmdStopAll",
             "CmdNotRunYet",
@@ -212,8 +215,11 @@ namespace DevDeck.App.Localisation
             "AssistantAssistant",
             "AssistantHistory",
             "Delete",
+            "SelectText",
+            "SelectTextTip",
             "AssistantSaveAsCommand",
             "AssistantNewChat",
+            "AssistantAiSettings",
             "AssistantProvider",
             "AssistantEndpoint",
             "AssistantModel",
@@ -488,11 +494,18 @@ namespace DevDeck.App.Localisation
             "SettingsFollowTheSystemTracksTheDesktop",
             "SettingsLanguage",
             "SettingsTheLanguageChangesTheMomentYou",
+            "SettingsAi",
+            "SettingsAiNote",
             "SettingsBehaviour",
             "SettingsKeepThisMachineAwakeWhileDevDeck",
             "SettingsAlsoStopItLockingItselfAnd",
             "SettingsAskBeforePowerActions",
             "SettingsFollowOutputAsItArrives",
+            "SettingsKeepAwakeTip",
+            "SettingsStayAvailableTip",
+            "SettingsConfirmPowerTip",
+            "SettingsFollowOutputTip",
+            "SettingsAutoStartTip",
             "SettingsNotSleepingAndNotLockingAre",
             "SettingsWhenALongCommandFinishes",
             "SettingsTellMeWhenItIsDone",
@@ -555,6 +568,7 @@ namespace DevDeck.App.Localisation
             "AiLookingForModel",
             "AiChecking",
             "AiModelOn",
+            "AiUsing",
             "AiSetUpLabel",
             "AiNothingAnswered",
             "AiNoEndpoint",
@@ -757,6 +771,15 @@ namespace DevDeck.App.Localisation
 
         /// <summary>New command</summary>
         public string CmdNewCommand => Strings.Text("CmdNewCommand");
+
+        /// <summary>Used by {0}. Take it out of there first, then it can be deleted.</summary>
+        public string CmdInUse => Strings.Text("CmdInUse");
+
+        /// <summary>the chain "{0}"</summary>
+        public string CmdInUseChain => Strings.Text("CmdInUseChain");
+
+        /// <summary>the watch "{0}"</summary>
+        public string CmdInUseWatch => Strings.Text("CmdInUseWatch");
 
         /// <summary>Stop all ({0})</summary>
         public string CmdStopAllCount => Strings.Text("CmdStopAllCount");
@@ -1121,11 +1144,20 @@ namespace DevDeck.App.Localisation
         /// <summary>Delete</summary>
         public string Delete => Strings.Text("Delete");
 
+        /// <summary>Select text</summary>
+        public string SelectText => Strings.Text("SelectText");
+
+        /// <summary>Shows the output as plain text that can be selected across lines and c</summary>
+        public string SelectTextTip => Strings.Text("SelectTextTip");
+
         /// <summary>Save as command</summary>
         public string AssistantSaveAsCommand => Strings.Text("AssistantSaveAsCommand");
 
         /// <summary>New chat</summary>
         public string AssistantNewChat => Strings.Text("AssistantNewChat");
+
+        /// <summary>AI settings</summary>
+        public string AssistantAiSettings => Strings.Text("AssistantAiSettings");
 
         /// <summary>Provider</summary>
         public string AssistantProvider => Strings.Text("AssistantProvider");
@@ -1949,6 +1981,12 @@ namespace DevDeck.App.Localisation
         /// <summary>The language changes the moment you choose it, without a restart. Each</summary>
         public string SettingsTheLanguageChangesTheMomentYou => Strings.Text("SettingsTheLanguageChangesTheMomentYou");
 
+        /// <summary>AI</summary>
+        public string SettingsAi => Strings.Text("SettingsAi");
+
+        /// <summary>The assistant asks whatever is chosen here. A key is kept per provider</summary>
+        public string SettingsAiNote => Strings.Text("SettingsAiNote");
+
         /// <summary>Behaviour</summary>
         public string SettingsBehaviour => Strings.Text("SettingsBehaviour");
 
@@ -1963,6 +2001,21 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Follow output as it arrives</summary>
         public string SettingsFollowOutputAsItArrives => Strings.Text("SettingsFollowOutputAsItArrives");
+
+        /// <summary>Stops the computer going to sleep while DevDeck is open, so a long bui</summary>
+        public string SettingsKeepAwakeTip => Strings.Text("SettingsKeepAwakeTip");
+
+        /// <summary>Also keeps the screen from locking and your status in Teams or Slack f</summary>
+        public string SettingsStayAvailableTip => Strings.Text("SettingsStayAvailableTip");
+
+        /// <summary>Asks for confirmation before DevDeck locks, signs out, restarts or shu</summary>
+        public string SettingsConfirmPowerTip => Strings.Text("SettingsConfirmPowerTip");
+
+        /// <summary>Scrolls a command's output to the newest line as it is written. Turn i</summary>
+        public string SettingsFollowOutputTip => Strings.Text("SettingsFollowOutputTip");
+
+        /// <summary>Opens DevDeck each time you sign in to this computer, minimised to the</summary>
+        public string SettingsAutoStartTip => Strings.Text("SettingsAutoStartTip");
 
         /// <summary>Not sleeping and not locking are two different settings on most machin</summary>
         public string SettingsNotSleepingAndNotLockingAre => Strings.Text("SettingsNotSleepingAndNotLockingAre");
@@ -2149,6 +2202,9 @@ namespace DevDeck.App.Localisation
 
         /// <summary>{0} on {1}</summary>
         public string AiModelOn => Strings.Text("AiModelOn");
+
+        /// <summary>Using {0} from {1}</summary>
+        public string AiUsing => Strings.Text("AiUsing");
 
         /// <summary>Set up {0}</summary>
         public string AiSetUpLabel => Strings.Text("AiSetUpLabel");

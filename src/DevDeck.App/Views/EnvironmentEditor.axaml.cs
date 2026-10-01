@@ -315,13 +315,13 @@ namespace DevDeck.App.Views
             TextBox name = new()
             {
                 Text = value.Name,
-                Watermark = Strings.Text("EnvName"),
+                PlaceholderText = Strings.Text("EnvName"),
                 Margin = new Avalonia.Thickness(0, 0, 6, 0),
             };
 
             TextBox held = new()
             {
-                Watermark = Strings.Text("EnvValue"),
+                PlaceholderText = Strings.Text("EnvValue"),
                 Margin = new Avalonia.Thickness(0, 0, 6, 0),
             };
 
@@ -358,7 +358,7 @@ namespace DevDeck.App.Views
             {
                 held.PasswordChar = value.IsSecret ? '•' : default;
 
-                held.Watermark = value.IsSecret
+                held.PlaceholderText = value.IsSecret
                     ? SecretVault.Instance.Has(EnvironmentValue.VaultName(environment.Name, value.Name))
                         ? Strings.Text("EnvStoredTypeToReplace")
                         : Strings.Text("EnvNotSet")

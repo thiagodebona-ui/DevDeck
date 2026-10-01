@@ -172,7 +172,11 @@ namespace DevDeck.App.ViewModels
                         "NavRanSummary", Math.Round(elapsed.TotalSeconds), command.LastExitCode));
             };
 
-            Preferences = new SettingsViewModel(settings);
+            // The AI card on the settings page edits the assistant's own endpoint rather than a
+            // copy of it, so what is chosen there is what the next question goes to.
+            Preferences = new SettingsViewModel(settings) { Ai = assistant };
+
+            assistant.ShowSettings = () => Show("Settings");
 
             Sections = new ObservableCollection<Section>
             {

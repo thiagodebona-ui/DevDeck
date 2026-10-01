@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Gruvbox Light: the same retro groove on its cream base. The faded accents from the light
+       half of the scheme, because the bright ones are tuned for a dark page and wash out here. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#FBF1C7" />
+  <SolidColorBrush x:Key="Panel" Color="#F2E5BC" />
+  <SolidColorBrush x:Key="Steel" Color="#F9F5D7" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#F9F5D7" />
+  <SolidColorBrush x:Key="SteelHover" Color="#EBDBB2" />
+  <SolidColorBrush x:Key="Line" Color="#D5C4A1" />
+  <SolidColorBrush x:Key="CodeBg" Color="#F2E5BC" />
+
+  <SolidColorBrush x:Key="Text" Color="#3C3836" />
+  <SolidColorBrush x:Key="TextMuted" Color="#665C54" />
+  <SolidColorBrush x:Key="TextFaint" Color="#928374" />
+
+  <SolidColorBrush x:Key="Accent" Color="#AF3A03" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#D65D0E" />
+  <SolidColorBrush x:Key="OnAccent" Color="#FFFFFF" />
+
+  <SolidColorBrush x:Key="Good" Color="#79740E" />
+  <SolidColorBrush x:Key="Bad" Color="#9D0006" />
+  <SolidColorBrush x:Key="Warn" Color="#B57614" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#F9F5D7" Opacity="0.94" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#9D0006" />
+  <SolidColorBrush x:Key="SynString" Color="#79740E" />
+  <SolidColorBrush x:Key="SynComment" Color="#928374" />
+  <SolidColorBrush x:Key="SynNumber" Color="#8F3F71" />
+  <SolidColorBrush x:Key="SynVariable" Color="#076678" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#EBDBB2" />
+
+</ResourceDictionary>

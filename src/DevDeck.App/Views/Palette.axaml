@@ -9,7 +9,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="BorderOnly"
+        WindowDecorations="BorderOnly"
         Background="{DynamicResource Ink}">
 
   <Window.Styles>
@@ -50,7 +50,7 @@
       <Border Grid.Row="0" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
         <TextBox Name="Search" Classes="search"
                  Text="{Binding Query, Mode=TwoWay}"
-                 Watermark="{loc:T PaletteTypeACommandAPanelOr}" />
+                 PlaceholderText="{loc:T PaletteTypeACommandAPanelOr}" />
       </Border>
 
       <ListBox Grid.Row="1" Name="Hits" Classes="hits"

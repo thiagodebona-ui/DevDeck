@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using DevDeck.App.ViewModels;
+using DevDeck.Core;
 
 namespace DevDeck.App.Views
 {
@@ -11,6 +12,12 @@ namespace DevDeck.App.Views
         public LogView()
         {
             InitializeComponent();
+
+            // What the list is showing, filter and all, rather than the whole log: the reader
+            // narrowed it down to find the lines they want to copy.
+            TextMode.Wire(SelectLines, Lines, () => string.Join(
+                Environment.NewLine,
+                Lines.Items.OfType<LogEntry>().Select(entry => $"{entry.Stamp}  {entry.Source,-12}  {entry.Text}")));
 
             DataContextChanged += (_, _) =>
             {

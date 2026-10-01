@@ -154,7 +154,7 @@ namespace DevDeck.App
         ///  Re-points Fluent's own control resources at the palette that has just been applied.
         /// </summary>
         /// <remarks>
-        ///  In code rather than in the theme files because the answer is the same for all nine of
+        ///  In code rather than in the theme files because the answer is the same for every one of
         ///  them - it is "whatever this palette calls Steel" - and writing it out per theme would be
         ///  four hundred lines that all say the same thing and drift the first time one is edited.
         ///

@@ -3,6 +3,7 @@
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
+             xmlns:app="using:DevDeck.App"
              x:Class="DevDeck.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -72,20 +73,88 @@
           </StackPanel>
         </Border>
 
+        <!-- The assistant's endpoint. Here rather than on the assistant page, which now only says
+             what it is using: this is set up once and then left alone, and a page for asking
+             questions is the wrong place to keep a form for it. Bound to the assistant itself, so
+             what is chosen here is what the next question goes to. -->
+        <Border Classes="card" DataContext="{Binding Ai}">
+          <StackPanel Spacing="11" x:DataType="vm:AssistantViewModel">
+            <TextBlock Classes="group" Text="{loc:T SettingsAi}" />
+
+            <!-- Labels in a row of their own, so the controls below share one row and Refresh
+                 lines up with the drop-down it fills rather than with the label above it. -->
+            <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto" ColumnSpacing="10">
+              <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{loc:T AssistantProvider}" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Classes="label" Text="{loc:T AssistantEndpoint}" />
+              <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Providers}"
+                        SelectedItem="{Binding Provider}" HorizontalAlignment="Stretch" />
+              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding BaseUrl}"
+                       Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                       BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8">
+              <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{loc:T AssistantModel}" />
+              <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Models}"
+                        SelectedItem="{Binding Model}" HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" />
+              <Button Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch"
+                      VerticalContentAlignment="Center" Command="{Binding RefreshModelsCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                  <TextBlock Text="{loc:T Refresh}" />
+                </StackPanel>
+              </Button>
+            </Grid>
+
+            <StackPanel IsVisible="{Binding NeedsKey}">
+              <TextBlock Classes="label" Text="{loc:T AssistantAPIKey}" />
+              <TextBox Text="{Binding ApiKey}" PasswordChar="•"
+                       Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
+                       BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
+            </StackPanel>
+
+            <!-- Whether anything answered, with the two ways out of "no" beside it. -->
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Grid.Column="0" Classes="note" VerticalAlignment="Center" Text="{Binding Hint}" />
+              <Button Grid.Column="1" Content="{Binding SetupLabel}"
+                      IsVisible="{Binding CanSetUp}" Command="{Binding SetUpCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+              <Button Grid.Column="2" Content="{loc:T AssistantCheckAgain}"
+                      Command="{Binding CheckCommand}"
+                      Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+            </Grid>
+
+            <TextBlock Classes="note" Text="{loc:T SettingsAiNote}" />
+          </StackPanel>
+        </Border>
+
         <Border Classes="card">
           <StackPanel Spacing="11">
             <TextBlock Classes="group" Text="{loc:T SettingsBehaviour}" />
-            <CheckBox IsChecked="{Binding KeepAwake}" Content="{loc:T SettingsKeepThisMachineAwakeWhileDevDeck}" />
+            <CheckBox IsChecked="{Binding KeepAwake}" Content="{loc:T SettingsKeepThisMachineAwakeWhileDevDeck}"
+                      ToolTip.Tip="{loc:T SettingsKeepAwakeTip}" />
             <StackPanel Margin="24,0,0,0" Spacing="6" IsEnabled="{Binding KeepAwake}">
               <CheckBox IsChecked="{Binding StayAvailable}"
                         IsVisible="{Binding CanStayAvailable}"
-                        Content="{loc:T SettingsAlsoStopItLockingItselfAnd}" />
+                        Content="{loc:T SettingsAlsoStopItLockingItselfAnd}"
+                        ToolTip.Tip="{loc:T SettingsStayAvailableTip}" ToolTip.ShowOnDisabled="True" />
               <TextBlock Classes="note" Text="{Binding AwakeDetail}" TextWrapping="Wrap" />
             </StackPanel>
-            <CheckBox IsChecked="{Binding ConfirmPowerActions}" Content="{loc:T SettingsAskBeforePowerActions}" />
-            <CheckBox IsChecked="{Binding AutoScrollLog}" Content="{loc:T SettingsFollowOutputAsItArrives}" />
+            <CheckBox IsChecked="{Binding ConfirmPowerActions}" Content="{loc:T SettingsAskBeforePowerActions}"
+                      ToolTip.Tip="{loc:T SettingsConfirmPowerTip}" />
+            <CheckBox IsChecked="{Binding AutoScrollLog}" Content="{loc:T SettingsFollowOutputAsItArrives}"
+                      ToolTip.Tip="{loc:T SettingsFollowOutputTip}" />
             <CheckBox IsChecked="{Binding StartWithSystem}" IsEnabled="{Binding CanAutoStart}"
-                      Content="{loc:T SetAutoStart}" />
+                      Content="{loc:T SetAutoStart}"
+                      ToolTip.Tip="{loc:T SettingsAutoStartTip}" ToolTip.ShowOnDisabled="True" />
             <TextBlock Classes="note" Margin="24,0,0,0" Text="{Binding AutoStartNote}" />
             <TextBlock Classes="note" Margin="24,0,0,0" Text="{Binding AutoStartStatus}"
                        IsVisible="{Binding AutoStartStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -123,12 +192,12 @@
 
             <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
               <TextBox Grid.Column="0" Text="{Binding SecretName, Mode=TwoWay}"
-                       Watermark="NPM_TOKEN"
+                       PlaceholderText="NPM_TOKEN"
                        Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
                        BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
               <!-- Masked, and cleared the moment it is stored. -->
               <TextBox Grid.Column="1" Text="{Binding SecretValue, Mode=TwoWay}"
-                       PasswordChar="•" Watermark="{loc:T SettingsValue}"
+                       PasswordChar="•" PlaceholderText="{loc:T SettingsValue}"
                        Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
                        BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
               <Button Grid.Column="2" Content="{loc:T SettingsStore}" Command="{Binding AddSecretCommand}"
@@ -260,7 +329,7 @@
 
             <Grid ColumnDefinitions="*,Auto,Auto" IsEnabled="{Binding CanUseHotkey}">
               <TextBox Grid.Column="0" Text="{Binding Hotkey}" FontSize="12"
-                       Watermark="Ctrl+Shift+D"
+                       PlaceholderText="Ctrl+Shift+D"
                        FontFamily="{DynamicResource MonoFont}" />
               <Button Grid.Column="1" Content="{loc:T SettingsClaimIt}" Margin="8,0,0,0"
                       Command="{Binding SetHotkeyCommand}"

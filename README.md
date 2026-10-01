@@ -125,7 +125,7 @@ and **one file watch** so there is something to click straight away. Pick a fold
 | **Assistant** | Chat with a local model (Ollama, LM Studio) or any OpenAI-compatible service. |
 | **Memory/CPU** | Live gauges for memory, CPU, disk and GPU, plus one-click memory cleanup. |
 | **Log** | Everything DevDeck itself did this session, for when something needs explaining. |
-| **Settings** | Theme, language, keep-awake, notifications, hotkey and more. |
+| **Settings** | Theme, language, AI, keep-awake, notifications, hotkey and more. |
 
 ---
 
@@ -162,6 +162,10 @@ output streams into the pane below with the exit code and run time in the status
   name, press Enter.
 - **Copy a link to this command.** Gives you a `devdeck://` link that runs the command from a
   browser bookmark, a document or a chat message.
+- **Select text** shows the output as plain text, so you can select across lines and copy just the
+  part you want. The chain output and the Log page have it too.
+- **Commands in use stay put.** A command that a chain or a watch runs cannot be deleted; hover the
+  delete button to see what uses it.
 
 **Starter commands** include *Where am I*, *What changed vs main*, *Today's commits*,
 *TODOs and FIXMEs*, *What is taking up space*, *Heavy build folders*, *Outdated packages*,
@@ -302,6 +306,8 @@ A chat panel for a language model of your choice.
 - Works with a **local model through Ollama or LM Studio**, free and private, or any
   **OpenAI-compatible** service with your own key. **Set up Ollama** helps you get a local model
   running.
+- Choose the provider, endpoint, model and key under **Settings > AI**. The Assistant uses what is
+  chosen there, and **AI settings** at the top of the chat takes you to it.
 - It knows which repository you are in, and you can **attach files** (or drag them in) as context.
 - Any code it writes comes with a **Run** button, whose output streams back into the conversation,
   and an **Add as command** button that puts it on your deck. It always asks before running
@@ -339,9 +345,13 @@ each command. Filter it, show *Problems only*, or **Copy all** to paste into a b
 
 ![Settings](docs/images/settings.png)
 
-- **Theme** (Steel Light, Steel Dark, or follow Windows) and **language** (English or Brazilian
-  Portuguese). Both change instantly, without a restart.
-- **Keep this machine awake** while DevDeck is open, and optionally stop it from **locking** and
+- **Theme** and **language** (English or Brazilian Portuguese). Both change instantly, without a
+  restart. Dark themes: Steel Dark, Midnight, Nord, Gruvbox Dark, Darcula, Solarized Dark and High
+  Contrast. Light themes: Steel Light, Solarized Light, Paper, One Light, Nord Light and Gruvbox
+  Light. Or follow the system.
+- **AI:** the provider, endpoint, model and API key the Assistant uses, with **Refresh** to list
+  the models the endpoint offers.
+- **Behaviour** switches, each with a tip on hover. **Keep this machine awake** while DevDeck is open, and optionally stop it from **locking** and
   keep you shown as **available** in chat apps.
 - **Tell me when it is done:** a notification when a long command finishes, for any run over a
   time you choose.

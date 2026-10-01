@@ -266,8 +266,10 @@
                       <TextBlock Text="{loc:T CommandsNewCommand}" />
                     </StackPanel>
                   </Button>
+                  <!-- Off while a chain or a watch runs the command, and the tip says which, so the
+                       button explains itself instead of simply not working. -->
                   <Button Grid.Column="1" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
-                          ToolTip.Tip="{loc:T Delete}">
+                          ToolTip.Tip="{Binding DeleteTip}" ToolTip.ShowOnDisabled="True">
                     <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
                   </Button>
                 </Grid>
@@ -413,7 +415,7 @@
                            Text="{loc:T CommandsParametersHelp}" />
               </StackPanel>
 
-              <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+              <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto">
                 <Button Grid.Column="0" Classes="go" Command="{Binding Selected.RunCommand}">
                   <StackPanel Classes="iconLabel">
                     <Path Classes="icon solid" Data="{x:Static app:Icons.Run}" />
@@ -441,6 +443,11 @@
                 <CheckBox Grid.Column="5" VerticalAlignment="Center"
                           IsChecked="{Binding Follow}"
                           Content="{loc:T CommandsFollowOutput}" />
+                <ToggleButton Name="SelectOutput" Grid.Column="6" Margin="12,0,0,0" VerticalAlignment="Center"
+                              Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                              FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
+                              Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                              BorderBrush="{DynamicResource Line}" />
               </Grid>
 
             </StackPanel>

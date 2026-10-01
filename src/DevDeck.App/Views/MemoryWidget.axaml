@@ -7,7 +7,7 @@
         x:DataType="vm:MemoryViewModel"
         Title="{loc:T MemoryWidgetDevDeckMemory}"
         Width="200" Height="200"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Topmost="True"
         ShowInTaskbar="False"
         CanResize="False"

@@ -82,21 +82,27 @@
                  Text="{loc:T LogEverythingTheAppItselfHasDone}" />
     </StackPanel>
 
-    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,10">
 
       <TextBox Grid.Column="0" Margin="0,0,10,0"
                Text="{Binding Query, Mode=TwoWay}"
-               Watermark="{loc:T LogFilter}" />
+               PlaceholderText="{loc:T LogFilter}" />
 
       <CheckBox Grid.Column="1" Content="{loc:T LogProblemsOnly}" FontSize="11.5" Margin="0,0,10,0"
                 VerticalAlignment="Center"
                 Foreground="{DynamicResource TextMuted}"
                 IsChecked="{Binding ProblemsOnly, Mode=TwoWay}" />
 
-      <Button Grid.Column="2" Content="{loc:T LogCopyAll}" Margin="0,0,6,0"
+      <ToggleButton Name="SelectLines" Grid.Column="2" Margin="0,0,6,0" VerticalAlignment="Center"
+                    Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                    FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
+                    Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
+                    BorderBrush="{DynamicResource Line}" />
+
+      <Button Grid.Column="3" Content="{loc:T LogCopyAll}" Margin="0,0,6,0"
               Command="{Binding CopyAllCommand}" />
 
-      <Button Grid.Column="3" Classes="danger" Content="{loc:T Clear}"
+      <Button Grid.Column="4" Classes="danger" Content="{loc:T Clear}"
               Command="{Binding ClearCommand}" />
 
     </Grid>
