@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/icon.png" alt="DevDeck" width="168" />
+<img src="docs/images/splash.png" alt="DevDeck" width="360" />
 
 # DevDeck
 
@@ -277,6 +277,8 @@ every time a `.cs` file changes.
 
 ![Assistant](docs/images/assistant.png)
 
+![A chain run in the conversation](docs/images/assistant-chain.png)
+
 </details>
 
 A chat panel for a language model of your choice, built to work with your deck.
@@ -466,6 +468,13 @@ across lines with **Select text**, or **Copy all** to paste into a bug report.
 
 ## Changelog
 
+<details>
+<summary><b>📸 Screenshot</b> - Changelog</summary>
+
+![Changelog](docs/images/changelog.png)
+
+</details>
+
 The **Changelog** page lists what every version brought - one change per line, with a ✓ for a fix
 and a ★ for something new - and the date and time each version was released. It is built into the
 app, so it works offline. The first time a new version starts, DevDeck opens on this page once.
@@ -534,6 +543,7 @@ src/DevDeck.App/           the Avalonia desktop app: windows, pages, view models
 tests/DevDeck.Core.Tests/  the test suite (run directly; it is not in the solution)
 gen.py                     the English / Portuguese string table; run it after editing text
 CHANGELOG.md               what each version brought, with its release time
+tools/make-icon.ps1        draws the app icon and docs/images/icon.png; run it after changing the mark
 ```
 
 Every piece of text the app shows is a row in `gen.py`, in English and Brazilian Portuguese.

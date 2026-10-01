@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 1.2.9 - 2026-10-01 19:47
+
+- **A new app icon,** the same mark as the splash screen: the terminal window with DD on the deck
+  and its chain, in steel and brass. It shows on the taskbar, in Explorer, on shortcuts and in the
+  tray. The small sizes keep only the tile and DD, so they stay readable.
+- **New screenshots in the README** of the app as it is now, each folded away until you open it.
+
 ## 1.2.8 - 2026-10-01 19:13
 
 - **A splash screen.** DevDeck opens on its mark - a terminal window with the deck and its chain

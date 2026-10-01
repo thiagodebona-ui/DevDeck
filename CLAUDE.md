@@ -23,6 +23,8 @@ A cross-platform developer command deck: .NET 10, C# 14, Avalonia 12, CommunityT
   build. Headings are `## x.y.z - YYYY-MM-DD HH:mm`.
 - **Startup:** `App/App.axaml.cs` shows `Views/Splash` first and builds the deck behind it, except at
   sign-in (minimised), when there is no splash.
+- **Icon:** `tools/make-icon.ps1` draws the mark the splash shows into `Assets/DevDeck.ico` and
+  `docs/images/icon.png`. Change the mark there, not by editing the .ico.
 - **Themes:** one `ResourceDictionary` per theme in `App/Themes`, all defining the same brush keys;
   listed in `Core/Platform/AppTheme.cs`. Themes define brushes, not colours.
 - **Shared view helpers:** `ListReorder` (drag and Alt+Up/Down for a list), `TextMode` (Select
