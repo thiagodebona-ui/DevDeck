@@ -1,3 +1,4 @@
-# gen.py is the tool that writes the string table into C#, not part of the app, so GitHub's
-# language bar should not count it as Python.
+# Tools that build the app's assets, not part of the app, so GitHub's language bar should not
+# count them: gen.py writes the string table into C#, make-icon.ps1 draws the icon.
 gen.py linguist-detectable=false
+tools/** linguist-detectable=false
