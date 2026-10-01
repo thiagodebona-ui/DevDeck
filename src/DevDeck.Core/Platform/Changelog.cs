@@ -44,8 +44,8 @@ namespace DevDeck.Core
 
         /// <summary>Every version the text describes, in the file's own order - newest first.</summary>
         /// <remarks>
-        ///  Not sorted by number: the numbering restarted at 1.0.0 after 3.0.0-alpha.1, and sorting
-        ///  would put that old alpha above every real release. The file is written newest first.
+        ///  Not sorted by number: the file is written newest first, and its order is the one the
+        ///  author meant - a renumbered or out-of-sequence heading must not jump to the top.
         /// </remarks>
         public static IReadOnlyList<ChangelogEntry> All(string markdown)
         {
