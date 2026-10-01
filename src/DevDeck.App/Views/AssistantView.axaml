@@ -157,14 +157,75 @@
             BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
       <StackPanel Spacing="12">
 
-        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
           <TextBlock Grid.Column="0" Text="{loc:T AssistantAssistant}" FontSize="17" FontWeight="SemiBold"
                      Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
 
           <!-- Everything said before today, behind one button. A flyout rather than a pane: the
                archive is opened rarely and read once, and a permanent column would cost the
                transcript width on every turn to save one click on a few of them. -->
-          <Button Grid.Column="1" Content="{loc:T AssistantHistory}" Classes="small"
+          <!-- What it can do, with a prompt for each that can be pressed. A chat box gives no hint of
+               its own range - nobody guesses that it will build a whole automation chain - and the
+               empty transcript is gone after the first question, taking its one sentence of help
+               with it. -->
+          <Button Name="HelpButton" Grid.Column="1" Content="{loc:T AssistantHelp}" Classes="small"
+                  Margin="0,0,8,0">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight">
+                <Border Width="440" MaxHeight="560">
+                  <ScrollViewer>
+                    <StackPanel Spacing="12" Margin="4,2,8,4">
+                      <TextBlock Text="{loc:T AiHelpTitle}" FontSize="14" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource Text}" />
+                      <TextBlock Text="{loc:T AiHelpIntro}" FontSize="12" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource TextMuted}" />
+
+                      <ItemsControl ItemsSource="{Binding HelpTopics}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:HelpTopic">
+                            <StackPanel Spacing="4" Margin="0,0,0,12">
+                              <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                         Foreground="{DynamicResource Text}" />
+                              <TextBlock Text="{Binding Text}" FontSize="12" TextWrapping="Wrap"
+                                         Foreground="{DynamicResource TextMuted}" />
+                              <!-- Fills the box rather than sending: an example is somewhere to
+                                   start, and the user may want to change it first. -->
+                              <Button Classes="chat" HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Left"
+                                      ToolTip.Tip="{loc:T AiHelpUseExample}"
+                                      Click="ExampleClick"
+                                      Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).UseExampleCommand}"
+                                      CommandParameter="{Binding}">
+                                <TextBlock Text="{Binding Example}" FontSize="12" TextWrapping="Wrap"
+                                           FontStyle="Italic" Foreground="{DynamicResource Accent}" />
+                              </Button>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock Text="{loc:T AiHelpTipsTitle}" FontSize="12.5" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource Text}" />
+                      <ItemsControl ItemsSource="{Binding HelpTips}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="x:String">
+                            <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+                              <TextBlock Grid.Column="0" Text="•" Margin="0,0,8,0" FontSize="12"
+                                         Foreground="{DynamicResource Accent}" />
+                              <TextBlock Grid.Column="1" Text="{Binding}" FontSize="12" TextWrapping="Wrap"
+                                         Foreground="{DynamicResource TextMuted}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </ScrollViewer>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+
+          <Button Grid.Column="2" Content="{loc:T AssistantHistory}" Classes="small"
                   IsEnabled="{Binding HasHistory}">
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedRight">
@@ -204,12 +265,12 @@
             </Button.Flyout>
           </Button>
 
-          <Button Grid.Column="2" Content="{loc:T AssistantSaveAsCommand}" Classes="small" Margin="8,0,0,0"
+          <Button Grid.Column="3" Content="{loc:T AssistantSaveAsCommand}" Classes="small" Margin="8,0,0,0"
                   Command="{Binding SaveLastCommand}" />
 
           <!-- No longer "lose this": it writes the conversation out first, which is why the
                label says what it now does. -->
-          <Button Grid.Column="3" Content="{loc:T AssistantNewChat}" Classes="small" Margin="8,0,0,0"
+          <Button Grid.Column="4" Content="{loc:T AssistantNewChat}" Classes="small" Margin="8,0,0,0"
                   Command="{Binding ClearCommand}" />
         </Grid>
 

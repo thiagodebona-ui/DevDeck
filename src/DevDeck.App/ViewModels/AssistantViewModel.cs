@@ -84,6 +84,22 @@ namespace DevDeck.App.ViewModels
             + (Name.Length > 0 ? $" · {Name}" : string.Empty);
     }
 
+    /// <summary>
+    ///  One thing the assistant can do, as the help panel shows it: what, how, and a prompt to try.
+    /// </summary>
+    /// <remarks>
+    ///  Keys rather than text, so a topic is the same thing in every language. The panel follows
+    ///  a change of language by being handed fresh topics, which a binding reads again.
+    /// </remarks>
+    internal sealed record HelpTopic(string TitleKey, string TextKey, string ExampleKey)
+    {
+        public string Title => Strings.Text(TitleKey);
+
+        public string Text => Strings.Text(TextKey);
+
+        public string Example => Strings.Text(ExampleKey);
+    }
+
     /// <summary>One turn in the conversation.</summary>
     internal sealed partial class Turn : ObservableObject
     {
@@ -382,7 +398,12 @@ namespace DevDeck.App.ViewModels
 
             Reload();
 
-            Strings.Changed += () => OnPropertyChanged(nameof(Using));
+            Strings.Changed += () =>
+            {
+                OnPropertyChanged(nameof(Using));
+                OnPropertyChanged(nameof(HelpTopics));
+                OnPropertyChanged(nameof(HelpTips));
+            };
 
             // Probed rather than assumed: V2 would not let you type until something had answered,
             // because sending into a dead endpoint only ever produced an error bubble.
@@ -1532,6 +1553,50 @@ namespace DevDeck.App.ViewModels
             Command = segment.Text,
             Kind = CodeBlock.KindFor(segment.Language, segment.Text),
         };
+        #endregion
+
+        #region Help
+        /// <summary>
+        ///  What the help panel lists, each with a prompt that shows it off.
+        /// </summary>
+        /// <remarks>
+        ///  A prompt to press rather than a paragraph to read. The commonest reason a feature here
+        ///  goes unused is not knowing it can be asked for - nobody guesses that a chat box will
+        ///  build an automation chain - and one example that works teaches the phrasing better
+        ///  than a description of it.
+        /// </remarks>
+        public IReadOnlyList<HelpTopic> HelpTopics =>
+        [
+            new("AiHelpCommandTitle", "AiHelpCommandText", "AiHelpCommandExample"),
+            new("AiHelpChainTitle", "AiHelpChainText", "AiHelpChainExample"),
+            new("AiHelpFailureTitle", "AiHelpFailureText", "AiHelpFailureExample"),
+            new("AiHelpFilesTitle", "AiHelpFilesText", "AiHelpFilesExample"),
+            new("AiHelpRefineTitle", "AiHelpRefineText", "AiHelpRefineExample"),
+        ];
+
+        /// <summary>How to ask well, read in the current language.</summary>
+        public IReadOnlyList<string> HelpTips =>
+        [
+            .. new[] { "AiHelpTip1", "AiHelpTip2", "AiHelpTip3", "AiHelpTip4", "AiHelpTip5", "AiHelpTip6" }
+                .Select(Strings.Text),
+        ];
+
+        /// <summary>Puts an example in the box, for the user to send as it is or change first.</summary>
+        /// <remarks>
+        ///  Not sent. An example is a starting point, and sending it unasked would spend a round
+        ///  trip - and, on a hosted model, money - on a question nobody asked yet.
+        /// </remarks>
+        [RelayCommand]
+        private void UseExample(HelpTopic? topic)
+        {
+            if (topic is null)
+            {
+                return;
+            }
+
+            Prompt = topic.Example;
+            FocusComposer?.Invoke();
+        }
         #endregion
 
         #region Chains

@@ -90,6 +90,15 @@ namespace DevDeck.App.Views
                 .Select(path => path!)];
         }
 
+        /// <summary>
+        ///  Closes the help panel once an example is picked.
+        /// </summary>
+        /// <remarks>
+        ///  The command has already put the example in the box. Left open, the panel would sit on
+        ///  top of the very box the text just went into.
+        /// </remarks>
+        private void ExampleClick(object? sender, RoutedEventArgs e) => HelpButton.Flyout?.Hide();
+
         private void DragOver(object? sender, DragEventArgs e)
         {
             e.DragEffects = e.DataTransfer.Contains(DataFormat.File)

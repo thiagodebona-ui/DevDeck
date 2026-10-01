@@ -219,6 +219,32 @@ namespace DevDeck.App.Localisation
             "SelectTextTip",
             "AssistantSaveAsCommand",
             "AssistantNewChat",
+            "AssistantHelp",
+            "AiHelpTitle",
+            "AiHelpIntro",
+            "AiHelpUseExample",
+            "AiHelpCommandTitle",
+            "AiHelpCommandText",
+            "AiHelpCommandExample",
+            "AiHelpChainTitle",
+            "AiHelpChainText",
+            "AiHelpChainExample",
+            "AiHelpFailureTitle",
+            "AiHelpFailureText",
+            "AiHelpFailureExample",
+            "AiHelpFilesTitle",
+            "AiHelpFilesText",
+            "AiHelpFilesExample",
+            "AiHelpRefineTitle",
+            "AiHelpRefineText",
+            "AiHelpRefineExample",
+            "AiHelpTipsTitle",
+            "AiHelpTip1",
+            "AiHelpTip2",
+            "AiHelpTip3",
+            "AiHelpTip4",
+            "AiHelpTip5",
+            "AiHelpTip6",
             "AssistantAiSettings",
             "AssistantProvider",
             "AssistantEndpoint",
@@ -1160,6 +1186,84 @@ namespace DevDeck.App.Localisation
 
         /// <summary>New chat</summary>
         public string AssistantNewChat => Strings.Text("AssistantNewChat");
+
+        /// <summary>Help</summary>
+        public string AssistantHelp => Strings.Text("AssistantHelp");
+
+        /// <summary>What the assistant can do</summary>
+        public string AiHelpTitle => Strings.Text("AiHelpTitle");
+
+        /// <summary>Ask in plain words. Code it writes comes back with buttons to run it o</summary>
+        public string AiHelpIntro => Strings.Text("AiHelpIntro");
+
+        /// <summary>Puts this in the box below, ready to send or change.</summary>
+        public string AiHelpUseExample => Strings.Text("AiHelpUseExample");
+
+        /// <summary>Write a command</summary>
+        public string AiHelpCommandTitle => Strings.Text("AiHelpCommandTitle");
+
+        /// <summary>A one-liner or a whole script, in a language this machine runs. Run it</summary>
+        public string AiHelpCommandText => Strings.Text("AiHelpCommandText");
+
+        /// <summary>Write a script that lists the 10 largest files under this folder</summary>
+        public string AiHelpCommandExample => Strings.Text("AiHelpCommandExample");
+
+        /// <summary>Build a chain</summary>
+        public string AiHelpChainTitle => Strings.Text("AiHelpChainTitle");
+
+        /// <summary>Ask for several commands that work together. Each comes back as its ow</summary>
+        public string AiHelpChainText => Strings.Text("AiHelpChainText");
+
+        /// <summary>Make three commands that count the files, count the TODOs and show the</summary>
+        public string AiHelpChainExample => Strings.Text("AiHelpChainExample");
+
+        /// <summary>Explain a failure</summary>
+        public string AiHelpFailureTitle => Strings.Text("AiHelpFailureTitle");
+
+        /// <summary>When a command fails on the Commands page, Explain this failure sends </summary>
+        public string AiHelpFailureText => Strings.Text("AiHelpFailureText");
+
+        /// <summary>Why would 'dotnet build' fail with error NETSDK1045, and how do I fix </summary>
+        public string AiHelpFailureExample => Strings.Text("AiHelpFailureExample");
+
+        /// <summary>Ask about your files</summary>
+        public string AiHelpFilesTitle => Strings.Text("AiHelpFilesTitle");
+
+        /// <summary>Attach files, or drag them onto the chat, and ask about them. It also </summary>
+        public string AiHelpFilesText => Strings.Text("AiHelpFilesText");
+
+        /// <summary>Explain what the attached script does, and what could go wrong when it</summary>
+        public string AiHelpFilesExample => Strings.Text("AiHelpFilesExample");
+
+        /// <summary>Change what it wrote</summary>
+        public string AiHelpRefineTitle => Strings.Text("AiHelpRefineTitle");
+
+        /// <summary>Follow up on the last answer instead of starting again: it remembers t</summary>
+        public string AiHelpRefineText => Strings.Text("AiHelpRefineText");
+
+        /// <summary>Make the last script skip the bin, obj and node_modules folders</summary>
+        public string AiHelpRefineExample => Strings.Text("AiHelpRefineExample");
+
+        /// <summary>Getting good answers</summary>
+        public string AiHelpTipsTitle => Strings.Text("AiHelpTipsTitle");
+
+        /// <summary>Say what you want to end up with, not just the tool: "the branches alr</summary>
+        public string AiHelpTip1 => Strings.Text("AiHelpTip1");
+
+        /// <summary>Name the language when it matters: PowerShell, batch or bash.</summary>
+        public string AiHelpTip2 => Strings.Text("AiHelpTip2");
+
+        /// <summary>For a chain, say what each step should produce and what the last step </summary>
+        public string AiHelpTip3 => Strings.Text("AiHelpTip3");
+
+        /// <summary>Read code before you run it, above all anything that deletes, moves or</summary>
+        public string AiHelpTip4 => Strings.Text("AiHelpTip4");
+
+        /// <summary>Keep a prompt you reuse with Keep this prompt and find it under Prompt</summary>
+        public string AiHelpTip5 => Strings.Text("AiHelpTip5");
+
+        /// <summary>Choose the provider and model under Settings > AI. Larger models follo</summary>
+        public string AiHelpTip6 => Strings.Text("AiHelpTip6");
 
         /// <summary>AI settings</summary>
         public string AssistantAiSettings => Strings.Text("AssistantAiSettings");

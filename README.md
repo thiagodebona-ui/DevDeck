@@ -318,6 +318,8 @@ A chat panel for a language model of your choice.
   and **Create chain** adds the commands to your deck and the chain to Automation in one click.
   The steps it writes can read each other's output (see [Chains](#chains)).
 - **Prompts** keeps a library of reusable prompts, and **History** reopens earlier conversations.
+- **Help** lists what it can do, with an example prompt for each that you can click to try, and
+  tips for getting good answers.
 - The status bar shows the token count, the cost where the price is published, and how full the
   model's context is.
 

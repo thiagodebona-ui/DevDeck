@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 1.2.4
+
+- **Help in the Assistant.** A **Help** button at the top of the Assistant lists what it can do -
+  write a command, build a chain, explain a failure, read your files, change what it wrote - with
+  an example prompt for each. Click an example to put it in the message box, ready to send or
+  change first. Under it, tips for getting good answers.
+
 ## 1.2.3
 
 - **The Assistant builds chains.** Ask for several commands that work together - "make three
