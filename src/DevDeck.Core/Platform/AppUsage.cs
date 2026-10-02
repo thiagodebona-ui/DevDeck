@@ -73,7 +73,7 @@ namespace DevDeck.Core
             double cpuMs = 0;
             long io = 0;
 
-            foreach (int id in Tree())
+            foreach (int id in Members())
             {
                 try
                 {
@@ -109,8 +109,8 @@ namespace DevDeck.Core
                 : new AppUsageReading(memory, 0, 0, current.Count);
         }
 
-        /// <summary>This process and all of its descendants.</summary>
-        private List<int> Tree()
+        /// <summary>This process and all of its descendants, by id.</summary>
+        internal List<int> Members()
         {
             Dictionary<int, List<int>> children = [];
 

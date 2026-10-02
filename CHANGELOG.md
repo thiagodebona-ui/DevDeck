@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 1.2.9 - 2026-10-02 18:04
+## 1.2.9 - 2026-10-02 18:10
 
 - **Large responses no longer freeze the window.** A JSON reply of a few megabytes used to stop
   the app for seconds every time it was shown - even when adding a request. Only the lines on

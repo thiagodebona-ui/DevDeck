@@ -27,7 +27,6 @@ namespace DevDeck.Core.Tests
             }
 
             AppUsage usage = new();
-            int before = usage.Read().Processes;
 
             using Process child = Process.Start(new ProcessStartInfo
             {
@@ -41,7 +40,10 @@ namespace DevDeck.Core.Tests
             {
                 Thread.Sleep(300);
 
-                Assert.True(usage.Read().Processes > before);
+                // By id rather than by count: other tests start and end processes of their own
+                // under the same test host while this runs, so the count can stand still - or
+                // drop - with the child counted all along.
+                Assert.Contains(child.Id, usage.Members());
             }
             finally
             {
