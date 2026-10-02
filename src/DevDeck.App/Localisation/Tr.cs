@@ -140,6 +140,23 @@ namespace DevDeck.App.Localisation
             "HttpResponseNotSaved",
             "HttpImageBroken",
             "HttpMediaHere",
+            "HttpPreview",
+            "HttpParsed",
+            "CmdRunningFor",
+            "HttpTreeNone",
+            "HttpPreviewTip",
+            "HttpSource",
+            "HttpSourceTip",
+            "HttpOpen",
+            "HttpOpenTip",
+            "HttpResponseOpened",
+            "HttpResponseNotOpened",
+            "HttpDrawing",
+            "HttpPdfPages",
+            "HttpPdfSomePages",
+            "HttpImageSize",
+            "HttpCouldNotDraw",
+            "HttpReadableNote",
             "ClipsRecordingOn",
             "ClipsRecordingOff",
             "LogCopiedLines",
@@ -233,6 +250,9 @@ namespace DevDeck.App.Localisation
             "SelectTextTip",
             "AssistantSaveAsCommand",
             "AssistantNewChat",
+            "AssistantClearChat",
+            "AssistantClearChatTip",
+            "AssistantDeleteThisMessage",
             "AssistantHelp",
             "AiHelpTitle",
             "AiHelpIntro",
@@ -282,6 +302,9 @@ namespace DevDeck.App.Localisation
             "AssistantKeepThisPrompt",
             "AssistantAskTheModel",
             "Send",
+            "HttpSendThis",
+            "HttpSending",
+            "HttpDropToUngroup",
             "Stop",
             "AssistantStopTheScript",
             "AutomationAutomation",
@@ -294,6 +317,8 @@ namespace DevDeck.App.Localisation
             "Name",
             "AutomationStepsInOrder",
             "NavSectionBusy",
+            "NavUsage",
+            "NavUsageTip",
             "HttpHeaderCount",
             "HttpHeaderCountOne",
             "HttpFilterHeaders",
@@ -634,6 +659,9 @@ namespace DevDeck.App.Localisation
             "AiNoAnswer",
             "AiSavedNewOne",
             "AiCleared",
+            "AiMessageDeleted",
+            "AiRunBusyTip",
+            "AiOutputTrimmed",
             "AiAlreadyAttached",
             "AiAttachedNote",
             "AiCountAttached",
@@ -696,6 +724,11 @@ namespace DevDeck.App.Localisation
             "ToolRegexHint",
             "ToolboxPasteHere",
             "ToolboxUseAsInput",
+            "ToolboxText",
+            "ToolboxTree",
+            "ToolboxTreeTip",
+            "ToolboxTreeNotJson",
+            "ToolJsonMore",
         ];
 
         /// <summary>No steps yet.</summary>
@@ -968,11 +1001,62 @@ namespace DevDeck.App.Localisation
         /// <summary>Could not save: {0}</summary>
         public string HttpResponseNotSaved => Strings.Text("HttpResponseNotSaved");
 
-        /// <summary>This image could not be decoded. Save it and open it elsewhere.</summary>
+        /// <summary>This could not be drawn here. Source shows what arrived, and Open hand</summary>
         public string HttpImageBroken => Strings.Text("HttpImageBroken");
 
-        /// <summary>Audio and video are not played here. Save the file and open it in a pl</summary>
+        /// <summary>Audio and video are not played here. Open plays it in your system's pl</summary>
         public string HttpMediaHere => Strings.Text("HttpMediaHere");
+
+        /// <summary>Preview</summary>
+        public string HttpPreview => Strings.Text("HttpPreview");
+
+        /// <summary>Parsed</summary>
+        public string HttpParsed => Strings.Text("HttpParsed");
+
+        /// <summary>Running for {0}</summary>
+        public string CmdRunningFor => Strings.Text("CmdRunningFor");
+
+        /// <summary>This could not be parsed - most often because the response was too lar</summary>
+        public string HttpTreeNone => Strings.Text("HttpTreeNone");
+
+        /// <summary>The response drawn: the image, the PDF pages, the page's text, the tab</summary>
+        public string HttpPreviewTip => Strings.Text("HttpPreviewTip");
+
+        /// <summary>Source</summary>
+        public string HttpSource => Strings.Text("HttpSource");
+
+        /// <summary>The response as it arrived: the text formatted, or the first bytes in </summary>
+        public string HttpSourceTip => Strings.Text("HttpSourceTip");
+
+        /// <summary>Open</summary>
+        public string HttpOpen => Strings.Text("HttpOpen");
+
+        /// <summary>Open the response in the app your system uses for this kind of file - </summary>
+        public string HttpOpenTip => Strings.Text("HttpOpenTip");
+
+        /// <summary>Opened {0}.</summary>
+        public string HttpResponseOpened => Strings.Text("HttpResponseOpened");
+
+        /// <summary>Could not open the response: {0}</summary>
+        public string HttpResponseNotOpened => Strings.Text("HttpResponseNotOpened");
+
+        /// <summary>Drawing…</summary>
+        public string HttpDrawing => Strings.Text("HttpDrawing");
+
+        /// <summary>Pages: {0}</summary>
+        public string HttpPdfPages => Strings.Text("HttpPdfPages");
+
+        /// <summary>The first {0} of {1} pages. Open shows the whole document.</summary>
+        public string HttpPdfSomePages => Strings.Text("HttpPdfSomePages");
+
+        /// <summary>{0} × {1} px</summary>
+        public string HttpImageSize => Strings.Text("HttpImageSize");
+
+        /// <summary>Could not draw this: {0}</summary>
+        public string HttpCouldNotDraw => Strings.Text("HttpCouldNotDraw");
+
+        /// <summary>The text of the page, without its markup. Open shows it in your browse</summary>
+        public string HttpReadableNote => Strings.Text("HttpReadableNote");
 
         /// <summary>Recording what you copy. Anything that looks like a credential is skip</summary>
         public string ClipsRecordingOn => Strings.Text("ClipsRecordingOn");
@@ -1253,6 +1337,15 @@ namespace DevDeck.App.Localisation
         /// <summary>New chat</summary>
         public string AssistantNewChat => Strings.Text("AssistantNewChat");
 
+        /// <summary>Clear chat</summary>
+        public string AssistantClearChat => Strings.Text("AssistantClearChat");
+
+        /// <summary>Empties the conversation without saving it, and stops anything it is s</summary>
+        public string AssistantClearChatTip => Strings.Text("AssistantClearChatTip");
+
+        /// <summary>Delete this message</summary>
+        public string AssistantDeleteThisMessage => Strings.Text("AssistantDeleteThisMessage");
+
         /// <summary>Help</summary>
         public string AssistantHelp => Strings.Text("AssistantHelp");
 
@@ -1400,6 +1493,15 @@ namespace DevDeck.App.Localisation
         /// <summary>Send</summary>
         public string Send => Strings.Text("Send");
 
+        /// <summary>Send this request</summary>
+        public string HttpSendThis => Strings.Text("HttpSendThis");
+
+        /// <summary>Sending…</summary>
+        public string HttpSending => Strings.Text("HttpSending");
+
+        /// <summary>Drop here to take it out of its group</summary>
+        public string HttpDropToUngroup => Strings.Text("HttpDropToUngroup");
+
         /// <summary>Stop</summary>
         public string Stop => Strings.Text("Stop");
 
@@ -1435,6 +1537,12 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Running</summary>
         public string NavSectionBusy => Strings.Text("NavSectionBusy");
+
+        /// <summary>RAM {0} · CPU {1} · Disk {2}/s</summary>
+        public string NavUsage => Strings.Text("NavUsage");
+
+        /// <summary>What DevDeck and everything it started are using now: {0} processes. M</summary>
+        public string NavUsageTip => Strings.Text("NavUsageTip");
 
         /// <summary>{0} headers</summary>
         public string HttpHeaderCount => Strings.Text("HttpHeaderCount");
@@ -2456,6 +2564,15 @@ namespace DevDeck.App.Localisation
         /// <summary>Cleared.</summary>
         public string AiCleared => Strings.Text("AiCleared");
 
+        /// <summary>Message deleted. The model will not see it again.</summary>
+        public string AiMessageDeleted => Strings.Text("AiMessageDeleted");
+
+        /// <summary>Something started from this conversation is still running. Stop it wit</summary>
+        public string AiRunBusyTip => Strings.Text("AiRunBusyTip");
+
+        /// <summary>[{0} earlier lines not shown]</summary>
+        public string AiOutputTrimmed => Strings.Text("AiOutputTrimmed");
+
         /// <summary>{0} is already attached.</summary>
         public string AiAlreadyAttached => Strings.Text("AiAlreadyAttached");
 
@@ -2641,5 +2758,20 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Use as input</summary>
         public string ToolboxUseAsInput => Strings.Text("ToolboxUseAsInput");
+
+        /// <summary>Text</summary>
+        public string ToolboxText => Strings.Text("ToolboxText");
+
+        /// <summary>Tree</summary>
+        public string ToolboxTree => Strings.Text("ToolboxTree");
+
+        /// <summary>The JSON as a tree: expand and collapse it to find what you want.</summary>
+        public string ToolboxTreeTip => Strings.Text("ToolboxTreeTip");
+
+        /// <summary>Not valid JSON yet, so there is no tree to show.</summary>
+        public string ToolboxTreeNotJson => Strings.Text("ToolboxTreeNotJson");
+
+        /// <summary>{0} more not shown here - Text has them all</summary>
+        public string ToolJsonMore => Strings.Text("ToolJsonMore");
     }
 }

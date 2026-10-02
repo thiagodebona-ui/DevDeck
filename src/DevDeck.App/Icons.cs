@@ -384,6 +384,26 @@ namespace DevDeck.App
         public static readonly Geometry Coffee = Geometry.Parse(
             "M2.8 6 H11 V10 A3.2 3.2 0 0 1 7.8 13.2 H6 A3.2 3.2 0 0 1 2.8 10 Z M11 7 H12.2 A1.8 1.8 0 0 1 12.2 10.6 H11 M5.4 2 V3.8 M8.4 2 V3.8");
 
+        /// <summary>A hash sign, for checksums and digests.</summary>
+        public static readonly Geometry Hash = Geometry.Parse(
+            "M6.4 2.4 L5.2 13.6 M10.8 2.4 L9.6 13.6 M2.8 6 H13.4 M2.6 10 H13.2");
+
+        /// <summary>Four corners pointing in, for making something smaller.</summary>
+        public static readonly Geometry Compress = Geometry.Parse(
+            "M2.4 5.6 H5.6 V2.4 M13.6 5.6 H10.4 V2.4 M2.4 10.4 H5.6 V13.6 M13.6 10.4 H10.4 V13.6");
+
+        /// <summary>A large and a small A, for changing case.</summary>
+        public static readonly Geometry Case = Geometry.Parse(
+            "M1.8 12.6 L4.8 3.6 L7.8 12.6 M2.8 9.6 H6.8 M13.8 12.6 V8.8 A2.2 2.2 0 1 0 13.8 10.8");
+
+        /// <summary>Lines of different lengths in order, for sorting.</summary>
+        public static readonly Geometry Sort = Geometry.Parse(
+            "M2.4 4 H8.4 M2.4 8 H10.6 M2.4 12 H13.4 M12.6 2.6 V7 M11 5.4 L12.6 7 L14.2 5.4");
+
+        /// <summary>A dot-star: the two characters every regular expression is made of.</summary>
+        public static readonly Geometry Regex = Geometry.Parse(
+            "M3.8 11.6 A0.6 0.6 0 1 0 3.81 11.6 M10.6 2.6 V9 M7.8 4.2 L13.4 7.4 M13.4 4.2 L7.8 7.4");
+
         #endregion
 
         #region Choosing one

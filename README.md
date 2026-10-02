@@ -132,7 +132,9 @@ commands run there.
 | **Settings** | Theme, language, AI, keep-awake, notifications, hotkey and more. |
 | **Changelog** | What every version brought, and when it came out. |
 
-The menu on the left is yours to arrange: drag a section, or use **Alt+Up** / **Alt+Down**.
+The menu on the left is yours to arrange: drag a section, or use **Alt+Up** / **Alt+Down**. Above
+the version at its foot, a line shows what DevDeck and every command it started are using right
+now - memory, CPU and disk - so a build that is eating the machine is easy to spot.
 
 ---
 
@@ -146,7 +148,8 @@ The menu on the left is yours to arrange: drag a section, or use **Alt+Up** / **
 </details>
 
 The heart of DevDeck. Each command is a saved script with a name. Select it, press **Run**, and its
-output streams into the pane below, with the exit code and run time in the status bar.
+output streams into the pane below. While it runs the status bar counts up - *Running for 3m 07s* -
+and when it ends it shows the exit code and how long it took.
 
 ### Writing a command
 
@@ -176,7 +179,8 @@ output streams into the pane below, with the exit code and run time in the statu
 
 - **Readable output.** Colours from tools that print them are shown as colours, not escape codes. A
   compiler error such as `Program.cs:42` becomes a link that opens the file at that line in your
-  editor. Every run starts on a clean pane.
+  editor. Every run starts on a clean pane, and even a command that prints without pause keeps
+  the window responsive.
 - **Select text** shows the output as plain text, so you can select across lines and copy just the
   part you want.
 - **Stop, or don't wait.** Stop a run at any time, or tick *Run and don't wait* for things like dev
@@ -299,6 +303,9 @@ A chat panel for a language model of your choice, built to work with your deck.
 - **Help** lists what it can do, with an example prompt for each that you can click to try, and
   tips for getting good answers. **Prompts** keeps the ones you reuse, and **History** reopens
   earlier conversations.
+- **New chat** puts the conversation away in History and starts an empty one; **Clear chat**
+  empties it without keeping it, stopping anything still running. **Delete a single message** with
+  the × beside its time, or from its right-click menu - the model will not see it again.
 - The status bar shows the token count, the cost where the price is published, and how full the
   model's context is.
 
@@ -320,13 +327,24 @@ A small, fast API client built into the deck.
 - **Paste a curl command.** Copy a request as curl from your browser's developer tools and paste
   it, either with the button or straight into the address bar with Ctrl+V. The method, headers and
   body are filled in for you.
-- **Readable replies.** JSON and XML come back indented and coloured, HTML is left as the server
-  sent it, and binary responses say what they are and how big instead of filling the screen.
+- **Readable replies, of any size.** JSON and XML come back indented and coloured. Only the lines on
+  screen are drawn, so a reply of several megabytes scrolls as smoothly as a short one.
+- **Parsed or Source.** A JSON reply opens as a tree: **Up** and **Down** walk it, **Right** opens a
+  node and **Left** closes it. Other replies are drawn under **Preview**: images (PNG, JPEG, GIF,
+  WebP, BMP, ICO), **SVG**, the pages of a **PDF**, the text of an **HTML** page, **Markdown**, and
+  **CSV** as a table. **Source** shows what arrived - formatted text, or a hex dump for a file.
+- **Open** hands the reply to the app your system uses for it: a browser, a PDF viewer, a player.
+- **Save names the file for you**, from the server's suggested file name or from the content type:
+  an `image/png` saves as `.png`. A server that labels everything `application/octet-stream` is
+  read from the first bytes instead.
 - **Environments.** Keep sets of values such as `{{host}}` and `{{token}}` for *Local*, *Dev* and
   *Prod*, and switch between them from the picker. Values marked secret are stored in the
   encrypted vault.
 - **Saved requests** can be renamed, filed into collapsible groups, and flagged with a colour so
-  staging and production are easy to tell apart.
+  staging and production are easy to tell apart. **Drag** a request to reorder it, or onto a group
+  to file it there; **Alt+Up** / **Alt+Down** move the selected one.
+- **Send from the list.** The ▶ beside each saved request sends it straight away. Requests run in
+  parallel, each keeping its own reply - select a request to see what it got.
 - **Resizable panes.** Drag the headers, body and reply panes to the split you like; it is
   remembered.
 
@@ -375,7 +393,9 @@ leaves your machine.
 | | | | Regex tester |
 
 Paste into the top box, read the result below, then **Copy** it, or use **Use as input** to chain
-one tool into the next.
+one tool into the next. Each tool keeps its own input, so switching tools never carries text into
+one that cannot read it. JSON and XML results are coloured, and the JSON tools - and JWT decode -
+can show the result as a **Tree** to walk with the arrow keys.
 
 ---
 
@@ -526,7 +546,7 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download) (or newer), an
 change any user-visible text.
 
 ```sh
-dotnet build DevDeck.Avalonia.sln -c Release      # build
+dotnet build DevDeck.sln -c Release      # build
 dotnet run --project src/DevDeck.App              # run it
 dotnet test tests/DevDeck.Core.Tests              # run the tests
 
@@ -551,7 +571,9 @@ Run `python gen.py` after changing one; it regenerates the string files and fail
 missing.
 
 DevDeck is built with [Avalonia](https://avaloniaui.net/) and
-[CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet).
+[CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet). The HTTP panel draws SVG with
+[Svg.Skia](https://github.com/wieslawsoltes/Svg.Skia) and PDF pages with
+[PDFtoImage](https://github.com/sungaila/PDFtoImage) (PDFium).
 
 **Making a release.**
 

@@ -79,7 +79,60 @@
             ["font/woff2"] = ".woff2",
             ["font/woff"] = ".woff",
             ["font/ttf"] = ".ttf",
+            ["font/otf"] = ".otf",
+            ["text/tab-separated-values"] = ".tsv",
+            ["text/x-markdown"] = ".md",
+            ["text/calendar"] = ".ics",
+            ["text/yaml"] = ".yaml",
+            ["application/yaml"] = ".yaml",
+            ["application/x-yaml"] = ".yaml",
+            ["application/toml"] = ".toml",
+            ["application/rtf"] = ".rtf",
+            ["application/wasm"] = ".wasm",
+            ["application/x-7z-compressed"] = ".7z",
+            ["application/vnd.rar"] = ".rar",
+            ["application/x-rar-compressed"] = ".rar",
+            ["application/x-bzip2"] = ".bz2",
+            ["application/x-xz"] = ".xz",
+            ["application/zstd"] = ".zst",
+            ["application/msword"] = ".doc",
+            ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] = ".docx",
+            ["application/vnd.ms-excel"] = ".xls",
+            ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] = ".xlsx",
+            ["application/vnd.ms-powerpoint"] = ".ppt",
+            ["application/vnd.openxmlformats-officedocument.presentationml.presentation"] = ".pptx",
+            ["application/vnd.oasis.opendocument.text"] = ".odt",
+            ["application/vnd.oasis.opendocument.spreadsheet"] = ".ods",
+            ["application/epub+zip"] = ".epub",
+            ["application/java-archive"] = ".jar",
+            ["application/vnd.android.package-archive"] = ".apk",
+            ["application/x-msdownload"] = ".exe",
+            ["application/x-msi"] = ".msi",
+            ["application/x-sh"] = ".sh",
+            ["application/sql"] = ".sql",
+            ["application/graphql"] = ".graphql",
+            ["application/x-protobuf"] = ".pb",
+            ["application/protobuf"] = ".pb",
+            ["application/vnd.apple.mpegurl"] = ".m3u8",
+            ["application/x-mpegurl"] = ".m3u8",
+            ["application/dicom"] = ".dcm",
+            ["image/heic"] = ".heic",
+            ["image/heif"] = ".heif",
+            ["image/jxl"] = ".jxl",
+            ["image/apng"] = ".apng",
+            ["audio/mp4"] = ".m4a",
+            ["audio/x-m4a"] = ".m4a",
+            ["audio/opus"] = ".opus",
+            ["audio/midi"] = ".mid",
+            ["video/x-matroska"] = ".mkv",
+            ["video/mpeg"] = ".mpeg",
+            ["video/mp2t"] = ".ts",
+            ["video/3gpp"] = ".3gp",
         };
+
+        /// <summary>Every extension in the table, for telling a stale one in a URL from part of a name.</summary>
+        private static readonly HashSet<string> KnownExtensions =
+            new(Known.Values.Append(".jpeg").Append(".htm").Append(".yml"), StringComparer.OrdinalIgnoreCase);
 
         /// <summary>The extension for a media type, falling back by family and then to .bin.</summary>
         public static string Extension(string media, BodyKind kind)
@@ -111,6 +164,22 @@
                 return ".xml";
             }
 
+            if (type.EndsWith("+zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return ".zip";
+            }
+
+            // A family with an obvious subtype-as-extension: image/x-portable-pixmap is no help,
+            // but image/jp2, audio/amr and video/avi all are, and a guessed .jp2 still opens in
+            // whatever handles that kind - unlike .bin, which opens in nothing.
+            if (type.IndexOf('/') is int slash and > 0
+                && type[..slash].ToLowerInvariant() is "image" or "audio" or "video" or "font"
+                && type[(slash + 1)..] is { Length: > 0 and <= 5 } subtype
+                && subtype.All(char.IsAsciiLetterOrDigit))
+            {
+                return "." + subtype.ToLowerInvariant();
+            }
+
             // Nothing useful in the header - which happens - so fall back to what the body was
             // read as, since that was worked out from the bytes.
             return kind switch
@@ -133,15 +202,36 @@
         ///  a bare host, a URL that is only a query string - falls back to "response", which is at
         ///  least honest about having nothing better to offer.
         /// </remarks>
-        public static string For(string url, string media, BodyKind kind)
+        public static string For(string url, string media, BodyKind kind, string suggested = "")
         {
-            string stem = Stem(url);
             string extension = Extension(media, kind);
 
-            // A path that already ends in the right extension should not gain a second one.
-            return stem.EndsWith(extension, StringComparison.OrdinalIgnoreCase)
-                ? stem
-                : stem + extension;
+            // The server's own name for the file, from Content-Disposition, beats anything worked
+            // out from the URL: it is what a browser would have saved it as. It keeps its own
+            // extension when it has one, since the server named the file it was sending.
+            if (suggested.Length > 0)
+            {
+                return Path.GetExtension(suggested).Length > 1 ? suggested : suggested + extension;
+            }
+
+            string stem = Stem(url);
+
+            // A path that already ends in the right extension should not gain a second one, and
+            // one that ends in a different known extension - /avatar.jpg answering with a PNG -
+            // has it replaced rather than becoming avatar.jpg.png.
+            if (stem.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return stem;
+            }
+
+            string old = Path.GetExtension(stem);
+
+            if (old.Length > 1 && KnownExtensions.Contains(old) && stem.Length > old.Length)
+            {
+                stem = stem[..^old.Length];
+            }
+
+            return stem + extension;
         }
 
         private static string Stem(string url)
@@ -187,7 +277,7 @@
         }
 
         /// <summary>Strips what a file name may not contain, on any of the platforms shipped to.</summary>
-        private static string Safe(string name)
+        public static string Safe(string name)
         {
             char[] cleaned = new char[name.Length];
             int length = 0;

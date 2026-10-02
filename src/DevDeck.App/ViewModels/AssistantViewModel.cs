@@ -160,6 +160,37 @@ namespace DevDeck.App.ViewModels
         [ObservableProperty]
         private bool isDone;
 
+        /// <summary>
+        ///  What this turn put in the history sent back to the model, if anything.
+        /// </summary>
+        /// <remarks>
+        ///  Held by reference so deleting a turn takes out exactly its own entry. The user's entry
+        ///  is not the text on screen - it carries any attached files in front - so it could not be
+        ///  found again by matching text.
+        /// </remarks>
+        internal ChatMessage? Sent { get; set; }
+
+        /// <summary>What this turn added to the conversation as it is saved, if anything.</summary>
+        internal SavedTurn? Saved { get; set; }
+
+        /// <summary>
+        ///  The most of a run's output kept on screen.
+        /// </summary>
+        /// <remarks>
+        ///  Output is laid out as one wrapped block, and every batch re-measures all of it. A build
+        ///  printing a hundred thousand lines into the transcript made each batch cost more than
+        ///  the last until the window stopped answering. The tail is what anyone reads, and the
+        ///  deck keeps the full run when the whole of it matters.
+        /// </remarks>
+        private const int MostShownLines = 1500;
+
+        private const int MostShownChars = 120_000;
+
+        /// <summary>How much of a run's output is held at all, for Ask why and Copy.</summary>
+        private const int MostKeptChars = 1_000_000;
+
+        private int droppedLines;
+
         /// <summary>Who said it, as drawn above the turn.</summary>
         /// <remarks>
         ///  Looked up rather than stored, so a transcript already on screen is relabelled when the
@@ -177,7 +208,66 @@ namespace DevDeck.App.ViewModels
         public void Append(string delta)
         {
             Raw.Append(delta);
+
+            if (Role == ChatRole.Output && Raw.Length > MostKeptChars)
+            {
+                Raw.Remove(0, Raw.Length - MostKeptChars);
+            }
+
             Resegment();
+        }
+
+        /// <summary>
+        ///  A run's output as it is shown: its tail, with a line saying how much went before.
+        /// </summary>
+        private string Shown()
+        {
+            string all = Raw.ToString().TrimEnd('\r', '\n');
+
+            if (Role != ChatRole.Output)
+            {
+                return all;
+            }
+
+            int start = Math.Max(0, all.Length - MostShownChars);
+            int lines = 0;
+
+            // Back from the end to the line limit, without splitting the whole text into lines.
+            for (int at = all.Length - 1; at >= start; at--)
+            {
+                if (all[at] == '\n' && ++lines == MostShownLines)
+                {
+                    start = at + 1;
+                    break;
+                }
+            }
+
+            // Cut by size rather than by lines: start on a whole line.
+            if (start > 0 && lines < MostShownLines && all.IndexOf('\n', start) is int next and >= 0)
+            {
+                start = next + 1;
+            }
+
+            if (start == 0)
+            {
+                return all;
+            }
+
+            // Counted once per batch from the part being hidden; never shown as fewer than before,
+            // so the note does not jump back when the held text is itself trimmed.
+            int hidden = 1;
+
+            for (int at = 0; at < start; at++)
+            {
+                if (all[at] == '\n')
+                {
+                    hidden++;
+                }
+            }
+
+            droppedLines = Math.Max(droppedLines, hidden);
+
+            return Strings.Format("AiOutputTrimmed", droppedLines) + "\n" + all[start..];
         }
 
         /// <summary>
@@ -201,7 +291,7 @@ namespace DevDeck.App.ViewModels
             // message is not a thing to offer actions on.
             if (Role != ChatRole.Assistant)
             {
-                Merge([new Segment(Raw.ToString().TrimEnd('\r', '\n'), Role == ChatRole.Output)]);
+                Merge([new Segment(Shown(), Role == ChatRole.Output)]);
                 return;
             }
 
@@ -339,6 +429,22 @@ namespace DevDeck.App.ViewModels
         ///  can see.
         /// </remarks>
         private static readonly TimeSpan StreamFlush = TimeSpan.FromMilliseconds(16);
+
+        /// <summary>
+        ///  How long a run's output gathers before it is put in the transcript.
+        /// </summary>
+        /// <remarks>
+        ///  Longer than a frame, unlike a reply. An output turn is one wrapped block, re-measured
+        ///  whole on every batch, and a build that never pauses used to queue a batch behind each
+        ///  one finished - the dispatcher did nothing else, and clicks waited behind it. A tenth
+        ///  of a second still reads as live.
+        /// </remarks>
+        private static readonly TimeSpan OutputFlush = TimeSpan.FromMilliseconds(100);
+
+        /// <summary>Runs a flush once the output has had time to gather. Any thread.</summary>
+        private static void Later(Action flush) =>
+            Dispatcher.UIThread.Post(
+                () => DispatcherTimer.RunOnce(flush, OutputFlush, DispatcherPriority.Background));
 
         private readonly AppSettings settings;
         private readonly Func<CustomCommand, CommandItem> addCommand;
@@ -925,9 +1031,12 @@ namespace DevDeck.App.ViewModels
             // a whole file into the transcript would bury the question under it.
             string carried = WithAttachments(asked);
 
-            AddTurn(new Turn(ChatRole.User, asked));
-            history.Add(new ChatMessage("user", carried));
-            Remember("user", asked);
+            Turn question = new(ChatRole.User, asked);
+            question.Sent = new ChatMessage("user", carried);
+            question.Saved = Remember("user", asked);
+
+            AddTurn(question);
+            history.Add(question.Sent);
 
             Turn reply = new(ChatRole.Assistant, string.Empty);
             AddTurn(reply);
@@ -954,10 +1063,18 @@ namespace DevDeck.App.ViewModels
 
                 Drain();
 
+                // Cleared while the last words were arriving: the answer belongs to a conversation
+                // that is gone, and must not start the next one.
+                if (!Turns.Contains(reply))
+                {
+                    return;
+                }
+
                 string answer = reply.Raw.ToString();
 
-                history.Add(new ChatMessage("assistant", answer));
-                Remember("assistant", answer);
+                reply.Sent = new ChatMessage("assistant", answer);
+                reply.Saved = Remember("assistant", answer);
+                history.Add(reply.Sent);
 
                 HasSavableReply = CodeBlock.LastCommand(answer).Length > 0;
                 Status = "Ready.";
@@ -1068,6 +1185,97 @@ namespace DevDeck.App.ViewModels
 
         // Clearing mid-answer would drop the history the reply is still being appended to.
         private bool CanClear() => !IsBusy;
+
+        /// <summary>
+        ///  Empties the transcript without putting it away first.
+        /// </summary>
+        /// <remarks>
+        ///  New chat keeps every conversation, which is right most of the time and wrong for the
+        ///  one that went nowhere. This is the other button: what is on screen goes, and so does
+        ///  its file if it had been written, since a cleared chat reappearing in History would
+        ///  mean it had not been cleared at all.
+        ///
+        ///  Allowed mid-answer and mid-run: it stops both first. Otherwise the button is greyed out
+        ///  for exactly as long as a runaway reply or script is the thing you want rid of.
+        /// </remarks>
+        [RelayCommand]
+        private void ClearChat()
+        {
+            cancellation?.Cancel();
+
+            if (IsRunning)
+            {
+                StopCode();
+            }
+
+            if (current.Id.Length > 0)
+            {
+                ChatArchive.Delete(current.Id);
+                Reload();
+            }
+
+            Turns.Clear();
+            history.Clear();
+            Attachments.Clear();
+            OnPropertyChanged(nameof(HasAttachments));
+            AttachmentNote = string.Empty;
+            current = new SavedChat();
+
+            HasSavableReply = false;
+            Spent = string.Empty;
+            Context = string.Empty;
+
+            OnPropertyChanged(nameof(IsEmpty));
+
+            Status = Strings.Text("AiCleared");
+        }
+
+        /// <summary>
+        ///  Takes one message out of the conversation: off the screen, out of what is sent back to
+        ///  the model, and out of the saved copy.
+        /// </summary>
+        /// <remarks>
+        ///  All three, because deleting only from the screen would leave the model still reading a
+        ///  wrong answer you removed, which is the usual reason for removing it. The reply still
+        ///  being written cannot go, and neither can a run's output until it has finished: both
+        ///  are still being appended to.
+        /// </remarks>
+        [RelayCommand]
+        private void DeleteTurn(Turn? turn)
+        {
+            if (turn is null || turn == streaming || (turn.IsOutput && !turn.IsDone))
+            {
+                return;
+            }
+
+            Turns.Remove(turn);
+
+            if (turn.Sent is { } sent)
+            {
+                history.RemoveAll(message => ReferenceEquals(message, sent));
+            }
+
+            if (turn.Saved is { } saved && current.Turns.RemoveAll(kept => ReferenceEquals(kept, saved)) > 0)
+            {
+                if (current.Turns.Count > 0)
+                {
+                    Keep();
+                }
+                else if (current.Id.Length > 0)
+                {
+                    // Nothing left to keep, so nothing left in History either.
+                    ChatArchive.Delete(current.Id);
+                    current = new SavedChat();
+                    Reload();
+                }
+            }
+
+            HasSavableReply = Turns.LastOrDefault(kept => kept.IsAssistant) is { } last
+                && CodeBlock.LastCommand(last.Raw.ToString()).Length > 0;
+
+            OnPropertyChanged(nameof(IsEmpty));
+            Status = Strings.Text("AiMessageDeleted");
+        }
 
         private bool CanSend() => IsReady && !IsBusy;
         #endregion
@@ -1191,7 +1399,7 @@ namespace DevDeck.App.ViewModels
         public bool HasHistory => History.Count > 0;
 
         /// <summary>Adds one turn to what will be written.</summary>
-        private void Remember(string role, string text)
+        private SavedTurn Remember(string role, string text)
         {
             if (current.Turns.Count == 0)
             {
@@ -1199,8 +1407,12 @@ namespace DevDeck.App.ViewModels
                 current.At = DateTime.Now;
             }
 
-            current.Turns.Add(new SavedTurn(role, text, DateTime.Now));
+            SavedTurn saved = new(role, text, DateTime.Now);
+
+            current.Turns.Add(saved);
             current.Model = Model;
+
+            return saved;
         }
 
         /// <summary>Writes the conversation out, and says whether there was one to write.</summary>
@@ -1246,8 +1458,14 @@ namespace DevDeck.App.ViewModels
 
             foreach (SavedTurn turn in opened.Turns)
             {
-                AddTurn(new Turn(turn.Role == "user" ? ChatRole.User : ChatRole.Assistant, turn.Text));
-                history.Add(new ChatMessage(turn.Role, turn.Text));
+                Turn shown = new(turn.Role == "user" ? ChatRole.User : ChatRole.Assistant, turn.Text)
+                {
+                    Sent = new ChatMessage(turn.Role, turn.Text),
+                    Saved = turn,
+                };
+
+                AddTurn(shown);
+                history.Add(shown.Sent);
             }
 
             current = opened;
@@ -1585,22 +1803,25 @@ namespace DevDeck.App.ViewModels
                     queued = true;
                 }
 
-                Dispatcher.UIThread.Post(
-                    () =>
-                    {
-                        string text;
+                Later(Flush);
+            }
 
-                        lock (batchGate)
-                        {
-                            text = batch.ToString();
-                            batch.Clear();
-                            queued = false;
-                        }
+            void Flush()
+            {
+                string text;
 
-                        output.Append(text);
-                        ScrollToEnd?.Invoke();
-                    },
-                    DispatcherPriority.Background);
+                lock (batchGate)
+                {
+                    text = batch.ToString();
+                    batch.Clear();
+                    queued = false;
+                }
+
+                if (text.Length > 0)
+                {
+                    output.Append(text);
+                    ScrollToEnd?.Invoke();
+                }
             }
 
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -1617,6 +1838,10 @@ namespace DevDeck.App.ViewModels
                     Emit,
                     cancellationToken: running.Token);
 
+                // The process has closed its pipes, so every line is in the batch: put it in now,
+                // rather than let the timer land it under the exit code.
+                Flush();
+
                 output.Append("\n" + Strings.Format("AiExitCode", exit, Describe(stopwatch.Elapsed)));
 
                 Status = exit == 0
@@ -1625,6 +1850,7 @@ namespace DevDeck.App.ViewModels
             }
             catch (OperationCanceledException)
             {
+                Flush();
                 output.Append("\n" + Strings.Format("AiStoppedAfter", Describe(stopwatch.Elapsed)));
 
                 Status = Strings.Text("AiStopped");
@@ -1653,11 +1879,22 @@ namespace DevDeck.App.ViewModels
         [NotifyCanExecuteChangedFor(nameof(RunChainCommand))]
         [NotifyCanExecuteChangedFor(nameof(StopCodeCommand))]
         [NotifyPropertyChangedFor(nameof(RunLabel))]
+        [NotifyPropertyChangedFor(nameof(RunBlockedTip))]
         private bool isRunning;
 
         private bool CanRunCode() => !IsRunning;
 
         public string RunLabel => IsRunning ? "Running" : "Run";
+
+        /// <summary>
+        ///  Why Run and Run chain are greyed out, or nothing when they are not.
+        /// </summary>
+        /// <remarks>
+        ///  One run at a time from the transcript, and a dev server or a watch never finishes on
+        ///  its own - so the buttons can stay off long after the run that holds them has scrolled
+        ///  out of sight. Without the reason it looked like the button was broken.
+        /// </remarks>
+        public string? RunBlockedTip => IsRunning ? Strings.Text("AiRunBusyTip") : null;
 
         [RelayCommand(CanExecute = nameof(IsRunning))]
         private void StopCode()
@@ -1856,15 +2093,19 @@ namespace DevDeck.App.ViewModels
 
                 queued = true;
 
-                Dispatcher.UIThread.Post(
-                    () =>
-                    {
-                        output.Append(batch.ToString());
-                        batch.Clear();
-                        queued = false;
-                        ScrollToEnd?.Invoke();
-                    },
-                    DispatcherPriority.Background);
+                Later(Flush);
+            }
+
+            void Flush()
+            {
+                queued = false;
+
+                if (batch.Length > 0)
+                {
+                    output.Append(batch.ToString());
+                    batch.Clear();
+                    ScrollToEnd?.Invoke();
+                }
             }
 
             chain.Output.CollectionChanged += Copy;
@@ -1873,8 +2114,10 @@ namespace DevDeck.App.ViewModels
             {
                 await automation.RunChainCommand.ExecuteAsync(chain);
 
-                // Behind the last batch, at the same priority, so the summary lands after it.
+                // The deck's last lines reach the chain's log behind its own flush, at Background.
+                // Wait for that, then put what is held in before the summary goes under it.
                 await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+                Flush();
 
                 output.Append("\n" + chain.Status);
                 Status = chain.Status;

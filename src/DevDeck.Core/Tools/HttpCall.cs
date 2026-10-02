@@ -112,9 +112,49 @@ namespace DevDeck.Core
             }
         }
 
-        public string Name { get; set; } = "New request";
+        private string name = "New request";
 
-        public string Method { get; set; } = "GET";
+        private string method = "GET";
+
+        /// <summary>
+        ///  What the row is called.
+        /// </summary>
+        /// <remarks>
+        ///  Raises its change, unlike most of the fields below. The row in the list binds to this,
+        ///  and without the notification a rename was saved but the tree went on showing the old
+        ///  name until something rebuilt it - most visibly inside a group, which the old trick of
+        ///  re-inserting the row into the ungrouped list never reached.
+        /// </remarks>
+        public string Name
+        {
+            get => name;
+            set
+            {
+                if (name == value)
+                {
+                    return;
+                }
+
+                name = value;
+                Changed(nameof(Name));
+            }
+        }
+
+        /// <summary>Drawn under the name in the list, so it raises its change too.</summary>
+        public string Method
+        {
+            get => method;
+            set
+            {
+                if (method == value)
+                {
+                    return;
+                }
+
+                method = value;
+                Changed(nameof(Method));
+            }
+        }
 
         public string Url { get; set; } = string.Empty;
 
@@ -261,7 +301,9 @@ namespace DevDeck.Core
         public bool IsViewable => Kind is BodyKind.Image or BodyKind.Media;
 
         /// <summary>"JSON · application/json" - what the response pane labels itself with.</summary>
-        public string BodyLabel => Kind switch
+        public string BodyLabel => Preview == ResponsePreview.Svg
+            ? "SVG"
+            : Kind switch
         {
             BodyKind.Json => "JSON",
             BodyKind.Xml => "XML",
@@ -282,6 +324,9 @@ namespace DevDeck.Core
         ///  keeping a second copy of a body that is already here as text.
         /// </remarks>
         public byte[]? Raw { get; init; }
+
+        /// <summary>The other way this reply can be shown besides its source, if there is one.</summary>
+        public ResponsePreview Preview { get; init; } = ResponsePreview.None;
 
         /// <summary>
         ///  A file name to offer when saving this response, extension included.
@@ -428,8 +473,17 @@ namespace DevDeck.Core
                         + $"\n\n… truncated. The response was {bytes.Length:N0} bytes."
                     : Encoding.UTF8.GetString(bytes);
 
-                string media = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
+                // What the server said, unless it said nothing useful and the bytes say more: a
+                // bucket that serves a PNG as application/octet-stream still gets it drawn, and
+                // saved as .png.
+                string media = ResponseFormats.Effective(
+                    response.Content.Headers.ContentType?.MediaType ?? string.Empty, bytes);
                 BodyKind kind = Classify(body, media, bytes);
+                ResponsePreview preview = ResponseFormats.PreviewFor(media, kind, body, bytes);
+
+                string offered = ResponseFormats.DispositionName(
+                    response.Content.Headers.ContentDisposition?.FileNameStar,
+                    response.Content.Headers.ContentDisposition?.FileName);
 
                 return new HttpResult(
                     (int)response.StatusCode,
@@ -444,13 +498,21 @@ namespace DevDeck.Core
                 {
                     MediaType = media,
                     Kind = kind,
-                    SuggestedName = Names.For(request.Url, media, kind),
+                    Preview = preview,
+                    SuggestedName = Names.For(request.Url, media, kind, offered),
 
                     // Kept for the three kinds whose Body is a description rather than the reply.
                     // Every other kind already has all of itself as text, and keeping the bytes as
                     // well would double what a response costs for nothing - saving one of those
                     // writes the text back out instead.
+                    // An SVG as well: its Body is the XML re-indented, and it is drawn - and saved -
+                    // from what actually arrived.
                     Raw = kind is BodyKind.Image or BodyKind.Media or BodyKind.Binary
+                        || preview == ResponsePreview.Svg
+
+                        // And a reply too large to show whole: the text here is cut short, and
+                        // Save and Open must still have all of it.
+                        || bytes.Length > MaxBody
                         ? bytes
                         : null,
                 };

@@ -4,6 +4,7 @@
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
              xmlns:views="using:DevDeck.App.Views"
+             xmlns:app="using:DevDeck.App"
              x:Class="DevDeck.App.Views.HttpView"
              x:DataType="vm:HttpViewModel">
 
@@ -27,7 +28,7 @@
 
            The menu hangs on the row's own content rather than on the ListBox, so that
            right-clicking a row that is not selected still acts on the row under the pointer. -->
-      <Grid ColumnDefinitions="3,Auto,*,Auto"
+      <Grid ColumnDefinitions="3,Auto,*,Auto,Auto"
             Background="Transparent"
             HorizontalAlignment="Stretch">
 
@@ -144,8 +145,30 @@
           </Border>
         </Panel>
 
+        <!-- Sends this request from the list, without opening it first and finding the button:
+             checking that five endpoints still answer is five clicks rather than ten. It selects
+             the row as it sends, so the reply lands where it can be read. -->
+        <Button Grid.Column="4" Classes="play" Margin="6,0,0,0"
+                ToolTip.Tip="{loc:T HttpSendThis}"
+                Click="PlayClick">
+          <Path Data="{x:Static app:Icons.Run}" />
+        </Button>
+
       </Grid>
     </DataTemplate>
+
+    <!-- What a transparent picture is drawn over: the checkerboard every image editor uses, so
+         a black icon on a transparent background shows up on the dark themes and a white one on
+         the light. Fixed colours rather than theme brushes on purpose - the point is that it
+         looks the same whatever the theme, which is what makes it read as "nothing here". -->
+    <DrawingBrush x:Key="Checker" TileMode="Tile" DestinationRect="0,0,16,16">
+      <DrawingBrush.Drawing>
+        <DrawingGroup>
+          <GeometryDrawing Brush="#FFFFFF" Geometry="M0,0 H16 V16 H0 Z" />
+          <GeometryDrawing Brush="#E4E4E4" Geometry="M0,0 H8 V8 H0 Z M8,8 H16 V16 H8 Z" />
+        </DrawingGroup>
+      </DrawingBrush.Drawing>
+    </DrawingBrush>
 
   </UserControl.Resources>
 
@@ -393,6 +416,83 @@
     <!-- The status line is the first thing read after a send, so it is the one thing on the panel
          that carries colour: green answered, amber answered with something unexpected, red never
          answered at all. -->
+    <!-- Preview and Source: two halves of one switch, the current one lit. -->
+    <Style Selector="Button.seg">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="Button.seg.first">
+      <Setter Property="CornerRadius" Value="2,0,0,2" />
+    </Style>
+
+    <Style Selector="Button.seg.last">
+      <Setter Property="CornerRadius" Value="0,2,2,0" />
+      <Setter Property="BorderThickness" Value="0,1,1,1" />
+    </Style>
+
+    <Style Selector="Button.seg.on">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The send button on a request row: no surface until the pointer is on it, so a list of
+         twenty requests does not read as twenty buttons. -->
+    <Style Selector="Button.play">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0.55" />
+    </Style>
+
+    <Style Selector="Button.play:pointerover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Button.play > Path">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Stretch" Value="None" />
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="1.3" />
+      <Setter Property="StrokeJoin" Value="Round" />
+    </Style>
+
+    <!-- Drag and drop between groups: the place a dragged request would land is lit. -->
+    <Style Selector="Border.ungroup">
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="8,10" />
+    </Style>
+
+    <Style Selector="Border.ungroup.drop">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="Button.group.drop /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="ListBox.saved.drop">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <!-- The row a dragged request will take the place of: a line on the side it will land. -->
+    <Style Selector="ListBox.saved ListBoxItem.before /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="BorderThickness" Value="0,2,0,0" />
+    </Style>
+
+    <Style Selector="ListBox.saved ListBoxItem.after /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+    </Style>
+
     <Style Selector="TextBlock.tone">
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="FontSize" Value="12" />
@@ -438,9 +538,19 @@
              They are separate ListBoxes, so each keeps its own selection - and a selection in one
              is cleared by the code-behind when the other takes one, or two rows would look
              selected at once. -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
+        <ScrollViewer Name="RequestTree"
+                      VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
           <StackPanel>
+
+            <!-- Where a request is dropped to take it out of its group. Only there while one is
+                 being dragged: with every request filed, the ungrouped list has no height at all,
+                 and there would be nowhere to drop it. -->
+            <Border Name="Ungroup" Classes="ungroup" IsVisible="False" Margin="8,6">
+              <TextBlock Text="{loc:T HttpDropToUngroup}" FontSize="11.5"
+                         TextWrapping="Wrap" HorizontalAlignment="Center"
+                         Foreground="{DynamicResource TextMuted}" />
+            </Border>
 
             <ListBox Name="Loose" Classes="saved"
                      ItemsSource="{Binding Ungrouped}"
@@ -686,7 +796,7 @@
 
         <GridSplitter Grid.Row="4" Classes="pane" ResizeDirection="Rows" />
 
-        <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,4,0,8">
+        <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,8">
 
           <TextBlock Grid.Column="0" Classes="tone"
                      Classes.good="{Binding Result.Tone, Converter={x:Static vm:Is.Good}}"
@@ -705,7 +815,26 @@
                      Text="{Binding ResponseKind}"
                      IsVisible="{Binding HasResult}" />
 
-          <ToggleButton Grid.Column="3" Content="{loc:T HttpHeaders}" Margin="0,0,6,0"
+          <!-- Size, page count, or why it would not draw: said beside the switch it is about. -->
+          <TextBlock Grid.Column="2" Margin="10,0" FontSize="11"
+                     Foreground="{DynamicResource TextFaint}"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                     Text="{Binding PreviewNote}"
+                     IsVisible="{Binding ShowingPreviewSwitch}" />
+
+          <!-- Only for a reply that is both a thing to look at and a thing to read: an image, an
+               SVG, a PDF, a page, a table. JSON has one form and gets no switch. -->
+          <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,10,0"
+                      IsVisible="{Binding ShowingPreviewSwitch}">
+            <Button Classes="seg first" Classes.on="{Binding !ShowingSource}"
+                    Content="{Binding PreviewLabel}" ToolTip.Tip="{loc:T HttpPreviewTip}"
+                    Command="{Binding ShowPreviewCommand}" />
+            <Button Classes="seg last" Classes.on="{Binding ShowingSource}"
+                    Content="{loc:T HttpSource}" ToolTip.Tip="{loc:T HttpSourceTip}"
+                    Command="{Binding ShowSourceCommand}" />
+          </StackPanel>
+
+          <ToggleButton Grid.Column="4" Content="{loc:T HttpHeaders}" Margin="0,0,6,0"
                         FontSize="11.5" Padding="10,5"
                         Background="{DynamicResource SteelRaised}"
                         Foreground="{DynamicResource Text}"
@@ -717,12 +846,17 @@
           <!-- Before Copy rather than after it, because for the replies where both exist this is
                the one that works: an image or a download has nothing useful to put on a clipboard,
                and saving is the only thing to do with it. -->
-          <Button Grid.Column="4" Content="{loc:T HttpSave}" Margin="0,0,6,0"
+          <Button Grid.Column="5" Content="{loc:T HttpOpen}" Margin="0,0,6,0"
+                  ToolTip.Tip="{loc:T HttpOpenTip}"
+                  Command="{Binding OpenResponseCommand}"
+                  IsVisible="{Binding HasResult}" />
+
+          <Button Grid.Column="6" Content="{loc:T HttpSave}" Margin="0,0,6,0"
                   ToolTip.Tip="{loc:T HttpSaveResponse}"
                   Command="{Binding SaveResponseCommand}"
                   IsVisible="{Binding HasResult}" />
 
-          <Button Grid.Column="5" Content="{loc:T Copy}"
+          <Button Grid.Column="7" Content="{loc:T Copy}"
                   Command="{Binding CopyResponseCommand}"
                   IsVisible="{Binding HasResult}" />
 
@@ -732,8 +866,8 @@
              than only from the content type - so a JSON body labelled text/plain is still drawn as
              JSON, and an HTML error page labelled as JSON is shown for what it is. -->
         <views:BodyView Grid.Row="6"
-                        Text="{Binding Response}"
-                        Kind="{Binding ResponseBodyKind}"
+                        Text="{Binding SourceText}"
+                        Kind="{Binding SourceKind}"
                         Placeholder="The reply appears here."
                         IsVisible="{Binding ShowingBodyText}" />
 
@@ -746,10 +880,13 @@
                 IsVisible="{Binding ShowingImage}">
           <Panel>
             <ScrollViewer HorizontalScrollBarVisibility="Auto">
-              <Image Source="{Binding ResponseImage}"
-                     Stretch="Uniform"
-                     StretchDirection="DownOnly"
-                     Margin="10" />
+              <Border Background="{StaticResource Checker}" Margin="10"
+                      HorizontalAlignment="Center" VerticalAlignment="Top"
+                      IsVisible="{Binding ResponseImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Image Source="{Binding ResponseImage}"
+                       Stretch="Uniform"
+                       StretchDirection="DownOnly" />
+              </Border>
             </ScrollViewer>
 
             <!-- The format arrived intact and Avalonia has no decoder for it, or the download was
@@ -759,8 +896,70 @@
                        Margin="20" TextWrapping="Wrap"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Foreground="{DynamicResource TextFaint}"
-                       IsVisible="{Binding !ResponseImage}" />
+                       IsVisible="{Binding PreviewBroken}" />
           </Panel>
+        </Border>
+
+        <!-- JSON parsed: a tree to walk with the arrow keys, opened one level. -->
+        <views:JsonTreeView Grid.Row="6"
+                            Document="{Binding ResponseTree}"
+                            EmptyText="{Binding ResponseTreeNote}"
+                            IsVisible="{Binding ShowingTree}" />
+
+        <!-- A PDF as its pages, one under another on white, the way every viewer shows one. -->
+        <Border Grid.Row="6" Background="{DynamicResource Ink}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding ShowingPdf}">
+          <Panel>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding PdfPages}" Margin="12">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="Bitmap">
+                    <Border Background="White" Margin="0,0,0,12"
+                            BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                            HorizontalAlignment="Center">
+                      <Image Source="{Binding}" Stretch="Uniform" StretchDirection="DownOnly" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <TextBlock Text="{loc:T HttpImageBroken}"
+                       Margin="20" TextWrapping="Wrap"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFaint}"
+                       IsVisible="{Binding PreviewBroken}" />
+          </Panel>
+        </Border>
+
+        <!-- The words of a page, a Markdown document drawn, or a CSV as a table. Not a browser:
+             Open is the browser. -->
+        <Border Grid.Row="6" Background="{DynamicResource CodeBg}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
+                IsVisible="{Binding ShowingReadable}">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,12" Spacing="10">
+              <TextBlock Text="{loc:T HttpReadableNote}" FontSize="11"
+                         Foreground="{DynamicResource TextFaint}"
+                         IsVisible="{Binding CanOpenInBrowser}" />
+
+              <SelectableTextBlock Text="{Binding ReadableText}"
+                                   IsVisible="{Binding CanOpenInBrowser}"
+                                   TextWrapping="Wrap" FontSize="13" LineHeight="20"
+                                   Foreground="{DynamicResource Text}" />
+
+              <SelectableTextBlock Text="{Binding ReadableText}"
+                                   IsVisible="{Binding ReadableIsMono}"
+                                   FontFamily="{DynamicResource MonoFont}" FontSize="12"
+                                   Foreground="{DynamicResource Text}" />
+
+              <TextBlock views:MarkdownText.Markdown="{Binding ReadableText}"
+                         IsVisible="{Binding ReadableIsMarkdown}"
+                         TextWrapping="Wrap" FontSize="13" LineHeight="20"
+                         Foreground="{DynamicResource Text}" />
+            </StackPanel>
+          </ScrollViewer>
         </Border>
 
         <!-- No player. Embedding one means a native media stack on three platforms, for a case that

@@ -157,9 +157,20 @@
                      Foreground="{DynamicResource TextFaint}" />
         </StackPanel>
 
-        <TextBlock DockPanel.Dock="Bottom" Margin="18,14,18,16"
+        <!-- Bottom-docked children stack upwards, so the version line is declared first to sit
+             under the usage line. -->
+        <TextBlock DockPanel.Dock="Bottom" Margin="18,4,18,16"
                    Text="{Binding Platform}" FontSize="10.5" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextFaint}" />
+
+        <!-- What the app is costing the machine, its commands included, just above the version:
+             the place the eye already goes for "what is this thing". Mono, so the figures do not
+             shuffle sideways as they change. -->
+        <TextBlock DockPanel.Dock="Bottom" Margin="18,14,18,0"
+                   Text="{Binding UsageText}" ToolTip.Tip="{Binding UsageTip}"
+                   IsVisible="{Binding UsageText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   FontSize="10.5" FontFamily="{DynamicResource MonoFont}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextMuted}" />
 
         <!-- Rearranged by dragging a section or with Alt+Up and Alt+Down, as the deck is. -->
         <ListBox Name="Rail" Classes="rail"

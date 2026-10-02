@@ -44,7 +44,7 @@ A release is not done until every step below is. Do all of them, without being a
 3. **README:** update everything the release changes: feature sections, badges, SDK and version
    mentions. Search it for stale version numbers before committing. Screenshots sit in collapsed
    `<details>` blocks; keep new ones that way.
-4. **Build and test:** `dotnet build DevDeck.Avalonia.sln -c Release` (no warnings allowed) and
+4. **Build and test:** `dotnet build DevDeck.sln -c Release` (no warnings allowed) and
    `dotnet test tests/DevDeck.Core.Tests -c Release` must pass.
 5. **Publish:** commit, push `main`, then push an annotated tag `vx.y.z`. The Release workflow builds
    every platform and publishes the release. Watch it until it finishes.

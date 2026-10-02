@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDeck.Core;
@@ -239,7 +240,75 @@ namespace DevDeck.App.ViewModels
                     deckSection.IsBusy = commands.AnyRunning;
                 }
             };
+
+            usageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            usageTimer.Tick += async (_, _) => await MeasureAsync();
+            usageTimer.Start();
+
+            Strings.Changed += () => Show(lastUsage);
         }
+
+        #region Usage
+        private readonly AppUsage usage = new();
+
+        private readonly DispatcherTimer usageTimer;
+
+        private AppUsageReading lastUsage;
+
+        private bool measuring;
+
+        /// <summary>"RAM 312 MB · CPU 4% · Disk 120 KB/s", for the app and everything it started.</summary>
+        [ObservableProperty]
+        private string usageText = string.Empty;
+
+        [ObservableProperty]
+        private string usageTip = string.Empty;
+
+        /// <summary>
+        ///  Takes a reading off the UI thread and shows it.
+        /// </summary>
+        /// <remarks>
+        ///  Every two seconds, as the memory widget does: often enough to watch a build climb, rarely
+        ///  enough to cost nothing. A reading still in progress when the next tick comes is let
+        ///  finish rather than doubled up, which on a machine already struggling is exactly when a
+        ///  second walk of every process would hurt.
+        /// </remarks>
+        private async Task MeasureAsync()
+        {
+            if (measuring)
+            {
+                return;
+            }
+
+            measuring = true;
+
+            try
+            {
+                Show(await Task.Run(usage.Read));
+            }
+            catch (Exception)
+            {
+                // A missed reading leaves the last one up; the next tick tries again.
+            }
+            finally
+            {
+                measuring = false;
+            }
+        }
+
+        private void Show(AppUsageReading reading)
+        {
+            lastUsage = reading;
+
+            if (reading.Processes == 0)
+            {
+                return;
+            }
+
+            UsageText = Strings.Format("NavUsage", reading.MemoryText, reading.CpuText, reading.DiskText);
+            UsageTip = Strings.Format("NavUsageTip", reading.Processes);
+        }
+        #endregion
 
         public string Title { get; }
 

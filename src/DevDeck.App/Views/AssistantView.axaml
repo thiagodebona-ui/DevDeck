@@ -129,6 +129,28 @@
       <Setter Property="Background" Value="{DynamicResource SteelHover}" />
     </Style>
 
+    <!-- A message's own delete: no surface, and only a hint of the cross until the pointer is on
+         it, so it is there to be found without competing with the text. -->
+    <Style Selector="Button.forget">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Opacity" Value="0.45" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.forget:pointerover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Button.forget:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
     <Style Selector="Border.chip">
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
@@ -157,7 +179,7 @@
             BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
       <StackPanel Spacing="12">
 
-        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
           <TextBlock Grid.Column="0" Text="{loc:T AssistantAssistant}" FontSize="17" FontWeight="SemiBold"
                      Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
 
@@ -272,6 +294,13 @@
                label says what it now does. -->
           <Button Grid.Column="4" Content="{loc:T AssistantNewChat}" Classes="small" Margin="8,0,0,0"
                   Command="{Binding ClearCommand}" />
+
+          <!-- The one that does not keep it. Beside New chat, so the difference is read in the
+               two labels and the tooltip rather than discovered afterwards in History. -->
+          <Button Grid.Column="5" Content="{loc:T AssistantClearChat}" Classes="small" Margin="8,0,0,0"
+                  ToolTip.Tip="{loc:T AssistantClearChatTip}"
+                  IsEnabled="{Binding !IsEmpty}"
+                  Command="{Binding ClearChatCommand}" />
         </Grid>
 
         <!-- What the next question goes to, and nothing to change it with. The endpoint is set up
@@ -322,6 +351,12 @@
                             Orientation="Horizontal" Spacing="6">
                   <TextBlock Classes="who" Text="{Binding Who}" />
                   <TextBlock Classes="stamp" Text="{Binding Stamp}" />
+                  <!-- Faint until it is wanted: one on every turn, and a column of bold crosses
+                       down a conversation would read as a list of errors. -->
+                  <Button Classes="forget" Content="×"
+                          ToolTip.Tip="{loc:T AssistantDeleteThisMessage}"
+                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
+                          CommandParameter="{Binding}" />
                 </StackPanel>
 
                 <Border Classes="bubble"
@@ -338,6 +373,10 @@
                                 CommandParameter="{Binding}" />
                       <MenuItem Header="{loc:T AssistantCopyWholeConversation}"
                                 Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyAllCommand}" />
+                      <Separator />
+                      <MenuItem Header="{loc:T AssistantDeleteThisMessage}"
+                                Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
+                                CommandParameter="{Binding}" />
                     </ContextMenu>
                   </Border.ContextMenu>
                   <ItemsControl ItemsSource="{Binding Segments}">
@@ -374,6 +413,8 @@
                                           CommandParameter="{Binding}" />
                                   <Button Grid.Column="2" Classes="small go" Margin="6,0,0,0"
                                           IsVisible="{Binding IsScript}"
+                                          ToolTip.ShowOnDisabled="True"
+                                          ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
                                           Content="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunLabel}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunCodeCommand}"
                                           CommandParameter="{Binding}" />
@@ -389,6 +430,8 @@
                                        every step's output streamed into the conversation. -->
                                   <Button Grid.Column="4" Classes="small go" Margin="6,0,0,0"
                                           IsVisible="{Binding IsChain}"
+                                          ToolTip.ShowOnDisabled="True"
+                                          ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
                                           Content="{loc:T AssistantRunChain}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunChainCommand}"
                                           CommandParameter="{Binding}" />

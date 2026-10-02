@@ -594,6 +594,39 @@ namespace DevDeck.Core
             }
         }
 
+        /// <summary>
+        ///  A token's header and payload as one JSON object, for the tree; empty when it is not a token.
+        /// </summary>
+        /// <remarks>
+        ///  The decoded text interleaves labels and notes with the JSON, which is right for reading
+        ///  and useless for parsing - so the tree is built from the parts themselves.
+        /// </remarks>
+        public static string JwtAsJson(string input)
+        {
+            string[] parts = input.Trim().Split('.');
+
+            if (parts.Length is not (2 or 3))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                string header = Encoding.UTF8.GetString(DecodeBase64(parts[0]));
+                string payload = Encoding.UTF8.GetString(DecodeBase64(parts[1]));
+
+                // Parsed first, so a part that is not JSON gives no tree rather than a broken one.
+                using System.Text.Json.JsonDocument first = System.Text.Json.JsonDocument.Parse(header);
+                using System.Text.Json.JsonDocument second = System.Text.Json.JsonDocument.Parse(payload);
+
+                return $"{{\"header\":{header},\"payload\":{payload}}}";
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
         /// <summary>Turns the exp and iat claims into something a human can read.</summary>
         private static string? Expiry(string payload)
         {

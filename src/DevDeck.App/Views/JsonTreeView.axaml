@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             x:Class="DevDeck.App.Views.JsonTreeView">
+
+  <UserControl.Styles>
+
+    <!-- The values in the highlighter's colours, so the tree and the text agree about what a
+         string looks like. -->
+    <Style Selector="TextBlock.jsonKey">
+      <Setter Property="Foreground" Value="{DynamicResource SynKeyword}" />
+    </Style>
+
+    <Style Selector="TextBlock.jsonValue">
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.jsonValue.string">
+      <Setter Property="Foreground" Value="{DynamicResource SynString}" />
+    </Style>
+
+    <Style Selector="TextBlock.jsonValue.number">
+      <Setter Property="Foreground" Value="{DynamicResource SynNumber}" />
+    </Style>
+
+    <Style Selector="TextBlock.jsonValue.literal">
+      <Setter Property="Foreground" Value="{DynamicResource SynVariable}" />
+    </Style>
+
+    <Style Selector="TextBlock.jsonValue.container">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.json">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="4" />
+    </Style>
+
+    <Style Selector="ListBox.json ListBoxItem">
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="4,1" />
+    </Style>
+
+    <Style Selector="ListBox.json ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <Style Selector="TextBlock.glyph">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource CodeBg}"
+          BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2">
+    <Panel>
+      <!-- A list, not a TreeView: see JsonRows. The keys are a tree's all the same - Up and Down
+           walk the rows, Right opens a node or steps into it, Left closes it or steps out to its
+           parent, Enter and a click on the arrow toggle. -->
+      <ListBox Name="Rows" Classes="json">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:JsonRow">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="{Binding Indent}">
+              <TextBlock Classes="glyph" Text="{Binding Glyph}" Tapped="GlyphTapped" />
+              <TextBlock Classes="jsonKey" Text="{Binding Node.Key}" IsVisible="{Binding Node.HasKey}"
+                         FontFamily="{DynamicResource MonoFont}" FontSize="12.5" />
+              <TextBlock Text=":" IsVisible="{Binding Node.HasKey}"
+                         FontFamily="{DynamicResource MonoFont}" FontSize="12.5"
+                         Foreground="{DynamicResource TextFaint}" />
+              <TextBlock Classes="jsonValue"
+                         Classes.string="{Binding Node.IsString}"
+                         Classes.number="{Binding Node.IsNumber}"
+                         Classes.literal="{Binding Node.IsLiteral}"
+                         Classes.container="{Binding Node.IsContainer}"
+                         Text="{Binding Node.Value}"
+                         FontFamily="{DynamicResource MonoFont}" FontSize="12.5"
+                         TextTrimming="CharacterEllipsis" MaxWidth="900" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock Name="Note" Margin="14" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextFaint}" />
+    </Panel>
+  </Border>
+</UserControl>

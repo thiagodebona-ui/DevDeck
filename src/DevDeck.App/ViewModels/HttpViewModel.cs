@@ -133,7 +133,26 @@ namespace DevDeck.App.ViewModels
     {
         private readonly AppSettings settings;
 
-        private CancellationTokenSource? inFlight;
+        /// <summary>
+        ///  The requests on their way, each with its own way to call it off.
+        /// </summary>
+        /// <remarks>
+        ///  One per request rather than one for the panel. A single slot meant a second request
+        ///  waited on - or, worse, cancelled - the first; checking five endpoints from the play
+        ///  buttons was five calls in a queue. Now each goes out on its own, and the only request
+        ///  a send cancels is an earlier send of the same one.
+        /// </remarks>
+        private readonly Dictionary<HttpRequest, CancellationTokenSource> inFlight = [];
+
+        /// <summary>
+        ///  Each request's last reply in this session, so selecting a request shows its answer.
+        /// </summary>
+        /// <remarks>
+        ///  With several requests in the air the reply pane can no longer mean "the last thing
+        ///  that came back"; it means "what this request got". Not saved: a reply can be megabytes,
+        ///  and the list keeps the status code across restarts already.
+        /// </remarks>
+        private readonly Dictionary<HttpRequest, HttpResult> replies = [];
 
         public HttpViewModel(AppSettings settings)
         {
@@ -260,6 +279,7 @@ namespace DevDeck.App.ViewModels
         private string body = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SourceText))]
         private string response = string.Empty;
 
         [ObservableProperty]
@@ -270,15 +290,20 @@ namespace DevDeck.App.ViewModels
         [NotifyPropertyChangedFor(nameof(ResponseIsImage))]
         [NotifyPropertyChangedFor(nameof(ResponseIsMedia))]
         [NotifyPropertyChangedFor(nameof(ResponseIsText))]
-        [NotifyPropertyChangedFor(nameof(ShowingBodyText))]
-        [NotifyPropertyChangedFor(nameof(ShowingImage))]
-        [NotifyPropertyChangedFor(nameof(ShowingMedia))]
-        [NotifyPropertyChangedFor(nameof(ResponseImage))]
+        [NotifyPropertyChangedFor(nameof(HasPreview))]
+        [NotifyPropertyChangedFor(nameof(SourceText))]
+        [NotifyPropertyChangedFor(nameof(SourceKind))]
+        [NotifyPropertyChangedFor(nameof(ReadableText))]
+        [NotifyPropertyChangedFor(nameof(ReadableIsMarkdown))]
+        [NotifyPropertyChangedFor(nameof(ReadableIsPlain))]
+        [NotifyPropertyChangedFor(nameof(ReadableIsMono))]
+        [NotifyPropertyChangedFor(nameof(CanOpenInBrowser))]
         [NotifyCanExecuteChangedFor(nameof(SaveResponseCommand))]
+        [NotifyCanExecuteChangedFor(nameof(OpenResponseCommand))]
         private HttpResult? result;
 
+        /// <summary>Whether the request in the editor is on its way, which swaps Send for Cancel.</summary>
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(SendCommand))]
         [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
         private bool sending;
 
@@ -287,10 +312,41 @@ namespace DevDeck.App.ViewModels
 
         /// <summary>Which half of the reply is on screen: the body or its headers.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(ShowingBodyText))]
-        [NotifyPropertyChangedFor(nameof(ShowingImage))]
-        [NotifyPropertyChangedFor(nameof(ShowingMedia))]
         private bool showingHeaders;
+
+        /// <summary>
+        ///  Whether the body is shown as its source rather than drawn, for a reply that can be both.
+        /// </summary>
+        /// <remarks>
+        ///  Drawn first: an image or a PDF is asked for to be looked at. Each new reply starts on
+        ///  the drawing again, because the switch is about this reply, not a mode to stay in.
+        /// </remarks>
+        [ObservableProperty]
+        private bool showingSource;
+
+        partial void OnShowingHeadersChanged(bool value) => Panes();
+
+        partial void OnShowingSourceChanged(bool value) => Panes();
+
+        partial void OnResultChanged(HttpResult? value)
+        {
+            ShowingSource = false;
+            Panes();
+            _ = RenderAsync(value);
+        }
+
+        /// <summary>Tells every pane to look again at whether it is the one on screen.</summary>
+        private void Panes()
+        {
+            OnPropertyChanged(nameof(ShowingBodyText));
+            OnPropertyChanged(nameof(ShowingImage));
+            OnPropertyChanged(nameof(ShowingPdf));
+            OnPropertyChanged(nameof(ShowingReadable));
+            OnPropertyChanged(nameof(ShowingMedia));
+            OnPropertyChanged(nameof(ShowingTree));
+            OnPropertyChanged(nameof(ShowingPreviewSwitch));
+            OnPropertyChanged(nameof(PreviewLabel));
+        }
 
         /// <summary>
         ///  The environment whose values <c>{{name}}</c> resolves from, or none.
@@ -554,62 +610,228 @@ namespace DevDeck.App.ViewModels
         /// <summary>Whether the reply is audio or video.</summary>
         public bool ResponseIsMedia => Result?.Kind == BodyKind.Media;
 
-        /// <summary>
-        ///  Whether the reply goes in the text pane, which is everything that is not drawn.
-        /// </summary>
-        /// <remarks>
-        ///  A binary that is neither an image nor playable still goes here: what the text pane
-        ///  shows for one is the description the sender wrote, which is the useful thing to say.
-        /// </remarks>
-        public bool ResponseIsText => !ResponseIsImage && !ResponseIsMedia;
+        /// <summary>Whether the reply goes in the text pane when it is not being drawn.</summary>
+        public bool ResponseIsText => !ResponseIsMedia;
 
-        /// <summary>Which of the four response panes is the one on screen.</summary>
+        /// <summary>Whether this reply has a drawn form as well as its source.</summary>
+        public bool HasPreview => Result is { Failed: false, Preview: not ResponsePreview.None };
+
+        /// <summary>Whether the drawn form is the one on screen.</summary>
+        private bool Previewing => !ShowingHeaders && HasPreview && !ShowingSource;
+
+        /// <summary>Which of the response panes is the one on screen.</summary>
         /// <remarks>
-        ///  Worked out here rather than as a stack of conditions in the XAML. Four panes share one
+        ///  Worked out here rather than as a stack of conditions in the XAML. The panes share one
         ///  grid cell and exactly one of them may be visible; expressed as bindings in the markup
-        ///  that is four expressions that have to stay mutually exclusive by inspection, and the
+        ///  that is a set of expressions that have to stay mutually exclusive by inspection, and the
         ///  first one that does not is two panes drawn on top of each other.
         /// </remarks>
-        public bool ShowingBodyText => !ShowingHeaders && ResponseIsText;
+        public bool ShowingBodyText => !ShowingHeaders && !ShowingMedia && !Previewing;
 
-        public bool ShowingImage => !ShowingHeaders && ResponseIsImage;
+        public bool ShowingImage => Previewing && Result?.Preview is ResponsePreview.Image or ResponsePreview.Svg;
+
+        public bool ShowingPdf => Previewing && Result?.Preview == ResponsePreview.Pdf;
+
+        public bool ShowingReadable =>
+            Previewing && Result?.Preview is ResponsePreview.Html or ResponsePreview.Markdown or ResponsePreview.Table;
 
         public bool ShowingMedia => !ShowingHeaders && ResponseIsMedia;
 
+        public bool ShowingTree => Previewing && Result?.Preview == ResponsePreview.Tree;
+
+        /// <summary>"Parsed" for JSON, whose other form is a tree; "Preview" for everything drawn.</summary>
+        public string PreviewLabel => Strings.Text(Result?.Preview == ResponsePreview.Tree ? "HttpParsed" : "HttpPreview");
+
         /// <summary>
-        ///  The reply as a bitmap, or null when it is not one or will not decode.
+        ///  The reply parsed, for the tree - built off the UI thread, since a large reply takes a
+        ///  moment to parse and the pane should not stop answering while it does.
+        /// </summary>
+        [ObservableProperty]
+        private JsonNode? responseTree;
+
+        /// <summary>Said in place of the tree when the body would not parse - usually because it was cut short.</summary>
+        [ObservableProperty]
+        private string responseTreeNote = string.Empty;
+
+        /// <summary>The Preview and Source buttons, which only mean something on the body.</summary>
+        public bool ShowingPreviewSwitch => HasPreview && !ShowingHeaders;
+
+        /// <summary>
+        ///  What the source pane shows: the text as received and formatted, or for a reply that is
+        ///  not text, what it is and its first bytes in hex.
+        /// </summary>
+        public string SourceText => Result switch
+        {
+            { Failed: false, Raw: { Length: > 0 } bytes, Kind: BodyKind.Image or BodyKind.Binary } reply =>
+                reply.Body + "\n\n" + ResponseFormats.Hex(bytes),
+            _ => Response,
+        };
+
+        /// <summary>A hex dump is coloured as nothing, whatever the reply was.</summary>
+        public BodyKind SourceKind => Result?.Kind is BodyKind.Image or BodyKind.Binary
+            ? BodyKind.Plain
+            : ResponseBodyKind;
+
+        /// <summary>The words of a page, a Markdown document, or a CSV laid out as a table.</summary>
+        public string ReadableText => Result switch
+        {
+            { Preview: ResponsePreview.Html } reply => ResponseFormats.ReadableHtml(reply.Body),
+            { Preview: ResponsePreview.Markdown } reply => reply.Body,
+            { Preview: ResponsePreview.Table } reply => ResponseFormats.Table(
+                reply.Body,
+                reply.MediaType.EndsWith("tab-separated-values", StringComparison.OrdinalIgnoreCase) ? '\t' : ','),
+            _ => string.Empty,
+        };
+
+        public bool ReadableIsMarkdown => Result?.Preview == ResponsePreview.Markdown;
+
+        public bool ReadableIsPlain => !ReadableIsMarkdown;
+
+        /// <summary>A table only lines up in a fixed-width face.</summary>
+        public bool ReadableIsMono => Result?.Preview == ResponsePreview.Table;
+
+        public bool CanOpenInBrowser => Result?.Preview == ResponsePreview.Html;
+
+        /// <summary>
+        ///  The reply drawn as a picture - a raster image or an SVG - or null when it is not one, has
+        ///  not been drawn yet, or would not draw.
         /// </summary>
         /// <remarks>
-        ///  Decoded here rather than in the view so that a corrupt or unsupported image is a blank
-        ///  pane and a description rather than an exception on the UI thread - Avalonia's decoder
-        ///  throws on a truncated PNG, and a truncated PNG is exactly what a cancelled download
-        ///  leaves behind. A format Avalonia has no decoder for - AVIF, most TIFFs - lands in the
-        ///  same place, and the pane falls back to saying what it was and how big.
-        ///
-        ///  Rebuilt on each access rather than cached because it is read once per response, by one
-        ///  binding, and a cache would need invalidating on every send.
+        ///  Decoded off the UI thread and away from the binding, so that a corrupt or unsupported
+        ///  image is a blank pane and a description rather than an exception on the UI thread -
+        ///  Avalonia's decoder throws on a truncated PNG, and a truncated PNG is exactly what a
+        ///  cancelled download leaves behind. A format nothing here decodes - AVIF, most TIFFs -
+        ///  lands in the same place, and the pane says so.
         /// </remarks>
-        public Bitmap? ResponseImage
+        [ObservableProperty]
+        private Bitmap? responseImage;
+
+        /// <summary>A PDF's first pages, drawn.</summary>
+        public ObservableCollection<Bitmap> PdfPages { get; } = [];
+
+        /// <summary>"640 × 480", "12 pages", or why it could not be drawn.</summary>
+        [ObservableProperty]
+        private string previewNote = string.Empty;
+
+        /// <summary>True while a drawing is on its way, so the pane does not say it failed yet.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PreviewBroken))]
+        private bool rendering;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PreviewBroken))]
+        private bool previewFailed;
+
+        public bool PreviewBroken => !Rendering && PreviewFailed;
+
+        /// <summary>The reply being drawn now, so a slow drawing of an older one is thrown away.</summary>
+        private HttpResult? drawing;
+
+        /// <summary>
+        ///  Draws the reply, if it is a kind that is drawn, without holding up the UI thread.
+        /// </summary>
+        private async Task RenderAsync(HttpResult? reply)
         {
-            get
+            drawing = reply;
+            ResponseImage = null;
+            ResponseTree = null;
+            ResponseTreeNote = string.Empty;
+            PdfPages.Clear();
+            PreviewNote = string.Empty;
+            PreviewFailed = false;
+
+            if (reply is { Failed: false, Preview: ResponsePreview.Tree })
             {
-                if (Result is not { Kind: BodyKind.Image, Raw: { Length: > 0 } bytes })
+                // Parsed from the body as received rather than the formatted copy: the same
+                // document, but there is no reason to parse the indentation as well.
+                JsonNode? root = await Task.Run(() => JsonTree.Build(reply.Body));
+
+                if (drawing == reply)
                 {
-                    return null;
+                    ResponseTree = root;
+                    ResponseTreeNote = root is null ? Strings.Text("HttpTreeNone") : string.Empty;
                 }
 
-                try
-                {
-                    using MemoryStream stream = new(bytes);
+                return;
+            }
 
-                    return new Bitmap(stream);
-                }
-                catch (Exception)
+            if (reply is not { Failed: false, Raw: { Length: > 0 } bytes }
+                || reply.Preview is not (ResponsePreview.Image or ResponsePreview.Svg or ResponsePreview.Pdf))
+            {
+                Rendering = false;
+                return;
+            }
+
+            Rendering = true;
+            PreviewNote = Strings.Text("HttpDrawing");
+
+            try
+            {
+                if (reply.Preview == ResponsePreview.Pdf)
                 {
-                    // Every decoder failure, on purpose. The list of what a platform image decoder
-                    // can throw is not documented and differs by platform, and there is nothing to
-                    // do about any of them except show the description instead.
-                    return null;
+                    (List<Bitmap> pages, int total) = await Task.Run(() =>
+                    {
+                        if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                        {
+                            return ResponseRender.Pdf(bytes);
+                        }
+
+                        throw new PlatformNotSupportedException();
+                    });
+
+                    if (drawing != reply)
+                    {
+                        return;
+                    }
+
+                    foreach (Bitmap page in pages)
+                    {
+                        PdfPages.Add(page);
+                    }
+
+                    PreviewNote = pages.Count < total
+                        ? Strings.Format("HttpPdfSomePages", pages.Count, total)
+                        : Strings.Format("HttpPdfPages", total);
+                }
+                else
+                {
+                    Bitmap drawn = await Task.Run(() =>
+                    {
+                        if (reply.Preview == ResponsePreview.Svg)
+                        {
+                            return ResponseRender.Svg(bytes);
+                        }
+
+                        using MemoryStream stream = new(bytes);
+
+                        return new Bitmap(stream);
+                    });
+
+                    if (drawing == reply)
+                    {
+                        ResponseImage = drawn;
+                        PreviewNote = reply.Preview == ResponsePreview.Svg
+                            ? string.Empty
+                            : Strings.Format("HttpImageSize", drawn.PixelSize.Width, drawn.PixelSize.Height);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                // Every decoder failure, on purpose: what a platform decoder or a renderer can
+                // throw is not documented and differs by platform, and there is nothing to do
+                // about any of them except say so, keep Source and Open working, and carry on.
+                if (drawing == reply)
+                {
+                    PreviewFailed = true;
+                    PreviewNote = Strings.Format("HttpCouldNotDraw", exception.Message);
+                }
+            }
+            finally
+            {
+                if (drawing == reply)
+                {
+                    Rendering = false;
                 }
             }
         }
@@ -862,11 +1084,15 @@ namespace DevDeck.App.ViewModels
 
             loading = false;
 
-            Result = null;
-            Response = string.Empty;
-            ResponseHeaders.Clear();
-            ShownHeaders.Clear();
-            Status = string.Empty;
+            // This request's own answer, if it has had one since the app started, and whether it
+            // is out right now - not whatever the last selected request was doing.
+            Show(replies.GetValueOrDefault(request));
+            Sending = request.InFlight;
+
+            if (request.InFlight)
+            {
+                Status = Strings.Text("HttpSending");
+            }
 
             // The note belongs to whichever request is now in the editor.
             OnPropertyChanged(nameof(EnvironmentNote));
@@ -1102,6 +1328,66 @@ namespace DevDeck.App.ViewModels
             || request.Name == "New request"
             || request.Name == Strings.Text("HttpNewRequestName");
 
+        /// <summary>
+        ///  Puts a request where another one is, in the same list: the order requests are shown in,
+        ///  inside a group or out of one.
+        /// </summary>
+        /// <remarks>
+        ///  The order lives in the saved list - a group is only the requests that carry its name,
+        ///  in saved order - so the move is made there and then mirrored on the list on screen,
+        ///  rather than by rebuilding the tree: a rebuild would drop the selection and close the
+        ///  row being dragged out from under the pointer.
+        /// </remarks>
+        public void Reorder(HttpRequest moved, HttpRequest target)
+        {
+            if (moved == target
+                || !string.Equals(moved.Group.Trim(), target.Group.Trim(), StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            int from = Saved.IndexOf(moved);
+            int to = Saved.IndexOf(target);
+
+            if (from < 0 || to < 0)
+            {
+                return;
+            }
+
+            Saved.Move(from, to);
+
+            ObservableCollection<HttpRequest>? shown = moved.Group.Trim().Length == 0
+                ? Ungrouped
+                : Groups.FirstOrDefault(group => group.Name == moved.Group.Trim())?.Requests;
+
+            if (shown is not null && shown.IndexOf(moved) is var a and >= 0 && shown.IndexOf(target) is var b and >= 0)
+            {
+                shown.Move(a, b);
+            }
+
+            Save();
+            Selected = moved;
+        }
+
+        /// <summary>The request next to this one in the same list, up or down - for Alt+Up and Alt+Down.</summary>
+        public HttpRequest? Neighbour(HttpRequest request, int step)
+        {
+            ObservableCollection<HttpRequest>? shown = request.Group.Trim().Length == 0
+                ? Ungrouped
+                : Groups.FirstOrDefault(group => group.Name == request.Group.Trim())?.Requests;
+
+            int at = shown?.IndexOf(request) ?? -1;
+
+            return at >= 0 && at + step >= 0 && at + step < shown!.Count ? shown[at + step] : null;
+        }
+
+        /// <summary>Files a request dragged onto a group - or out of every group, for an empty name.</summary>
+        public void MoveRequestTo(HttpRequest request, string group)
+        {
+            Selected = request;
+            MoveToGroup(group);
+        }
+
         /// <summary>Files the selected request under a group that already exists.</summary>
         [RelayCommand]
         private void MoveToGroup(string? name)
@@ -1208,6 +1494,14 @@ namespace DevDeck.App.ViewModels
             HttpRequest doomed = Selected;
             int at = Saved.IndexOf(doomed);
 
+            // A deleted request's call is not waited for, and its answer is not kept.
+            if (inFlight.Remove(doomed, out CancellationTokenSource? cancel))
+            {
+                cancel.Cancel();
+            }
+
+            replies.Remove(doomed);
+
             Saved.Remove(doomed);
             Selected = Saved[Math.Min(at, Saved.Count - 1)];
             Save();
@@ -1259,74 +1553,116 @@ namespace DevDeck.App.ViewModels
 
         private void Retitle(string name)
         {
+            // The row redraws itself: the request raises its own name change, so this reaches the
+            // row wherever it is in the tree, grouped or not.
             Selected.Name = name;
             Save();
-
-            // The list binds to the object, which has no change notification of its own, so the
-            // row is replaced in place to make the new name appear.
-            int at = Saved.IndexOf(Selected);
-
-            if (at >= 0)
-            {
-                HttpRequest same = Selected;
-
-                Saved.RemoveAt(at);
-                Saved.Insert(at, same);
-                Selected = same;
-            }
         }
 
-        private bool CanSend => !Sending;
-
-        [RelayCommand(CanExecute = nameof(CanSend))]
+        /// <summary>
+        ///  Sends the selected request, alongside any others already out.
+        /// </summary>
+        /// <remarks>
+        ///  Concurrent executions allowed: the command is the panel's, but each run belongs to the
+        ///  request that was selected when it started. Sending one that is already out sends it
+        ///  again, cancelling the earlier one - the newer answer is the one wanted.
+        /// </remarks>
+        [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task Send()
         {
-            Sending = true;
-            Status = "Sending…";
-            Result = null;
-
             // The row that was sent, held here: the user may click another request while this
             // one is on its way, and the answer belongs to the one that went out.
             HttpRequest target = Selected;
+
+            if (inFlight.Remove(target, out CancellationTokenSource? earlier))
+            {
+                earlier.Cancel();
+            }
+
+            CancellationTokenSource cancel = new();
+            inFlight[target] = cancel;
+
             target.InFlight = true;
+            replies.Remove(target);
 
-            inFlight?.Cancel();
-            inFlight = new CancellationTokenSource();
+            Show(null);
+            Sending = true;
+            Status = Strings.Text("HttpSending");
 
-            // Resolved into a copy, never in place: the saved request keeps its braces, so the
-            // panel never becomes a place a token is displayed and settings.json never acquires
-            // one. An unresolved name is sent as written and the note above says which.
-            HttpResult sent = await Http.Send(
-                HttpVariables.Resolved(Current(), ActiveEnvironment),
-                inFlight.Token);
+            HttpResult sent;
 
-            Result = sent;
-            Response = sent.Failed ? string.Empty : sent.Body;
-            Status = sent.Summary;
+            try
+            {
+                // Resolved into a copy, never in place: the saved request keeps its braces, so the
+                // panel never becomes a place a token is displayed and settings.json never
+                // acquires one. An unresolved name is sent as written and the note above says
+                // which.
+                sent = await Http.Send(HttpVariables.Resolved(Current(), ActiveEnvironment), cancel.Token);
+            }
+            finally
+            {
+                // Only this send's own slot: a newer send of the same request may have taken it,
+                // and that one is still out.
+                if (inFlight.TryGetValue(target, out CancellationTokenSource? held) && held == cancel)
+                {
+                    inFlight.Remove(target);
+                    target.InFlight = false;
+                }
+
+                cancel.Dispose();
+            }
+
+            // Overtaken by a newer send of the same request: that one will report.
+            if (target.InFlight)
+            {
+                return;
+            }
+
+            replies[target] = sent;
 
             target.LastStatus = sent.Failed || sent.Status == 0 ? -1 : sent.Status;
             target.LastMilliseconds = sent.Milliseconds;
-            target.InFlight = false;
 
             // Saved so the list still shows what each request last answered after a restart.
             Save();
 
+            // On screen only if it is still the request being looked at. Otherwise its badge in
+            // the list says how it went, and selecting it shows the rest.
+            if (Selected == target)
+            {
+                Show(sent);
+                Sending = false;
+            }
+        }
+
+        /// <summary>Puts a reply in the response pane, or empties it.</summary>
+        private void Show(HttpResult? reply)
+        {
+            Result = reply;
+            Response = reply is { Failed: false } ? reply.Body : string.Empty;
+            Status = reply?.Summary ?? string.Empty;
+
             ResponseHeaders.Clear();
 
-            foreach (HeaderLine header in sent.Headers)
+            foreach (HeaderLine header in reply?.Headers ?? [])
             {
                 ResponseHeaders.Add(header);
             }
 
             FilterHeaders();
-
-            Sending = false;
         }
 
         private bool CanCancel => Sending;
 
+        /// <summary>Calls off the selected request. Any others on their way carry on.</summary>
         [RelayCommand(CanExecute = nameof(CanCancel))]
-        private void Cancel() => inFlight?.Cancel();
+        private void Cancel()
+        {
+            if (inFlight.TryGetValue(Selected, out CancellationTokenSource? cancel))
+            {
+                cancel.Cancel();
+            }
+        }
 
         [RelayCommand]
         private async Task CopyCurl()
@@ -1399,16 +1735,16 @@ namespace DevDeck.App.ViewModels
                 return;
             }
 
+            // A name typed over the suggestion without an extension still gets the right one: a
+            // file called "logo" that is a PNG opens in nothing.
+            if (System.IO.Path.GetExtension(path).Length == 0)
+            {
+                path += System.IO.Path.GetExtension(reply.SuggestedName);
+            }
+
             try
             {
-                if (reply.Raw is { Length: > 0 } bytes)
-                {
-                    await File.WriteAllBytesAsync(path, bytes);
-                }
-                else
-                {
-                    await File.WriteAllTextAsync(path, Response);
-                }
+                await Write(reply, path);
 
                 Status = Strings.Format("HttpResponseSaved", System.IO.Path.GetFileName(path));
             }
@@ -1419,6 +1755,61 @@ namespace DevDeck.App.ViewModels
                 Status = Strings.Format("HttpResponseNotSaved", exception.Message);
             }
         }
+
+        /// <summary>The reply, written to a file: as it arrived when it was kept, as shown otherwise.</summary>
+        private async Task Write(HttpResult reply, string path)
+        {
+            if (reply.Raw is { Length: > 0 } bytes)
+            {
+                await File.WriteAllBytesAsync(path, bytes);
+            }
+            else
+            {
+                await File.WriteAllTextAsync(path, Response);
+            }
+        }
+
+        /// <summary>
+        ///  Opens the reply in whatever the machine opens that kind of file with.
+        /// </summary>
+        /// <remarks>
+        ///  The answer for everything the pane does not draw itself - a page in a real browser, a
+        ///  PDF past the pages drawn here, a video, a spreadsheet, a zip. Written to the temp folder
+        ///  under the name Save would have suggested, so the desktop picks the application by the
+        ///  extension the media type gave it.
+        /// </remarks>
+        [RelayCommand(CanExecute = nameof(HasResult))]
+        private async Task OpenResponse()
+        {
+            if (Result is not { Failed: false } reply)
+            {
+                return;
+            }
+
+            try
+            {
+                string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DevDeck", "responses");
+                Directory.CreateDirectory(folder);
+
+                string path = System.IO.Path.Combine(folder, reply.SuggestedName);
+                await Write(reply, path);
+
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true })?.Dispose();
+
+                Status = Strings.Format("HttpResponseOpened", reply.SuggestedName);
+            }
+            catch (Exception exception)
+            {
+                Status = Strings.Format("HttpResponseNotOpened", exception.Message);
+            }
+        }
+
+        [RelayCommand]
+        private void ShowPreview() => ShowingSource = false;
+
+        [RelayCommand]
+        private void ShowSource() => ShowingSource = true;
 
         [RelayCommand]
         private async Task CopyResponse()

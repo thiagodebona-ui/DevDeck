@@ -263,7 +263,7 @@ namespace DevDeck.App.ViewModels
         ///  Automation page without the user being sent anywhere, and so two chains running at once
         ///  each keep a log of their own. The deck still has each command's own output as well.
         /// </remarks>
-        public ObservableCollection<OutputLine> Output { get; } = [];
+        public OutputLog Output { get; } = [];
 
         public bool HasOutput => Output.Count > 0;
 
@@ -281,22 +281,8 @@ namespace DevDeck.App.ViewModels
         {
             bool wasEmpty = Output.Count == 0;
 
-            foreach (OutputLine line in lines)
-            {
-                Output.Add(line);
-            }
-
-            if (Output.Count > MaxOutputLines)
-            {
-                // A tenth at a time rather than a line at a time, so a chatty build does not pay
-                // for a removal on every line once it reaches the ceiling.
-                int over = Output.Count - MaxOutputLines + (MaxOutputLines / 10);
-
-                for (int removed = 0; removed < over; removed++)
-                {
-                    Output.RemoveAt(0);
-                }
-            }
+            // The oldest lines out and the new ones in as one change each. See OutputLog.
+            Output.Write(lines.ToList(), MaxOutputLines);
 
             if (wasEmpty != (Output.Count == 0))
             {

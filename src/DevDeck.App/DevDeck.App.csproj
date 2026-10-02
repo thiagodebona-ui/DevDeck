@@ -86,6 +86,11 @@
     <!-- Ships the font rather than hoping one is installed: a bare Linux container has none. -->
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- What the HTTP panel draws a response with when it is not text. Both pinned to the last
+         release built on SkiaSharp 3: the next ones move to SkiaSharp 4, which Avalonia 12 does
+         not load, and two SkiaSharps in one process is a crash at the first draw. -->
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+    <PackageReference Include="PDFtoImage" Version="5.2.1" />
   </ItemGroup>
 
   <ItemGroup>

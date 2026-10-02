@@ -31,6 +31,7 @@ namespace DevDeck.App.Views
         public HttpView()
         {
             InitializeComponent();
+            AttachDrag();
 
             DataContextChanged += (_, _) =>
             {
@@ -286,6 +287,30 @@ namespace DevDeck.App.Views
             }
         }
 
+        /// <summary>The play button on a request row: open that request and send it.</summary>
+        /// <remarks>
+        ///  Handled here rather than bound to a command, because the row template lives in the
+        ///  resources and is shared by every group's list; the request is simply the button's own
+        ///  DataContext.
+        /// </remarks>
+        private void PlayClick(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is not HttpViewModel model
+                || (sender as Control)?.DataContext is not HttpRequest request)
+            {
+                return;
+            }
+
+            e.Handled = true;
+
+            model.Selected = request;
+
+            if (model.SendCommand.CanExecute(null))
+            {
+                model.SendCommand.Execute(null);
+            }
+        }
+
         /// <summary>Ctrl+Enter: send the request, as if the Send button had been pressed.</summary>
         private void SendKeyDown(object? sender, KeyEventArgs e)
         {
@@ -458,6 +483,22 @@ namespace DevDeck.App.Views
         ///  to a location that has no path at all - a sandboxed picker on a phone - which this
         ///  desktop app does not have to care about.
         /// </remarks>
+        /// <summary>The save dialog's type list: this file's extension, then anything.</summary>
+        private static List<FilePickerFileType> TypesFor(string suggested)
+        {
+            List<FilePickerFileType> types = [];
+            string extension = System.IO.Path.GetExtension(suggested).TrimStart('.');
+
+            if (extension.Length > 0)
+            {
+                types.Add(new FilePickerFileType(extension.ToUpperInvariant()) { Patterns = [$"*.{extension}"] });
+            }
+
+            types.Add(FilePickerFileTypes.All);
+
+            return types;
+        }
+
         private async Task<string?> AskWhereToSave(string suggested)
         {
             if (TopLevel.GetTopLevel(this)?.StorageProvider is not { } storage)
@@ -475,6 +516,11 @@ namespace DevDeck.App.Views
                     // all on the platforms that do not read one out of the suggested name, and a
                     // file saved with none is one the desktop opens with the wrong application.
                     DefaultExtension = System.IO.Path.GetExtension(suggested).TrimStart('.'),
+
+                    // The type first and "all files" second. Without a list the Windows dialog
+                    // offers no type at all, and a name edited in the box was saved exactly as
+                    // typed - so a PNG could leave here as "logo" with no extension.
+                    FileTypeChoices = TypesFor(suggested),
                 });
 
             return chosen?.TryGetLocalPath();

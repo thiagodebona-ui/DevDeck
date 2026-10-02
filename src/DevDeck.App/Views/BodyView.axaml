@@ -1,5 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="using:DevDeck.Core"
+             xmlns:views="using:DevDeck.App.Views"
              x:Class="DevDeck.App.Views.BodyView">
 
   <Border Background="{DynamicResource CodeBg}"
@@ -15,21 +17,29 @@
                  Foreground="{DynamicResource TextFaint}"
                  VerticalAlignment="Top" />
 
-      <!-- One scroller around the painted text, for the same reason the editor has one: the
-           selection layer and the colour layer have to move together, and they do that by being
-           the same content inside the same viewport rather than by two offsets kept in step. -->
+      <!-- One row per line, and only the rows in view exist: see BodyLines for why the body is
+           not one text block any more. Each row is selectable on its own; Copy above the pane
+           takes the whole body. -->
       <ScrollViewer Name="Scroller"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto"
-                    Padding="0">
-
-        <SelectableTextBlock Name="Painted" Margin="12,10"
-                             FontFamily="{DynamicResource MonoFont}"
-                             Foreground="{DynamicResource Text}"
-                             TextWrapping="NoWrap"
-                             VerticalAlignment="Top"
-                             HorizontalAlignment="Left" />
-
+                    Padding="12,10">
+        <ItemsControl Name="Lines">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <VirtualizingStackPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="core:BodyLine">
+              <SelectableTextBlock views:BodyLineText.Line="{Binding}"
+                                   FontFamily="{DynamicResource MonoFont}"
+                                   FontSize="{Binding $parent[views:BodyView].BodyFontSize}"
+                                   Foreground="{DynamicResource Text}"
+                                   TextWrapping="NoWrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </ScrollViewer>
 
     </Panel>

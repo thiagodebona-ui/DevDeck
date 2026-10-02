@@ -458,7 +458,7 @@ namespace DevDeck.App.ViewModels
         /// </summary>
         public string WorkingDirectory => workingDirectory();
 
-        public ObservableCollection<OutputLine> Output { get; } = new();
+        public OutputLog Output { get; } = new();
 
         public string Name
         {
@@ -764,12 +764,26 @@ namespace DevDeck.App.ViewModels
 
             IsRunning = true;
             State = RunState.Running;
-            Status = "Running";
             Trend = null;
             ansi = Ansi.AnsiState.Clear;
 
             cancellation = new CancellationTokenSource();
             Stopwatch stopwatch = Stopwatch.StartNew();
+
+            // The status line counts up while it runs. A build or a migration can take minutes,
+            // and a line that said "Running" for all of them gave no way to tell a slow run from
+            // a stuck one - or to know whether there was time to go and do something else.
+            Status = Strings.Format("CmdRunningFor", Clock(TimeSpan.Zero));
+
+            DispatcherTimer ticking = new() { Interval = TimeSpan.FromSeconds(1) };
+            ticking.Tick += (_, _) =>
+            {
+                if (IsRunning && State == RunState.Running)
+                {
+                    Status = Strings.Format("CmdRunningFor", Clock(stopwatch.Elapsed));
+                }
+            };
+            ticking.Start();
 
             // Not a using: a detached run outlives this method, and disposing the ScriptFile
             // deletes the .bat or .ps1 the child process has not finished reading yet. The watched
@@ -870,6 +884,15 @@ namespace DevDeck.App.ViewModels
             }
             finally
             {
+                ticking.Stop();
+
+                // The last batch is still waiting on its timer. In now, so a chain's next step and
+                // the run's own tail read every line rather than all but the last moment's.
+                if (Dispatcher.UIThread.CheckAccess())
+                {
+                    Flush();
+                }
+
                 // Null for a detached run, which deliberately leaves its script in the temp folder.
                 script?.Dispose();
 
@@ -1077,8 +1100,15 @@ namespace DevDeck.App.ViewModels
                 flushQueued = true;
             }
 
-            Dispatcher.UIThread.Post(Flush, DispatcherPriority.Background);
+            // Posted, then held for a moment: a process that never pauses would otherwise have a
+            // flush queued behind every one that finished, and the dispatcher would do nothing
+            // else. Ten batches a second reads as live and leaves the rest for clicks and drawing.
+            Dispatcher.UIThread.Post(
+                () => DispatcherTimer.RunOnce(Flush, FlushEvery, DispatcherPriority.Background));
         }
+
+        /// <summary>How long output gathers before it is put on screen.</summary>
+        private static readonly TimeSpan FlushEvery = TimeSpan.FromMilliseconds(100);
 
         /// <summary>Moves one batch of lines into the bound collection. UI thread only.</summary>
         private void Flush()
@@ -1099,37 +1129,21 @@ namespace DevDeck.App.ViewModels
 
             bool wasEmpty = Output.Count == 0;
 
-            // Trimmed before the batch goes in rather than per line, so a burst larger than the cap
-            // does not remove from the front of the collection thousands of times over.
-            int over = Output.Count + batch.Count - MaxOutputLines;
-
-            // A single batch can be bigger than the whole cap - a grep across a large tree arrives
-            // as one burst of tens of thousands of lines - and in that case every surviving line
-            // comes from the batch. Removing them one at a time would shift the list and raise an
-            // event per removal, which is the same freeze the batching exists to avoid, so the
-            // collection is emptied in one go instead.
-            if (over >= Output.Count)
-            {
-                Output.Clear();
-            }
-            else
-            {
-                for (int removed = 0; removed < over && Output.Count > 0; removed++)
-                {
-                    Output.RemoveAt(0);
-                }
-            }
-
-            foreach (OutputLine line in batch.TakeLast(MaxOutputLines))
-            {
-                Output.Add(line);
-            }
+            // The oldest lines out and the batch in as one change each. See OutputLog.
+            Output.Write(batch, MaxOutputLines);
 
             if (wasEmpty)
             {
                 OnPropertyChanged(nameof(HasOutput));
             }
         }
+
+        /// <summary>"42s", "3m 07s", "1h 02m" - whole seconds, for a figure that changes every second.</summary>
+        private static string Clock(TimeSpan elapsed) => elapsed.TotalHours >= 1
+            ? $"{(int)elapsed.TotalHours}h {elapsed.Minutes:00}m"
+            : elapsed.TotalMinutes >= 1
+                ? $"{(int)elapsed.TotalMinutes}m {elapsed.Seconds:00}s"
+                : $"{elapsed.Seconds}s";
 
         private static string Describe(TimeSpan elapsed) => elapsed.TotalSeconds < 1
             ? $"{elapsed.TotalMilliseconds:F0} ms"

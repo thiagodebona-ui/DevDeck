@@ -62,6 +62,35 @@ namespace DevDeck.App.ViewModels
 
         /// <summary>Whether it produces its own output without being given anything.</summary>
         public bool Generates { get; init; }
+
+        /// <summary>The glyph beside the name in the list, from <see cref="Icons"/>.</summary>
+        public Avalonia.Media.Geometry? Icon { get; init; }
+
+        /// <summary>
+        ///  What the output is, which decides how it is drawn: JSON and XML are coloured, the rest
+        ///  is plain text.
+        /// </summary>
+        public BodyKind OutputKind { get; init; } = BodyKind.Plain;
+
+        /// <summary>
+        ///  The JSON to build a tree from, given the input and the output - or null for a tool
+        ///  whose output is not a document.
+        /// </summary>
+        /// <remarks>
+        ///  Usually the output itself. The JWT decoder is the exception: its output reads well and
+        ///  does not parse, so the tree is built from the token's parts instead.
+        /// </remarks>
+        public Func<string, string, string>? TreeFrom { get; init; }
+
+        public bool IsStructured => OutputKind != BodyKind.Plain;
+
+        /// <summary>What was in the input box when this tool was last left, put back when it is chosen again.</summary>
+        public string KeptInput { get; set; } = string.Empty;
+
+        /// <summary>The same for the regex tool's pattern.</summary>
+        public string KeptPattern { get; set; } = string.Empty;
+
+        public bool HasTree => TreeFrom is not null;
     }
 
     /// <summary>
@@ -112,6 +141,75 @@ namespace DevDeck.App.ViewModels
         [ObservableProperty]
         private string statistics = string.Empty;
 
+        /// <summary>
+        ///  Whether a JSON result is shown as a tree to expand rather than as text.
+        /// </summary>
+        /// <remarks>
+        ///  Kept across tools and keystrokes: someone who chose the tree is reading structure, and
+        ///  falling back to text on every change would make them choose it again each time.
+        /// </remarks>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowingTree))]
+        [NotifyPropertyChangedFor(nameof(ShowingStructuredText))]
+        private bool treeChosen;
+
+        /// <summary>The parsed result, or null when there is none to show.</summary>
+        [ObservableProperty]
+        private JsonNode? tree;
+
+        /// <summary>Said in place of a tree when the output does not parse.</summary>
+        [ObservableProperty]
+        private string treeNote = string.Empty;
+
+        public bool ShowingTree => TreeChosen && Selected.HasTree;
+
+        /// <summary>Coloured text: a JSON or XML tool, not showing its tree.</summary>
+        public bool ShowingStructuredText => Selected.IsStructured && !ShowingTree && !Selected.NeedsPattern;
+
+        /// <summary>Plain text, for every other tool.</summary>
+        public bool ShowingPlainText => !Selected.IsStructured && !Selected.NeedsPattern;
+
+        partial void OnTreeChosenChanged(bool value) => Grow();
+
+        [RelayCommand]
+        private void ShowText() => TreeChosen = false;
+
+        [RelayCommand]
+        private void ShowTree() => TreeChosen = true;
+
+        /// <summary>Counts tree builds, so a slow parse of older text is dropped when a newer one finishes.</summary>
+        private int growing;
+
+        /// <summary>
+        ///  Builds the tree, only while it is the thing on screen, and off the UI thread: this runs
+        ///  on every keystroke, and parsing a pasted export of several megabytes takes long enough
+        ///  to be felt as lag in the box being typed into.
+        /// </summary>
+        private async void Grow()
+        {
+            int mine = ++growing;
+
+            if (!ShowingTree || Selected.TreeFrom is not { } from)
+            {
+                Tree = null;
+                TreeNote = string.Empty;
+                return;
+            }
+
+            string source = from(Input, Output);
+            bool typed = Input.Length > 0;
+
+            JsonNode? root = await Task.Run(() => JsonTree.Build(source));
+
+            if (mine != growing)
+            {
+                return;
+            }
+
+            Tree = root;
+            TreeNote = root is null && typed ? Strings.Text("ToolboxTreeNotJson") : string.Empty;
+        }
+
         /// <summary>Set by the view after a copy, and cleared on the next keystroke.</summary>
         [ObservableProperty]
         private string status = string.Empty;
@@ -137,15 +235,40 @@ namespace DevDeck.App.ViewModels
 
         public bool HasNote => Note.Length > 0;
 
-        partial void OnSelectedChanged(Tool value)
+        partial void OnSelectedChanged(Tool? oldValue, Tool newValue)
         {
             Status = string.Empty;
 
-            // Each tool starts clean rather than inheriting the last one's output as its input.
-            // Chaining two of them is occasionally useful and is one button press away; carrying
-            // stale text into a tool that cannot read it is confusing every time.
+            // Each tool keeps its own input. The box used to be shared, so JSON formatted in one
+            // tool was still sitting there when the UUID generator or the hash was opened - text
+            // that belonged to another job. Going back to a tool finds what was left in it, which
+            // is the other half of the same idea. Chaining two tools on purpose is what "Use as
+            // input" is for.
+            if (oldValue is not null)
+            {
+                oldValue.KeptInput = Input;
+                oldValue.KeptPattern = Pattern;
+            }
+
             Error = null;
-            Convert();
+
+            // Pattern first and quietly: setting the input converts, and it should convert with
+            // this tool's pattern rather than the last one's.
+            pattern = newValue.KeptPattern;
+            OnPropertyChanged(nameof(Pattern));
+
+            if (Input == newValue.KeptInput)
+            {
+                Convert();
+            }
+            else
+            {
+                Input = newValue.KeptInput;
+            }
+
+            OnPropertyChanged(nameof(ShowingTree));
+            OnPropertyChanged(nameof(ShowingStructuredText));
+            OnPropertyChanged(nameof(ShowingPlainText));
         }
 
         partial void OnInputChanged(string value)
@@ -203,6 +326,7 @@ namespace DevDeck.App.ViewModels
         {
             OnPropertyChanged(nameof(HasError));
             OnPropertyChanged(nameof(HasNote));
+            Grow();
         }
 
         [RelayCommand]
@@ -258,32 +382,55 @@ namespace DevDeck.App.ViewModels
 
         private IReadOnlyList<Tool> Build() =>
         [
-            new("ToolJsonFormat", "ToolGroupData", text => TextTools.FormatJson(text), "ToolJsonFormatHint"),
-            new("ToolJsonMinify", "ToolGroupData", TextTools.MinifyJson),
-            new("ToolXmlFormat", "ToolGroupData", TextTools.FormatXml),
-            new("ToolBase64Encode", "ToolGroupEncoding", TextTools.ToBase64),
-            new("ToolBase64Decode", "ToolGroupEncoding", TextTools.FromBase64, "ToolBase64DecodeHint"),
-            new("ToolUrlEncode", "ToolGroupEncoding", TextTools.UrlEncode),
-            new("ToolUrlDecode", "ToolGroupEncoding", TextTools.UrlDecode),
-            new("ToolHtmlEscape", "ToolGroupEncoding", TextTools.HtmlEncode),
-            new("ToolHtmlUnescape", "ToolGroupEncoding", TextTools.HtmlDecode),
-            new("ToolJwtDecode", "ToolGroupInspect", TextTools.DecodeJwt, "ToolJwtDecodeHint"),
+            new("ToolJsonFormat", "ToolGroupData", text => TextTools.FormatJson(text), "ToolJsonFormatHint")
+            {
+                Icon = Icons.Braces,
+                OutputKind = BodyKind.Json,
+                TreeFrom = (_, output) => output,
+            },
+            new("ToolJsonMinify", "ToolGroupData", TextTools.MinifyJson)
+            {
+                Icon = Icons.Compress,
+                OutputKind = BodyKind.Json,
+                TreeFrom = (_, output) => output,
+            },
+            new("ToolXmlFormat", "ToolGroupData", TextTools.FormatXml)
+            {
+                Icon = Icons.Code,
+                OutputKind = BodyKind.Xml,
+            },
+            new("ToolBase64Encode", "ToolGroupEncoding", TextTools.ToBase64) { Icon = Icons.Lock },
+            new("ToolBase64Decode", "ToolGroupEncoding", TextTools.FromBase64, "ToolBase64DecodeHint") { Icon = Icons.Unlock },
+            new("ToolUrlEncode", "ToolGroupEncoding", TextTools.UrlEncode) { Icon = Icons.Link },
+            new("ToolUrlDecode", "ToolGroupEncoding", TextTools.UrlDecode) { Icon = Icons.Globe },
+            new("ToolHtmlEscape", "ToolGroupEncoding", TextTools.HtmlEncode) { Icon = Icons.Shield },
+            new("ToolHtmlUnescape", "ToolGroupEncoding", TextTools.HtmlDecode) { Icon = Icons.Eye },
+            new("ToolJwtDecode", "ToolGroupInspect", TextTools.DecodeJwt, "ToolJwtDecodeHint")
+            {
+                Icon = Icons.Key,
+                OutputKind = BodyKind.Json,
+                TreeFrom = (input, _) => TextTools.JwtAsJson(input),
+            },
             new("ToolHash", "ToolGroupInspect", text => TextTools.Hash(text, Algorithm))
             {
+                Icon = Icons.Hash,
                 NeedsAlgorithm = true,
             },
-            new("ToolTimestamp", "ToolGroupInspect", text => TextTools.Timestamp(text), "ToolTimestampHint"),
+            new("ToolTimestamp", "ToolGroupInspect", text => TextTools.Timestamp(text), "ToolTimestampHint") { Icon = Icons.Clock },
             new("ToolUuid", "ToolGroupGenerate", _ => ToolResult.Ok(TextTools.NewGuid()), "ToolUuidHint")
             {
+                Icon = Icons.Sparkle,
                 Generates = true,
             },
             new("ToolCase", "ToolGroupText", text => TextTools.ChangeCase(text, Style()))
             {
+                Icon = Icons.Case,
                 NeedsCase = true,
             },
-            new("ToolSortLines", "ToolGroupText", text => TextTools.SortLines(text, unique: true), "ToolSortLinesHint"),
+            new("ToolSortLines", "ToolGroupText", text => TextTools.SortLines(text, unique: true), "ToolSortLinesHint") { Icon = Icons.Sort },
             new("ToolRegex", "ToolGroupText", RunRegex, "ToolRegexHint")
             {
+                Icon = Icons.Regex,
                 NeedsPattern = true,
             },
         ];

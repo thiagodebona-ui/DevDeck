@@ -1,5 +1,40 @@
 ﻿# Changelog
 
+## 1.2.9 - 2026-10-02 18:04
+
+- **Large responses no longer freeze the window.** A JSON reply of a few megabytes used to stop
+  the app for seconds every time it was shown - even when adding a request. Only the lines on
+  screen are drawn now, and the colouring is worked out in the background.
+- **Parsed JSON.** A JSON reply in HTTP opens as a tree you walk with the arrow keys - Right opens
+  a node, Left closes it - with **Source** beside it for the text. Huge documents stay quick.
+- **Responses are drawn, not dumped.** **Preview** shows images, **SVG**, the pages of a **PDF**,
+  the text of an **HTML** page, **Markdown** and **CSV** as a table; **Source** shows what arrived,
+  or a hex dump for a file.
+- **Open a response** in the app your system uses for it - a browser, a PDF viewer, a player.
+- **Save picks the right name.** The server's suggested file name, or the extension from the
+  content type, so an `image/png` saves as `.png`. Generic types are read from the file's first
+  bytes, and a response too large to show is still saved whole.
+- **Send requests in parallel.** A ▶ beside every saved request sends it at once, without waiting
+  for others, and each request keeps its own reply.
+- **Drag requests** to reorder them, onto a group to file them, or out of their group. **Alt+Up** /
+  **Alt+Down** move the selected one.
+- **Renaming a request shows straight away,** inside a group too.
+- **Clear chat** empties the Assistant conversation without saving it; **New chat** still keeps it
+  in History.
+- **Delete a message** in the Assistant with the × beside it. The model does not see it again.
+- **Why Run is greyed out.** In the Assistant, Run and Run chain now say when something started from
+  the chat is still running.
+- **No more freezes on chatty commands.** A command printing without pause, on the Commands page,
+  in a chain or in the Assistant, no longer locks the window.
+- **See how long it has been running.** The status bar counts up while a command runs - *Running
+  for 3m 07s*.
+- **What DevDeck is using.** A line above the version in the menu shows the memory, CPU and disk of
+  DevDeck and every command it started.
+- **Toolbox icons**, coloured JSON and XML results, and a **Tree** view for the JSON tools and JWT
+  decode.
+- **Each Toolbox tool keeps its own input.** Switching tools no longer carries text into one that
+  cannot use it.
+
 ## 1.2.8 - 2026-10-01 19:13
 
 - **A splash screen.** DevDeck opens on its mark - a terminal window with the deck and its chain

@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:core="using:DevDeck.Core"
+             xmlns:views="using:DevDeck.App.Views"
              x:Class="DevDeck.App.Views.ToolboxView"
              x:DataType="vm:ToolboxViewModel">
 
@@ -61,6 +63,43 @@
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
     </Style>
 
+    <!-- The tool glyph: stroked, the weight of the text beside it, brass on the chosen row - the
+         same treatment the rail gives its own icons. -->
+    <Style Selector="Path.toolIcon">
+      <Setter Property="Stroke" Value="{DynamicResource TextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.3" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Stretch" Value="None" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="ListBox.tools ListBoxItem:selected Path.toolIcon">
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- Text and Tree: two halves of one switch, the current one lit. -->
+    <Style Selector="Button.seg">
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Padding" Value="10,5" />
+    </Style>
+
+    <Style Selector="Button.seg.first">
+      <Setter Property="CornerRadius" Value="2,0,0,2" />
+    </Style>
+
+    <Style Selector="Button.seg.last">
+      <Setter Property="CornerRadius" Value="0,2,2,0" />
+      <Setter Property="BorderThickness" Value="0,1,1,1" />
+    </Style>
+
+    <Style Selector="Button.seg.on">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
     <Style Selector="ComboBox">
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
@@ -90,10 +129,12 @@
                  SelectedItem="{Binding Selected, Mode=TwoWay}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:Tool">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12.5"
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
+                <Path Grid.Column="0" Classes="toolIcon" Data="{Binding Icon}" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5"
+                           VerticalAlignment="Center"
                            Foreground="{DynamicResource Text}" />
-                <TextBlock Grid.Column="1" Text="{Binding Group}" FontSize="10"
+                <TextBlock Grid.Column="2" Text="{Binding Group}" FontSize="10"
                            Margin="8,0,0,0" VerticalAlignment="Center"
                            Foreground="{DynamicResource TextFaint}" />
               </Grid>
@@ -155,7 +196,7 @@
              empty box above it. -->
         <Panel Grid.Row="0" IsVisible="{Binding Selected.Generates}" />
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,10">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,10">
 
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
             <TextBlock Text="{Binding Error}" FontSize="11.5" TextWrapping="Wrap"
@@ -165,17 +206,40 @@
                        IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           </StackPanel>
 
-          <Button Grid.Column="1" Content="{loc:T ToolboxUseAsInput}" Margin="0,0,8,0"
+          <!-- For the tools whose answer is a JSON document: read it as text, or open it up as a
+               tree and collapse what is not wanted. -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,0"
+                      IsVisible="{Binding Selected.HasTree}">
+            <Button Classes="seg first" Classes.on="{Binding !TreeChosen}"
+                    Content="{loc:T ToolboxText}" Command="{Binding ShowTextCommand}" />
+            <Button Classes="seg last" Classes.on="{Binding TreeChosen}"
+                    Content="{loc:T ToolboxTree}" ToolTip.Tip="{loc:T ToolboxTreeTip}"
+                    Command="{Binding ShowTreeCommand}" />
+          </StackPanel>
+
+          <Button Grid.Column="2" Content="{loc:T ToolboxUseAsInput}" Margin="0,0,8,0"
                   Command="{Binding ChainCommand}"
                   IsVisible="{Binding !Selected.Generates}" />
 
-          <Button Grid.Column="2" Content="{loc:T Copy}" Command="{Binding CopyOutCommand}" />
+          <Button Grid.Column="3" Content="{loc:T Copy}" Command="{Binding CopyOutCommand}" />
 
         </Grid>
 
         <TextBox Grid.Row="2" Classes="pad" IsReadOnly="True"
                  Text="{Binding Output}"
-                 IsVisible="{Binding !Selected.NeedsPattern}" />
+                 IsVisible="{Binding ShowingPlainText}" />
+
+        <!-- JSON and XML come out coloured, as the HTTP panel shows a response: a formatted
+             document in flat monospace leaves the eye to find the structure on its own. -->
+        <views:BodyView Grid.Row="2"
+                        Text="{Binding Output}"
+                        Kind="{Binding Selected.OutputKind}"
+                        IsVisible="{Binding ShowingStructuredText}" />
+
+        <views:JsonTreeView Grid.Row="2"
+                            Document="{Binding Tree}"
+                            EmptyText="{Binding TreeNote}"
+                            IsVisible="{Binding ShowingTree}" />
 
         <!-- The regex tool answers with a list of matches rather than one string, which is the one
              place the shared shape does not fit. -->
