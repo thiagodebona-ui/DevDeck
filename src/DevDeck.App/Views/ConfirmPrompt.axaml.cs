@@ -51,7 +51,7 @@ namespace DevDeck.App.Views
 
             prompt.Heading.Text = heading;
             prompt.Detail.Text = detail;
-            prompt.Go.Content = proceed;
+            prompt.GoLabel.Text = proceed;
 
             return await prompt.ShowDialog<bool>(owner);
         }

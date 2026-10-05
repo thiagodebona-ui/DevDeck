@@ -101,6 +101,10 @@ namespace DevDeck.App.ViewModels
         [ObservableProperty]
         private bool collapsed;
 
+        /// <summary>Whether a run of the whole group is out, which swaps its play button for stop.</summary>
+        [ObservableProperty]
+        private bool running;
+
         /// <summary>"Billing (4)" - the count is what makes a collapsed group still informative.</summary>
         /// <summary>
         ///  The name alone. The count used to be part of this and is now <see cref="Tally"/>,
@@ -1177,7 +1181,11 @@ namespace DevDeck.App.ViewModels
                     group.Key,
                     [.. group],
                     settings.HttpCollapsedGroups.Contains(group.Key, StringComparer.Ordinal),
-                    GroupIcon(group.Key)));
+                    GroupIcon(group.Key))
+                {
+                    // A rebuild mid-run - a rename, a drag - must not turn the stop button back.
+                    Running = runningGroups.Contains(group.Key),
+                });
             }
 
             OnPropertyChanged(nameof(GroupNames));
@@ -1568,12 +1576,101 @@ namespace DevDeck.App.ViewModels
         ///  again, cancelling the earlier one - the newer answer is the one wanted.
         /// </remarks>
         [RelayCommand(AllowConcurrentExecutions = true)]
-        private async Task Send()
-        {
+        private async Task Send() =>
             // The row that was sent, held here: the user may click another request while this
             // one is on its way, and the answer belongs to the one that went out.
-            HttpRequest target = Selected;
+            await Dispatch(Selected, Current());
 
+        /// <summary>The groups whose requests are being sent right now, by name.</summary>
+        private readonly HashSet<string> runningGroups = [];
+
+        /// <summary>
+        ///  Sends every request in a group at once, side by side.
+        /// </summary>
+        /// <remarks>
+        ///  All together rather than in turn: a group run is a smoke test of a whole API, and the
+        ///  answer wanted is how every endpoint is doing now, as fast as the slowest one replies.
+        ///  A failure does not stop the others; each request's badge says how it went.
+        ///
+        ///  Each goes as it is saved. The selected one is saved as it is edited, so what is in the
+        ///  editor is what goes, there as everywhere else.
+        /// </remarks>
+        [RelayCommand(AllowConcurrentExecutions = true)]
+        private async Task SendGroup(RequestGroup? group)
+        {
+            if (group is null || group.Requests.Count == 0 || !runningGroups.Add(group.Name))
+            {
+                return;
+            }
+
+            List<HttpRequest> requests = [.. group.Requests];
+
+            MarkRunning(group.Name, true);
+
+            try
+            {
+                GroupStatus = Strings.Format("HttpGroupSending", group.Name, requests.Count);
+
+                await Task.WhenAll(requests.Select(request =>
+                    Dispatch(request, request == Selected ? Current() : request)));
+
+                int failed = requests.Count(request => !request.LastOk);
+
+                GroupStatus = failed == 0
+                    ? Strings.Format("HttpGroupSent", group.Name, requests.Count)
+                    : Strings.Format("HttpGroupSentFailed", group.Name, requests.Count, failed);
+            }
+            finally
+            {
+                runningGroups.Remove(group.Name);
+                MarkRunning(group.Name, false);
+            }
+        }
+
+        /// <summary>
+        ///  Calls off every request in a group that is still out - from a group run or sent one by one.
+        /// </summary>
+        /// <remarks>
+        ///  Each answers "Cancelled." on its own row, and the run then finishes and says how many
+        ///  did not answer, the same as any other ending.
+        /// </remarks>
+        [RelayCommand]
+        private void StopGroup(RequestGroup? group)
+        {
+            if (group is null)
+            {
+                return;
+            }
+
+            foreach (HttpRequest request in group.Requests)
+            {
+                if (inFlight.TryGetValue(request, out CancellationTokenSource? cancel))
+                {
+                    cancel.Cancel();
+                }
+            }
+        }
+
+        /// <summary>Sets the running flag on whichever object currently stands for the group.</summary>
+        /// <remarks>
+        ///  Looked up by name each time rather than held, because the tree is rebuilt wholesale on
+        ///  every edit and the group a run started from may no longer be the one on screen.
+        /// </remarks>
+        private void MarkRunning(string name, bool running)
+        {
+            foreach (RequestGroup shown in Groups.Where(each => each.Name == name))
+            {
+                shown.Running = running;
+            }
+        }
+
+        /// <summary>How the last group run went, under the request list. Empty until there is one.</summary>
+        [ObservableProperty]
+        private string groupStatus = string.Empty;
+
+        /// <summary>Sends one request, and files its answer under it.</summary>
+        private async Task Dispatch(HttpRequest target, HttpRequest payload)
+        {
             if (inFlight.Remove(target, out CancellationTokenSource? earlier))
             {
                 earlier.Cancel();
@@ -1585,9 +1682,12 @@ namespace DevDeck.App.ViewModels
             target.InFlight = true;
             replies.Remove(target);
 
-            Show(null);
-            Sending = true;
-            Status = Strings.Text("HttpSending");
+            if (Selected == target)
+            {
+                Show(null);
+                Sending = true;
+                Status = Strings.Text("HttpSending");
+            }
 
             HttpResult sent;
 
@@ -1597,7 +1697,7 @@ namespace DevDeck.App.ViewModels
                 // panel never becomes a place a token is displayed and settings.json never
                 // acquires one. An unresolved name is sent as written and the note above says
                 // which.
-                sent = await Http.Send(HttpVariables.Resolved(Current(), ActiveEnvironment), cancel.Token);
+                sent = await Http.Send(HttpVariables.Resolved(payload, ActiveEnvironment), cancel.Token);
             }
             finally
             {

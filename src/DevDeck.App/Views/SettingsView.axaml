@@ -120,16 +120,26 @@
             <!-- Whether anything answered, with the two ways out of "no" beside it. -->
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
               <TextBlock Grid.Column="0" Classes="note" VerticalAlignment="Center" Text="{Binding Hint}" />
-              <Button Grid.Column="1" Content="{Binding SetupLabel}"
+              <Button Grid.Column="1"
                       IsVisible="{Binding CanSetUp}" Command="{Binding SetUpCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
-              <Button Grid.Column="2" Content="{loc:T AssistantCheckAgain}"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Download}" />
+                  <TextBlock Text="{Binding SetupLabel}" />
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="2"
                       Command="{Binding CheckCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                  <TextBlock Text="{loc:T AssistantCheckAgain}" />
+                </StackPanel>
+              </Button>
             </Grid>
 
             <TextBlock Classes="note" Text="{loc:T SettingsAiNote}" />
@@ -200,10 +210,15 @@
                        PasswordChar="•" PlaceholderText="{loc:T SettingsValue}"
                        Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
                        BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
-              <Button Grid.Column="2" Content="{loc:T SettingsStore}" Command="{Binding AddSecretCommand}"
+              <Button Grid.Column="2" Command="{Binding AddSecretCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Lock}" />
+                  <TextBlock Text="{loc:T SettingsStore}" />
+                </StackPanel>
+              </Button>
             </Grid>
 
             <StackPanel Spacing="8" IsVisible="{Binding HasSecrets}">
@@ -221,12 +236,17 @@
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>
-              <Button Content="{loc:T Remove}" Command="{Binding RemoveSecretCommand}"
+              <Button Command="{Binding RemoveSecretCommand}"
                       IsEnabled="{Binding SelectedSecret, Converter={x:Static ObjectConverters.IsNotNull}}"
                       HorizontalAlignment="Left"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                  <TextBlock Text="{loc:T Remove}" />
+                </StackPanel>
+              </Button>
             </StackPanel>
 
             <TextBlock Classes="note" Text="{Binding SecretNote}"
@@ -244,10 +264,15 @@
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Grid.Column="0" Classes="group" VerticalAlignment="Center"
                          Text="{loc:T SettingsEnvVars}" />
-              <Button Grid.Column="1" Content="{loc:T SettingsAddVariable}" Command="{Binding AddVariableCommand}"
+              <Button Grid.Column="1" Command="{Binding AddVariableCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                  <TextBlock Text="{loc:T SettingsAddVariable}" />
+                </StackPanel>
+              </Button>
             </Grid>
 
             <TextBlock Classes="note" Text="{loc:T SettingsEnvVarsNote}" />
@@ -267,12 +292,14 @@
                              FontFamily="{DynamicResource MonoFont}"
                              Background="{DynamicResource CodeBg}" Foreground="{DynamicResource Text}"
                              BorderBrush="{DynamicResource Line}" FontSize="12" Padding="8,6" />
-                    <Button Grid.Column="3" Content="✕" ToolTip.Tip="{loc:T Remove}"
+                    <Button Grid.Column="3" ToolTip.Tip="{loc:T Remove}"
                             CommandParameter="{Binding}"
                             Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveVariableCommand}"
                             Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
                             BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                            CornerRadius="2" Padding="9,5" FontSize="11.5" VerticalAlignment="Center" />
+                            CornerRadius="2" Padding="9,5" FontSize="11.5" VerticalAlignment="Center">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                    </Button>
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -289,23 +316,37 @@
                        Text="{loc:T SettingsASavedCommandCanBeStarted}" />
 
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Content="{loc:T SettingsWriteTheTerminalLauncher}"
-                      Command="{Binding InstallShimCommand}"
+              <Button Command="{Binding InstallShimCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Terminal}" />
+                  <TextBlock Text="{loc:T SettingsWriteTheTerminalLauncher}" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="{loc:T SettingsRemoveIt}" IsVisible="{Binding HasShim}"
+              <Button IsVisible="{Binding HasShim}"
                       Command="{Binding RemoveShimCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                  <TextBlock Text="{loc:T SettingsRemoveIt}" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="{loc:T SettingsRegisterDevdeck}" IsEnabled="{Binding CanRegisterScheme}"
+              <Button IsEnabled="{Binding CanRegisterScheme}"
                       Command="{Binding RegisterSchemeCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Link}" />
+                  <TextBlock Text="{loc:T SettingsRegisterDevdeck}" />
+                </StackPanel>
+              </Button>
             </StackPanel>
 
             <TextBlock Classes="note" Text="{Binding SchemeNote}" />
@@ -331,16 +372,26 @@
               <TextBox Grid.Column="0" Text="{Binding Hotkey}" FontSize="12"
                        PlaceholderText="Ctrl+Shift+D"
                        FontFamily="{DynamicResource MonoFont}" />
-              <Button Grid.Column="1" Content="{loc:T SettingsClaimIt}" Margin="8,0,0,0"
+              <Button Grid.Column="1" Margin="8,0,0,0"
                       Command="{Binding SetHotkeyCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
-              <Button Grid.Column="2" Content="{loc:T SettingsGiveItBack}" Margin="8,0,0,0"
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Key}" />
+                  <TextBlock Text="{loc:T SettingsClaimIt}" />
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="2" Margin="8,0,0,0"
                       Command="{Binding ClearHotkeyCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Bad}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                  <TextBlock Text="{loc:T SettingsGiveItBack}" />
+                </StackPanel>
+              </Button>
             </Grid>
 
             <TextBlock Classes="note" Text="{Binding HotkeyNote}" />
@@ -373,15 +424,25 @@
                        Text="{loc:T SettingsAsksTheReleasePageWhetherThere}" />
 
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Content="{loc:T SettingsCheckNow}" Command="{Binding CheckForUpdateCommand}"
+              <Button Command="{Binding CheckForUpdateCommand}"
                       Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
                       BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                      CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                  <TextBlock Text="{loc:T SettingsCheckNow}" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="{loc:T SettingsOpenTheReleasePage}" IsVisible="{Binding HasUpdate}"
+              <Button IsVisible="{Binding HasUpdate}"
                       Command="{Binding GetUpdateCommand}"
                       Background="{DynamicResource Accent}" Foreground="{DynamicResource OnAccent}"
-                      BorderThickness="0" CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                      BorderThickness="0" CornerRadius="2" Padding="11,5" FontSize="11.5">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+                  <TextBlock Text="{loc:T SettingsOpenTheReleasePage}" />
+                </StackPanel>
+              </Button>
             </StackPanel>
 
             <TextBlock Classes="note" Text="{Binding UpdateStatus}"
@@ -425,11 +486,16 @@
             <TextBlock Classes="note" Text="{loc:T SettingsResetExplains}" />
             <TextBlock Classes="note" Text="{loc:T SettingsResetKeepsSecrets}" />
 
-            <Button Content="{loc:T SettingsResetNow}" HorizontalAlignment="Left"
+            <Button HorizontalAlignment="Left"
                     Command="{Binding ResetCommand}"
                     Background="Transparent" Foreground="{DynamicResource Bad}"
                     BorderBrush="{DynamicResource Bad}" BorderThickness="1"
-                    CornerRadius="2" Padding="11,5" FontSize="11.5" />
+                    CornerRadius="2" Padding="11,5" FontSize="11.5">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                <TextBlock Text="{loc:T SettingsResetNow}" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </Border>
 

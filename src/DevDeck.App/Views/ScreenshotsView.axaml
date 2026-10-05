@@ -1,0 +1,479 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DevDeck.App.Localisation"
+             xmlns:vm="using:DevDeck.App.ViewModels"
+             xmlns:app="using:DevDeck.App"
+             x:Class="DevDeck.App.Views.ScreenshotsView"
+             x:DataType="vm:ScreenshotsViewModel">
+
+  <UserControl.Styles>
+
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="11,5" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="ListBox.shots">
+      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="6" />
+    </Style>
+
+    <Style Selector="ListBox.shots ListBoxItem">
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ListBox.shots ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+    </Style>
+
+    <!-- Rows sit flush, one under the other, so the details columns line up with their heads. -->
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="6,5" />
+    </Style>
+
+    <Style Selector="ListBox.details">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="TextBlock.cell">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- The divider: a line, lit under the pointer so it can be found - as on the HTTP page. -->
+    <Style Selector="GridSplitter.divider">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="MinWidth" Value="14" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="SizeWestEast" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Panel Background="Transparent">
+            <Border Name="Bar" Width="1" HorizontalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+          </Panel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="GridSplitter.divider:pointerover /template/ Border#Bar">
+      <Setter Property="Width" Value="2" />
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The layout switch: three buttons joined into one control, the current one lit. -->
+    <Style Selector="Button.segment">
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Margin" Value="-1,0,0,0" />
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Button.segment.first">
+      <Setter Property="CornerRadius" Value="2,0,0,2" />
+      <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="Button.segment.last">
+      <Setter Property="CornerRadius" Value="0,2,2,0" />
+    </Style>
+
+    <Style Selector="Button.segment.on">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.segment.on /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+    </Style>
+
+    <!-- The favourite star. Faint until it is wanted, so a grid of shots is not a grid of stars:
+         it shows on the tile under the pointer, and stays, filled, on a favourite. -->
+    <Style Selector="Button.star">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="3" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="Button.star /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.star:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Button.star, ListBoxItem:selected Button.star">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Button.star:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.star.on">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.star.on Path">
+      <Setter Property="Fill" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- On a picture the star needs a backing, or a white screenshot swallows it. -->
+    <Style Selector="ListBox#Tiles Button.star /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <DockPanel Margin="20" LastChildFill="True">
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+      <StackPanel Grid.Column="0" Spacing="2">
+        <TextBlock Text="{loc:T ShotsTitle}" FontSize="17" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text}" />
+        <TextBlock Classes="label" Text="{loc:T ShotsSubtitle}" />
+      </StackPanel>
+
+      <CheckBox Grid.Column="1" Content="{loc:T ShotsKeepClipboardImages}" FontSize="11.5"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextMuted}"
+                IsVisible="{Binding CanCapture}"
+                ToolTip.Tip="{loc:T ShotsKeepClipboardTip}"
+                IsChecked="{Binding Capturing, Mode=TwoWay}" />
+    </Grid>
+
+    <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="12,10"
+            Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <TextBlock Grid.Column="0" FontSize="11.5" Foreground="{DynamicResource TextMuted}"
+                   TextWrapping="Wrap" VerticalAlignment="Center"
+                   Text="{Binding Where}" />
+        <Button Grid.Column="1" VerticalAlignment="Center"
+                IsVisible="{Binding HasSystemFolder}"
+                Command="{Binding OpenFolderCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Folder}" />
+            <TextBlock Text="{loc:T ShotsOpenFolder}" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,8">
+      <TextBox Grid.Column="0" Margin="0,0,8,0"
+               Text="{Binding Query, Mode=TwoWay}"
+               PlaceholderText="{loc:T ShotsSearch}" />
+      <Button Grid.Column="1" Margin="0,0,6,0"
+              Command="{Binding CopyImageCommand}"
+              IsEnabled="{Binding HasSelection}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Image}" />
+          <TextBlock Text="{loc:T ShotsCopyImage}" />
+        </StackPanel>
+      </Button>
+      <Button Grid.Column="2" Margin="0,0,6,0"
+              Command="{Binding CopyPathCommand}"
+              IsEnabled="{Binding HasSelection}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+          <TextBlock Text="{loc:T ShotsCopyPath}" />
+        </StackPanel>
+      </Button>
+      <Button Grid.Column="3" Margin="0,0,6,0"
+              Command="{Binding ToggleFavouriteCommand}"
+              IsEnabled="{Binding HasSelection}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Star}" />
+          <TextBlock Text="{Binding FavouriteLabel}" />
+        </StackPanel>
+      </Button>
+      <Button Grid.Column="4" Classes="danger"
+              Command="{Binding RemoveCommand}"
+              IsEnabled="{Binding HasSelection}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+          <TextBlock Text="{loc:T ShotsDelete}" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <!-- How the gallery is drawn, and what it is narrowed to. Three buttons rather than a
+         drop-down, so the current layout is visible without opening anything. -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="0">
+        <Button Classes="segment first" Classes.on="{Binding IsThumbnails}"
+                Command="{Binding SetLayoutCommand}" CommandParameter="Thumbnails">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Grid}" />
+            <TextBlock Text="{loc:T ShotsThumbnails}" />
+          </StackPanel>
+        </Button>
+        <Button Classes="segment" Classes.on="{Binding IsList}"
+                Command="{Binding SetLayoutCommand}" CommandParameter="List">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.List}" />
+            <TextBlock Text="{loc:T ShotsList}" />
+          </StackPanel>
+        </Button>
+        <Button Classes="segment last" Classes.on="{Binding IsDetails}"
+                Command="{Binding SetLayoutCommand}" CommandParameter="Details">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Table}" />
+            <TextBlock Text="{loc:T ShotsDetails}" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+      <CheckBox Grid.Column="2" Content="{loc:T ShotsFavouritesOnly}" FontSize="11.5"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextMuted}"
+                IsChecked="{Binding FavouritesOnly, Mode=TwoWay}" />
+    </Grid>
+
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="0,10,0,0">
+      <TextBlock Grid.Column="0" Classes="label" VerticalAlignment="Center" Text="{Binding Status}" />
+      <TextBlock Grid.Column="1" Classes="label" VerticalAlignment="Center" Text="{Binding Count}" />
+      <Button Grid.Column="2" Padding="9,3"
+              IsVisible="{Binding HasMore}"
+              Command="{Binding ShowMoreCommand}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Down}" />
+          <TextBlock Text="{loc:T ShotsShowMore}" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <!-- The divider between the gallery and the preview drags either way; the width it is left
+         at is kept. Set from code, since a ColumnDefinition has no DataContext to bind against. -->
+    <Grid Name="Split" ColumnDefinitions="*,14,360">
+
+      <Panel Grid.Column="0">
+
+        <!-- Three lists over the same items and the same selection, one shown at a time. Simpler
+             than swapping a single list's panel and template in code, and switching keeps the
+             selection because all three are bound to it. Any of them can be dragged from. -->
+
+        <!-- Thumbnails: a screenshot is recognised by what it looks like, and file names that
+             all read "Screenshot 2026-..." tell them apart by nothing. -->
+        <ListBox Name="Tiles" Classes="shots" SelectionMode="Multiple"
+                 IsVisible="{Binding IsThumbnails}"
+                 ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding Selected, Mode=TwoWay}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:ShotItem">
+              <StackPanel Width="164" Spacing="3">
+                <Panel>
+                  <Border Height="96" Background="{DynamicResource CodeBg}" CornerRadius="2"
+                          BorderBrush="{DynamicResource Line}" BorderThickness="1" ClipToBounds="True">
+                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                  </Border>
+                  <Button Classes="star" Classes.on="{Binding Favourite}"
+                          HorizontalAlignment="Right" VerticalAlignment="Top" Margin="3"
+                          ToolTip.Tip="{loc:T ShotsFavouriteTip}"
+                          Command="{Binding $parent[UserControl].((vm:ScreenshotsViewModel)DataContext).ToggleFavouriteCommand}"
+                          CommandParameter="{Binding}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Star}" />
+                  </Button>
+                </Panel>
+                <TextBlock Text="{Binding When}" FontSize="11" Foreground="{DynamicResource Text}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Caption}" FontSize="10" Foreground="{DynamicResource Accent}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{loc:T ShotsFromClipboard}" FontSize="10"
+                           Foreground="{DynamicResource TextFaint}"
+                           IsVisible="{Binding Own}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- List: a small picture and the name, one per row - more of them on screen at once. -->
+        <ListBox Name="Rows" Classes="shots rows" SelectionMode="Multiple"
+                 IsVisible="{Binding IsList}"
+                 ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding Selected, Mode=TwoWay}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:ShotItem">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Grid.Column="0" Width="72" Height="42" Background="{DynamicResource CodeBg}"
+                        CornerRadius="2" BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                        ClipToBounds="True">
+                  <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource Text}"
+                             TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding When}" FontSize="10" Foreground="{DynamicResource TextFaint}" />
+                    <TextBlock Text="{Binding Caption}" FontSize="10" Foreground="{DynamicResource Accent}" />
+                    <TextBlock Text="{loc:T ShotsFromClipboard}" FontSize="10"
+                               Foreground="{DynamicResource TextFaint}"
+                               IsVisible="{Binding Own}" />
+                  </StackPanel>
+                </StackPanel>
+                <Button Grid.Column="2" Classes="star" Classes.on="{Binding Favourite}"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="{loc:T ShotsFavouriteTip}"
+                        Command="{Binding $parent[UserControl].((vm:ScreenshotsViewModel)DataContext).ToggleFavouriteCommand}"
+                        CommandParameter="{Binding}">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Star}" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Details: no pictures, one line each, every fact in its own column. The table has a
+             floor on its width and scrolls sideways below it, header and rows together, rather
+             than squeezing a column to nothing: a column that has data is always reachable. -->
+        <ScrollViewer IsVisible="{Binding IsDetails}"
+                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+        <DockPanel MinWidth="640">
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="28,3*,2*,1.5*,1.1*,1.8*" ColumnSpacing="8" Margin="7,0,7,6">
+            <TextBlock Grid.Column="1" Classes="head" Text="{loc:T ShotsColName}" />
+            <TextBlock Grid.Column="2" Classes="head" Text="{loc:T ShotsColTaken}" />
+            <TextBlock Grid.Column="3" Classes="head" Text="{loc:T ShotsColDimensions}" />
+            <TextBlock Grid.Column="4" Classes="head" Text="{loc:T ShotsColSize}" />
+            <TextBlock Grid.Column="5" Classes="head" Text="{loc:T ShotsColSource}" />
+          </Grid>
+          <ListBox Name="Details" Classes="shots rows details" SelectionMode="Multiple"
+                   ItemsSource="{Binding Items}"
+                   SelectedItem="{Binding Selected, Mode=TwoWay}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ShotItem">
+                <Grid ColumnDefinitions="28,3*,2*,1.5*,1.1*,1.8*" ColumnSpacing="8">
+                  <Button Grid.Column="0" Classes="star" Classes.on="{Binding Favourite}"
+                          VerticalAlignment="Center"
+                          ToolTip.Tip="{loc:T ShotsFavouriteTip}"
+                          Command="{Binding $parent[UserControl].((vm:ScreenshotsViewModel)DataContext).ToggleFavouriteCommand}"
+                          CommandParameter="{Binding}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Star}" />
+                  </Button>
+                  <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Name}"
+                             Foreground="{DynamicResource Text}" />
+                  <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Stamp}" />
+                  <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Dimensions}" />
+                  <TextBlock Grid.Column="4" Classes="cell" Text="{Binding Weight}" />
+                  <TextBlock Grid.Column="5" Classes="cell" Text="{Binding Source}" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+        </ScrollViewer>
+
+        <TextBlock IsVisible="{Binding IsEmpty}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="{DynamicResource TextFaint}"
+                   Text="{loc:T ShotsNothingYet}" />
+
+      </Panel>
+
+      <GridSplitter Name="Divider" Grid.Column="1" Classes="divider" ResizeDirection="Columns" />
+
+      <Border Grid.Column="2" Padding="12"
+              Background="{DynamicResource Panel}"
+              BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2">
+        <Panel>
+
+          <TextBlock IsVisible="{Binding !HasSelection}" TextWrapping="Wrap"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                     FontSize="12" Foreground="{DynamicResource TextFaint}"
+                     Text="{loc:T ShotsSelectOne}" />
+
+          <DockPanel IsVisible="{Binding HasSelection}" LastChildFill="True">
+
+            <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+              <SelectableTextBlock Text="{Binding Selected.Name, FallbackValue=''}" FontSize="12"
+                                   Foreground="{DynamicResource Text}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Selected.Caption, FallbackValue=''}" FontSize="11"
+                         Foreground="{DynamicResource Accent}" />
+              <SelectableTextBlock Text="{Binding Selected.Path, FallbackValue=''}" FontSize="10.5"
+                                   FontFamily="{DynamicResource MonoFont}"
+                                   Foreground="{DynamicResource TextFaint}" TextWrapping="Wrap" />
+              <WrapPanel Orientation="Horizontal">
+                <Button Margin="0,0,6,6" Command="{Binding OpenCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+                    <TextBlock Text="{loc:T ShotsOpen}" />
+                  </StackPanel>
+                </Button>
+                <Button Margin="0,0,6,6" Command="{Binding RevealCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Folder}" />
+                    <TextBlock Text="{loc:T ShotsShowInFolder}" />
+                  </StackPanel>
+                </Button>
+              </WrapPanel>
+            </StackPanel>
+
+            <!-- Double-click opens it full size; the preview is for telling shots apart. -->
+            <Image Name="Preview" Source="{Binding Preview}" Stretch="Uniform"
+                   VerticalAlignment="Top" Cursor="Hand" />
+
+          </DockPanel>
+        </Panel>
+      </Border>
+
+    </Grid>
+
+  </DockPanel>
+</UserControl>

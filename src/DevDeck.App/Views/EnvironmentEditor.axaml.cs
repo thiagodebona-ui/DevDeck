@@ -327,7 +327,15 @@ namespace DevDeck.App.Views
 
             ToggleButton secret = new()
             {
-                Content = Strings.Text("EnvSecret"),
+                Content = new StackPanel
+                {
+                    Classes = { "iconLabel" },
+                    Children =
+                    {
+                        new Avalonia.Controls.Shapes.Path { Classes = { "icon" }, Data = Icons.Lock },
+                        new TextBlock { Text = Strings.Text("EnvSecret") },
+                    },
+                },
                 IsChecked = value.IsSecret,
                 FontSize = 10.5,
                 Padding = new Avalonia.Thickness(8, 4),
@@ -344,7 +352,7 @@ namespace DevDeck.App.Views
 
             Button remove = new()
             {
-                Content = "✕",
+                Content = new Avalonia.Controls.Shapes.Path { Classes = { "icon" }, Data = Icons.Close },
                 Background = Brushes.Transparent,
                 BorderThickness = default,
                 Foreground = Find("TextFaint"),

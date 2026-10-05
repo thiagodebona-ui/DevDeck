@@ -1,5 +1,30 @@
 ﻿# Changelog
 
+## 1.3.0 - 2026-10-05 17:53
+
+- **A Screenshots page.** Every Win+Shift+S capture in one place, newest first - read from the
+  folder Snipping Tool saves to, so captures taken while DevDeck was closed are there too, and a
+  new one appears as you take it.
+- **Thumbnails, List or Details.** Switch how the gallery is drawn; Details scrolls sideways rather
+  than squeezing a column. A divider between the gallery and the preview drags to the width you
+  like, and both are remembered.
+- **Favourites.** Star a screenshot from its tile or the toolbar, and narrow the gallery to
+  **Favourites only**. A favourite stays where it was taken rather than jumping to the top.
+- **Select several screenshots** with Ctrl or Shift: **Copy path** copies every path, **Copy image**
+  copies them as files to paste into Teams or a folder, **Favourite** and **Delete** act on all of
+  them, and dragging one out takes the lot. Delete sends files to the Recycle Bin.
+- **Keep images you copy** (off until you turn it on) also collects captures that never reach a
+  file, without keeping the same capture twice.
+- **Run a whole HTTP group.** The ▷ on a group header sends every request in it at once, and turns
+  into a ■ that cancels the ones still out. A line under the list says how the run went.
+- **Icons on every button,** across the whole app.
+- **Narrow windows no longer break the layout.** The HTTP response bar, the Running page, the
+  Commands run controls and the Memory/CPU gauges rearrange themselves instead of cutting buttons
+  off or breaking words one per line.
+- **Memory/CPU in Portuguese.** The cleanup steps, what they did, and the gauge captions were still
+  in English.
+- **A new page lands beside its neighbour** in a menu you have rearranged, instead of at the bottom.
+
 ## 1.2.9 - 2026-10-02 18:10
 
 - **Large responses no longer freeze the window.** A JSON reply of a few megabytes used to stop

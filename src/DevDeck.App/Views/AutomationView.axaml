@@ -287,11 +287,21 @@
                 </StackPanel>
               </Grid>
             </Button>
-            <Button Grid.Column="1" Content="{loc:T AutomationNewChain}" Margin="0,0,6,0"
-                    Command="{Binding NewChainCommand}" />
-            <Button Grid.Column="2" Classes="danger" Content="{loc:T Delete}"
+            <Button Grid.Column="1" Margin="0,0,6,0"
+                    Command="{Binding NewChainCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                <TextBlock Text="{loc:T AutomationNewChain}" />
+              </StackPanel>
+            </Button>
+            <Button Grid.Column="2" Classes="danger"
                     Command="{Binding DeleteChainCommand}"
-                    IsEnabled="{Binding HasChain}" />
+                    IsEnabled="{Binding HasChain}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                <TextBlock Text="{loc:T Delete}" />
+              </StackPanel>
+            </Button>
           </Grid>
 
           <StackPanel Spacing="12" IsVisible="{Binding ChainsOpen}">
@@ -441,14 +451,28 @@
                            Text="{Binding Broken}" IsVisible="{Binding IsBroken}" />
 
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <Button Classes="go" Content="{loc:T AutomationRunChain}"
+                  <Button Classes="go"
                           CommandParameter="{Binding}" Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).RunChainCommand}"
-                          IsEnabled="{Binding IsIdle}" />
-                  <Button Classes="danger" Content="{loc:T Stop}"
+                          IsEnabled="{Binding IsIdle}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
+                      <TextBlock Text="{loc:T AutomationRunChain}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="danger"
                           CommandParameter="{Binding}" Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).StopChainCommand}"
-                          IsEnabled="{Binding IsRunning}" />
-                  <Button Content="{loc:T Save}"
-                          Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}" />
+                          IsEnabled="{Binding IsRunning}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+                      <TextBlock Text="{loc:T Stop}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+                      <TextBlock Text="{loc:T Save}" />
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
 
                 <TextBlock Classes="label" Text="{Binding Status}" />
@@ -461,13 +485,23 @@
                     <TextBlock Grid.Column="0" Classes="label" VerticalAlignment="Center"
                                Text="{loc:T AutomationChainOutput}" />
                     <ToggleButton Name="SelectChainOutput" Grid.Column="1" Margin="0,0,6,0" VerticalAlignment="Center"
-                                  Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                                  ToolTip.Tip="{loc:T SelectTextTip}"
                                   FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
                                   Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
-                                  BorderBrush="{DynamicResource Line}" />
-                    <Button Grid.Column="2" Content="{loc:T Clear}"
+                                  BorderBrush="{DynamicResource Line}">
+                      <StackPanel Classes="iconLabel">
+                        <Path Classes="icon" Data="{x:Static app:Icons.Case}" />
+                        <TextBlock Text="{loc:T SelectText}" />
+                      </StackPanel>
+                    </ToggleButton>
+                    <Button Grid.Column="2"
                             Command="{Binding ClearOutputCommand}"
-                            IsEnabled="{Binding HasOutput}" />
+                            IsEnabled="{Binding HasOutput}">
+                      <StackPanel Classes="iconLabel">
+                        <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                        <TextBlock Text="{loc:T Clear}" />
+                      </StackPanel>
+                    </Button>
                   </Grid>
 
                   <Panel>
@@ -546,11 +580,21 @@
                 </StackPanel>
               </Grid>
             </Button>
-            <Button Grid.Column="1" Content="{loc:T AutomationNewWatch}" Margin="0,0,6,0"
-                    Command="{Binding NewWatchCommand}" />
-            <Button Grid.Column="2" Classes="danger" Content="{loc:T Delete}"
+            <Button Grid.Column="1" Margin="0,0,6,0"
+                    Command="{Binding NewWatchCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                <TextBlock Text="{loc:T AutomationNewWatch}" />
+              </StackPanel>
+            </Button>
+            <Button Grid.Column="2" Classes="danger"
                     Command="{Binding DeleteWatchCommand}"
-                    IsEnabled="{Binding HasWatch}" />
+                    IsEnabled="{Binding HasWatch}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                <TextBlock Text="{loc:T Delete}" />
+              </StackPanel>
+            </Button>
           </Grid>
 
           <StackPanel Spacing="12" IsVisible="{Binding WatchesOpen}">
@@ -644,9 +688,13 @@
                 <TextBlock Classes="note" TextWrapping="Wrap"
                            Text="{loc:T AutomationWhatAWatchPassesToItsCommand}" />
 
-                <Button Content="{loc:T Save}"
-                        Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}"
-                        HorizontalAlignment="Left" />
+                <Button Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).SaveCommand}"
+                        HorizontalAlignment="Left">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+                    <TextBlock Text="{loc:T Save}" />
+                  </StackPanel>
+                </Button>
 
                 <TextBlock Classes="label" Text="{Binding Status}" />
 
@@ -693,11 +741,19 @@
                        FontFamily="{DynamicResource MonoFont}" />
 
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Button Content="{loc:T ImportFromThisProject}"
-                      Command="{Binding ImportDeckCommand}"
-                      IsEnabled="{Binding HasProjectDeck}" />
-              <Button Content="{loc:T AutomationExportMyDeckToThisProject}"
-                      Command="{Binding ExportDeckCommand}" />
+              <Button Command="{Binding ImportDeckCommand}"
+                      IsEnabled="{Binding HasProjectDeck}">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Download}" />
+                  <TextBlock Text="{loc:T ImportFromThisProject}" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding ExportDeckCommand}">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Upload}" />
+                  <TextBlock Text="{loc:T AutomationExportMyDeckToThisProject}" />
+                </StackPanel>
+              </Button>
             </StackPanel>
 
             <TextBlock Classes="note" Text="{Binding DeckNote}"

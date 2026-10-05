@@ -151,6 +151,12 @@
       <Setter Property="Foreground" Value="{DynamicResource Bad}" />
     </Style>
 
+    <!-- The cross is a Path stroked in the button's own Foreground, which the presenter's red above
+         does not reach. -->
+    <Style Selector="Button.forget:pointerover Path.icon">
+      <Setter Property="Stroke" Value="{DynamicResource Bad}" />
+    </Style>
+
     <Style Selector="Border.chip">
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
@@ -190,8 +196,12 @@
                its own range - nobody guesses that it will build a whole automation chain - and the
                empty transcript is gone after the first question, taking its one sentence of help
                with it. -->
-          <Button Name="HelpButton" Grid.Column="1" Content="{loc:T AssistantHelp}" Classes="small"
+          <Button Name="HelpButton" Grid.Column="1" Classes="small"
                   Margin="0,0,8,0">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Bulb}" />
+              <TextBlock Text="{loc:T AssistantHelp}" />
+            </StackPanel>
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedRight">
                 <Border Width="440" MaxHeight="560">
@@ -247,8 +257,12 @@
             </Button.Flyout>
           </Button>
 
-          <Button Grid.Column="2" Content="{loc:T AssistantHistory}" Classes="small"
+          <Button Grid.Column="2" Classes="small"
                   IsEnabled="{Binding HasHistory}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Clock}" />
+              <TextBlock Text="{loc:T AssistantHistory}" />
+            </StackPanel>
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedRight">
                 <Border Width="380" MaxHeight="420">
@@ -273,10 +287,15 @@
                                 </TextBlock>
                               </StackPanel>
                             </Button>
-                            <Button Grid.Column="1" Classes="small" Content="{loc:T Delete}"
+                            <Button Grid.Column="1" Classes="small"
                                     VerticalAlignment="Center"
                                     Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).ForgetCommand}"
-                                    CommandParameter="{Binding}" />
+                                    CommandParameter="{Binding}">
+                              <StackPanel Classes="iconLabel">
+                                <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                                <TextBlock Text="{loc:T Delete}" />
+                              </StackPanel>
+                            </Button>
                           </Grid>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
@@ -287,20 +306,35 @@
             </Button.Flyout>
           </Button>
 
-          <Button Grid.Column="3" Content="{loc:T AssistantSaveAsCommand}" Classes="small" Margin="8,0,0,0"
-                  Command="{Binding SaveLastCommand}" />
+          <Button Grid.Column="3" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding SaveLastCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+              <TextBlock Text="{loc:T AssistantSaveAsCommand}" />
+            </StackPanel>
+          </Button>
 
           <!-- No longer "lose this": it writes the conversation out first, which is why the
                label says what it now does. -->
-          <Button Grid.Column="4" Content="{loc:T AssistantNewChat}" Classes="small" Margin="8,0,0,0"
-                  Command="{Binding ClearCommand}" />
+          <Button Grid.Column="4" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding ClearCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+              <TextBlock Text="{loc:T AssistantNewChat}" />
+            </StackPanel>
+          </Button>
 
           <!-- The one that does not keep it. Beside New chat, so the difference is read in the
                two labels and the tooltip rather than discovered afterwards in History. -->
-          <Button Grid.Column="5" Content="{loc:T AssistantClearChat}" Classes="small" Margin="8,0,0,0"
+          <Button Grid.Column="5" Classes="small" Margin="8,0,0,0"
                   ToolTip.Tip="{loc:T AssistantClearChatTip}"
                   IsEnabled="{Binding !IsEmpty}"
-                  Command="{Binding ClearChatCommand}" />
+                  Command="{Binding ClearChatCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+              <TextBlock Text="{loc:T AssistantClearChat}" />
+            </StackPanel>
+          </Button>
         </Grid>
 
         <!-- What the next question goes to, and nothing to change it with. The endpoint is set up
@@ -329,10 +363,20 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
         <TextBlock Grid.Column="0" Text="{Binding Hint}" FontSize="11.5" TextWrapping="Wrap"
                    VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
-        <Button Grid.Column="1" Classes="small" Content="{Binding SetupLabel}"
-                IsVisible="{Binding CanSetUp}" Command="{Binding SetUpCommand}" />
-        <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantCheckAgain}" Margin="8,0,0,0"
-                IsVisible="{Binding IsUnavailable}" Command="{Binding CheckCommand}" />
+        <Button Grid.Column="1" Classes="small"
+                IsVisible="{Binding CanSetUp}" Command="{Binding SetUpCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Wrench}" />
+            <TextBlock Text="{Binding SetupLabel}" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Classes="small" Margin="8,0,0,0"
+                IsVisible="{Binding IsUnavailable}" Command="{Binding CheckCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+            <TextBlock Text="{loc:T AssistantCheckAgain}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 
@@ -353,10 +397,12 @@
                   <TextBlock Classes="stamp" Text="{Binding Stamp}" />
                   <!-- Faint until it is wanted: one on every turn, and a column of bold crosses
                        down a conversation would read as a list of errors. -->
-                  <Button Classes="forget" Content="×"
+                  <Button Classes="forget"
                           ToolTip.Tip="{loc:T AssistantDeleteThisMessage}"
                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
-                          CommandParameter="{Binding}" />
+                          CommandParameter="{Binding}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                  </Button>
                 </StackPanel>
 
                 <Border Classes="bubble"
@@ -370,13 +416,19 @@
                     <ContextMenu>
                       <MenuItem Header="{loc:T AssistantCopyThisMessage}"
                                 Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyTurnCommand}"
-                                CommandParameter="{Binding}" />
+                                CommandParameter="{Binding}">
+                        <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Copy}" /></MenuItem.Icon>
+                      </MenuItem>
                       <MenuItem Header="{loc:T AssistantCopyWholeConversation}"
-                                Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyAllCommand}" />
+                                Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CopyAllCommand}">
+                        <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Layers}" /></MenuItem.Icon>
+                      </MenuItem>
                       <Separator />
                       <MenuItem Header="{loc:T AssistantDeleteThisMessage}"
                                 Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
-                                CommandParameter="{Binding}" />
+                                CommandParameter="{Binding}">
+                        <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Delete}" /></MenuItem.Icon>
+                      </MenuItem>
                     </ContextMenu>
                   </Border.ContextMenu>
                   <ItemsControl ItemsSource="{Binding Segments}">
@@ -407,34 +459,51 @@
                                        ItemsControl from here is the segments list, whose DataContext
                                        is the Turn. Casting that to the view model silently yields
                                        nothing and leaves both buttons dead. -->
-                                  <Button Grid.Column="1" Classes="small" Content="{loc:T AssistantAddAsCommand}"
+                                  <Button Grid.Column="1" Classes="small"
                                           IsVisible="{Binding IsScript}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).AddAsCommandCommand}"
-                                          CommandParameter="{Binding}" />
+                                          CommandParameter="{Binding}">
+                                    <StackPanel Classes="iconLabel">
+                                      <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                                      <TextBlock Text="{loc:T AssistantAddAsCommand}" />
+                                    </StackPanel>
+                                  </Button>
                                   <Button Grid.Column="2" Classes="small go" Margin="6,0,0,0"
                                           IsVisible="{Binding IsScript}"
                                           ToolTip.ShowOnDisabled="True"
                                           ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
-                                          Content="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunLabel}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunCodeCommand}"
-                                          CommandParameter="{Binding}" />
+                                          CommandParameter="{Binding}">
+                                    <StackPanel Classes="iconLabel">
+                                      <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
+                                      <TextBlock Text="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunLabel}" />
+                                    </StackPanel>
+                                  </Button>
                                   <!-- The chain block is a list of names, so instead of Run it has the
                                        one action that makes sense of it: add the commands above it to
                                        the deck, and the chain to the automation page. -->
                                   <Button Grid.Column="3" Classes="small"
                                           IsVisible="{Binding IsChain}"
-                                          Content="{loc:T AssistantCreateChain}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).CreateChainCommand}"
-                                          CommandParameter="{Binding}" />
+                                          CommandParameter="{Binding}">
+                                    <StackPanel Classes="iconLabel">
+                                      <Path Classes="icon" Data="{x:Static app:Icons.Automation}" />
+                                      <TextBlock Text="{loc:T AssistantCreateChain}" />
+                                    </StackPanel>
+                                  </Button>
                                   <!-- Runs it here, making it first if Create chain has not, with
                                        every step's output streamed into the conversation. -->
                                   <Button Grid.Column="4" Classes="small go" Margin="6,0,0,0"
                                           IsVisible="{Binding IsChain}"
                                           ToolTip.ShowOnDisabled="True"
                                           ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
-                                          Content="{loc:T AssistantRunChain}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunChainCommand}"
-                                          CommandParameter="{Binding}" />
+                                          CommandParameter="{Binding}">
+                                    <StackPanel Classes="iconLabel">
+                                      <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
+                                      <TextBlock Text="{loc:T AssistantRunChain}" />
+                                    </StackPanel>
+                                  </Button>
                                 </Grid>
                               </Border>
                               <SelectableTextBlock Margin="12,10" Text="{Binding Text}"
@@ -459,14 +528,24 @@
                       <Binding Path="IsDone" />
                     </MultiBinding>
                   </StackPanel.IsVisible>
-                  <Button Classes="small" Content="{loc:T AiAskWhy}"
+                  <Button Classes="small"
                           ToolTip.Tip="{loc:T AiAskWhyTip}"
                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).AskWhyCommand}"
-                          CommandParameter="{Binding}" />
-                  <Button Classes="small" Content="{loc:T Delete}"
+                          CommandParameter="{Binding}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" />
+                      <TextBlock Text="{loc:T AiAskWhy}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="small"
                           ToolTip.Tip="{loc:T AiRemoveOutputTip}"
                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RemoveOutputCommand}"
-                          CommandParameter="{Binding}" />
+                          CommandParameter="{Binding}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                      <TextBlock Text="{loc:T Delete}" />
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
 
               </StackPanel>
@@ -500,10 +579,20 @@
           <TextBlock Text="{loc:T AssistantThisIsAskedOncePerSession}" FontSize="11"
                      Foreground="{DynamicResource TextFaint}" />
         </StackPanel>
-        <Button Grid.Column="1" Classes="go" Content="{loc:T AssistantRunIt}"
-                VerticalAlignment="Center" Command="{Binding ConfirmRunCommand}" />
-        <Button Grid.Column="2" Content="{loc:T Cancel}" Margin="8,0,0,0"
-                VerticalAlignment="Center" Command="{Binding CancelRunCommand}" />
+        <Button Grid.Column="1" Classes="go"
+                VerticalAlignment="Center" Command="{Binding ConfirmRunCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
+            <TextBlock Text="{loc:T AssistantRunIt}" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Margin="8,0,0,0"
+                VerticalAlignment="Center" Command="{Binding CancelRunCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+            <TextBlock Text="{loc:T Cancel}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 
@@ -515,10 +604,19 @@
              it rather than beside it, so neither takes width off the box itself. -->
         <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
 
-          <Button Grid.Column="0" Classes="small" Content="{loc:T AssistantAttachAFile}"
-                  Command="{Binding AttachCommand}" />
+          <Button Grid.Column="0" Classes="small"
+                  Command="{Binding AttachCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.File}" />
+              <TextBlock Text="{loc:T AssistantAttachAFile}" />
+            </StackPanel>
+          </Button>
 
-          <Button Grid.Column="1" Classes="small" Content="{loc:T AssistantPrompts}" Margin="8,0,0,0">
+          <Button Grid.Column="1" Classes="small" Margin="8,0,0,0">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Bookmark}" />
+              <TextBlock Text="{loc:T AssistantPrompts}" />
+            </StackPanel>
             <Button.Flyout>
               <Flyout Placement="TopEdgeAlignedLeft">
                 <Border Width="330" MaxHeight="340">
@@ -533,10 +631,15 @@
                                     Content="{Binding Name}"
                                     Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).UsePromptCommand}"
                                     CommandParameter="{Binding}" />
-                            <Button Grid.Column="1" Classes="small" Content="{loc:T Delete}"
+                            <Button Grid.Column="1" Classes="small"
                                     VerticalAlignment="Center"
                                     Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).DeletePromptCommand}"
-                                    CommandParameter="{Binding}" />
+                                    CommandParameter="{Binding}">
+                              <StackPanel Classes="iconLabel">
+                                <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                                <TextBlock Text="{loc:T Delete}" />
+                              </StackPanel>
+                            </Button>
                           </Grid>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
@@ -547,8 +650,13 @@
             </Button.Flyout>
           </Button>
 
-          <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantKeepThisPrompt}" Margin="8,0,0,0"
-                  Command="{Binding SavePromptCommand}" />
+          <Button Grid.Column="2" Classes="small" Margin="8,0,0,0"
+                  Command="{Binding SavePromptCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+              <TextBlock Text="{loc:T AssistantKeepThisPrompt}" />
+            </StackPanel>
+          </Button>
 
           <TextBlock Grid.Column="4" Text="{Binding AttachmentNote}" FontSize="11"
                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
@@ -569,9 +677,11 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="{Binding Summary}" FontSize="11" VerticalAlignment="Center"
                              Foreground="{DynamicResource Text}" />
-                  <Button Classes="small" Content="×" Padding="6,0"
+                  <Button Classes="small" Padding="6,0"
                           Command="{Binding $parent[ItemsControl].((vm:AssistantViewModel)DataContext).DetachCommand}"
-                          CommandParameter="{Binding}" />
+                          CommandParameter="{Binding}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                  </Button>
                 </StackPanel>
               </Border>
             </DataTemplate>
@@ -587,10 +697,20 @@
                    IsEnabled="{Binding CanType}"
                    AcceptsReturn="True" MinHeight="64" MaxHeight="150"
                    VerticalContentAlignment="Top" />
-          <Button Grid.Column="1" Classes="go" Content="{loc:T Send}" Margin="10,0,0,0"
-                  VerticalAlignment="Bottom" Command="{Binding SendCommand}" />
-          <Button Grid.Column="2" Content="{loc:T Stop}" Margin="8,0,0,0"
-                  VerticalAlignment="Bottom" Command="{Binding StopCommand}" />
+          <Button Grid.Column="1" Classes="go" Margin="10,0,0,0"
+                  VerticalAlignment="Bottom" Command="{Binding SendCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Send}" />
+              <TextBlock Text="{loc:T Send}" />
+            </StackPanel>
+          </Button>
+          <Button Grid.Column="2" Margin="8,0,0,0"
+                  VerticalAlignment="Bottom" Command="{Binding StopCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+              <TextBlock Text="{loc:T Stop}" />
+            </StackPanel>
+          </Button>
         </Grid>
 
       </StackPanel>
@@ -614,8 +734,13 @@
                      Classes="usage" Classes.tight="{Binding ContextIsTight}" />
         </StackPanel>
 
-        <Button Grid.Column="2" Classes="small" Content="{loc:T AssistantStopTheScript}"
-                IsVisible="{Binding IsRunning}" Command="{Binding StopCodeCommand}" />
+        <Button Grid.Column="2" Classes="small"
+                IsVisible="{Binding IsRunning}" Command="{Binding StopCodeCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+            <TextBlock Text="{loc:T AssistantStopTheScript}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 

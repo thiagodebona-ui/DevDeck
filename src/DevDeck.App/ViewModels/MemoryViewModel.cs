@@ -107,6 +107,13 @@ namespace DevDeck.App.ViewModels
             Step = step;
             this.changed = changed;
             isOn = on && MemoryClean.Supported(step);
+
+            // Read from the translated table, so a change of language has to redraw them.
+            Strings.Changed += () =>
+            {
+                OnPropertyChanged(nameof(Title));
+                OnPropertyChanged(nameof(Explain));
+            };
         }
 
         public MemoryStep Step { get; }
@@ -151,7 +158,7 @@ namespace DevDeck.App.ViewModels
         /// <summary>Resets the row to "ticked, not started" at the top of a run.</summary>
         public void Queue()
         {
-            Outcome = "waiting…";
+            Outcome = Strings.Text("MemWaiting");
             OutcomeIsBad = false;
             IsWaiting = true;
             IsRunning = false;
@@ -252,6 +259,16 @@ namespace DevDeck.App.ViewModels
 
         [ObservableProperty]
         private string available = "—";
+
+        /// <summary>"of 63.7 GB physical", in the language the app is read in.</summary>
+        public string TotalLine => Strings.Format("MemOfPhysical", Total);
+
+        /// <summary>"38.4 GB available".</summary>
+        public string AvailableLine => Strings.Format("MemAvailable", Available);
+
+        partial void OnTotalChanged(string value) => OnPropertyChanged(nameof(TotalLine));
+
+        partial void OnAvailableChanged(string value) => OnPropertyChanged(nameof(AvailableLine));
 
         [ObservableProperty]
         private double usedPercent;

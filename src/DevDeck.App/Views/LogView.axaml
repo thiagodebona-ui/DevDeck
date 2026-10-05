@@ -3,6 +3,7 @@
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
+             xmlns:app="using:DevDeck.App"
              x:Class="DevDeck.App.Views.LogView"
              x:DataType="vm:LogViewModel">
 
@@ -94,16 +95,31 @@
                 IsChecked="{Binding ProblemsOnly, Mode=TwoWay}" />
 
       <ToggleButton Name="SelectLines" Grid.Column="2" Margin="0,0,6,0" VerticalAlignment="Center"
-                    Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                    ToolTip.Tip="{loc:T SelectTextTip}"
                     FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
                     Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
-                    BorderBrush="{DynamicResource Line}" />
+                    BorderBrush="{DynamicResource Line}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Case}" />
+          <TextBlock Text="{loc:T SelectText}" />
+        </StackPanel>
+      </ToggleButton>
 
-      <Button Grid.Column="3" Content="{loc:T LogCopyAll}" Margin="0,0,6,0"
-              Command="{Binding CopyAllCommand}" />
+      <Button Grid.Column="3" Margin="0,0,6,0"
+              Command="{Binding CopyAllCommand}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+          <TextBlock Text="{loc:T LogCopyAll}" />
+        </StackPanel>
+      </Button>
 
-      <Button Grid.Column="4" Classes="danger" Content="{loc:T Clear}"
-              Command="{Binding ClearCommand}" />
+      <Button Grid.Column="4" Classes="danger"
+              Command="{Binding ClearCommand}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+          <TextBlock Text="{loc:T Clear}" />
+        </StackPanel>
+      </Button>
 
     </Grid>
 

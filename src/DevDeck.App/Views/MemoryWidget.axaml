@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:DevDeck.App"
         xmlns:loc="using:DevDeck.App.Localisation"
         xmlns:vm="using:DevDeck.App.ViewModels"
         xmlns:views="using:DevDeck.App.Views"
@@ -159,6 +160,12 @@
       <Setter Property="TextElement.Foreground" Value="{DynamicResource Text}" />
     </Style>
 
+    <!-- The cross is a Path stroked from the button's Foreground, which the rule above does not
+         change, so it is brightened here with the background. -->
+    <Style Selector="Button.close:pointerover Path.icon">
+      <Setter Property="Stroke" Value="{DynamicResource Text}" />
+    </Style>
+
     <!-- The hint under the reading, shown on hover, which is the only thing that says the face is
          clickable. Hover is the right moment for it: at rest the widget is a readout. -->
     <Style Selector="TextBlock.hint">
@@ -192,11 +199,19 @@
          way back to the app - and the only way out of it. -->
     <Border.ContextMenu>
       <ContextMenu>
-        <MenuItem Header="{loc:T MemoryWidgetShowDevDeck}" Command="{Binding ShowCommand}" />
-        <MenuItem Header="{loc:T MemoryWidgetCleanMemoryNow}" Command="{Binding CleanCommand}" />
+        <MenuItem Header="{loc:T MemoryWidgetShowDevDeck}" Command="{Binding ShowCommand}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Home}" /></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{loc:T MemoryWidgetCleanMemoryNow}" Command="{Binding CleanCommand}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" /></MenuItem.Icon>
+        </MenuItem>
         <Separator />
-        <MenuItem Header="{loc:T MemoryWidgetHideWidget}" Command="{Binding HideWidgetCommand}" />
-        <MenuItem Header="{loc:T MemoryWidgetQuitDevDeck}" Command="{Binding QuitCommand}" />
+        <MenuItem Header="{loc:T MemoryWidgetHideWidget}" Command="{Binding HideWidgetCommand}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{loc:T MemoryWidgetQuitDevDeck}" Command="{Binding QuitCommand}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Power}" /></MenuItem.Icon>
+        </MenuItem>
       </ContextMenu>
     </Border.ContextMenu>
 
@@ -260,9 +275,11 @@
         <TextBlock Classes="sub" Text="{loc:T MemoryWidgetFreed}" IsVisible="{Binding FlashGood}" />
       </StackPanel>
 
-      <Button Classes="close" Content="✕" Click="CloseClick"
+      <Button Classes="close" Click="CloseClick"
               VerticalAlignment="Top" HorizontalAlignment="Right"
-              Margin="0,16,16,0" />
+              Margin="0,16,16,0">
+        <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+      </Button>
 
     </Panel>
   </Border>

@@ -169,6 +169,35 @@ namespace DevDeck.App.Localisation
             "MemPid",
             "MemDetail",
             "MemCores",
+            "MemOfPhysical",
+            "MemAvailable",
+            "MemWaiting",
+            "MemStatusDone",
+            "MemStatusNeedsAdmin",
+            "MemStatusFailed",
+            "MemStatusUnsupported",
+            "MemStatusSkipped",
+            "MemStepCollectOwnGarbage",
+            "MemStepCollectOwnGarbageWhy",
+            "MemStepTrimProcessWorkingSets",
+            "MemStepTrimProcessWorkingSetsWhy",
+            "MemStepEmptySystemWorkingSets",
+            "MemStepEmptySystemWorkingSetsWhy",
+            "MemStepFlushModifiedPages",
+            "MemStepFlushModifiedPagesWhy",
+            "MemStepTrimFileCache",
+            "MemStepTrimFileCacheWhy",
+            "MemStepPurgeLowPriorityStandby",
+            "MemStepPurgeLowPriorityStandbyWhy",
+            "MemStepPurgeStandbyList",
+            "MemStepPurgeStandbyListWhy",
+            "MemStepDropPageCacheMac",
+            "MemStepDropPageCacheMacWhy",
+            "MemStepDropPageCacheLinux",
+            "MemStepDropPageCacheLinuxWhy",
+            "MemWhyNoPageCache",
+            "MemWhyTrimWindowsOnly",
+            "MemWhyWindowsOnly",
             "MemCleaning",
             "MemCleanLabel",
             "MemNothingTicked",
@@ -236,6 +265,8 @@ namespace DevDeck.App.Localisation
             "NavAutomationBlurb",
             "NavClipboard",
             "NavClipboardBlurb",
+            "NavScreenshots",
+            "NavScreenshotsBlurb",
             "NavLog",
             "NavLogBlurb",
             "NavMemory",
@@ -330,6 +361,11 @@ namespace DevDeck.App.Localisation
             "IconPickerNone",
             "HttpChooseIcon",
             "HttpGroupIcon",
+            "HttpSendGroup",
+            "HttpStopGroup",
+            "HttpGroupSending",
+            "HttpGroupSent",
+            "HttpGroupSentFailed",
             "AutomationNoStepsYet",
             "AutomationAddStep",
             "AutomationMoveStepUp",
@@ -380,6 +416,52 @@ namespace DevDeck.App.Localisation
             "ClipsOpenThisInTheBrowser",
             "ClipsLink",
             "ClipsNothingRecordedYet",
+            "ShotsTitle",
+            "ShotsSubtitle",
+            "ShotsKeepClipboardImages",
+            "ShotsKeepClipboardTip",
+            "ShotsWindowsHint",
+            "ShotsOtherHint",
+            "ShotsNoFolder",
+            "ShotsOpenFolder",
+            "ShotsSearch",
+            "ShotsCopyImage",
+            "ShotsCopyPath",
+            "ShotsDelete",
+            "ShotsShowMore",
+            "ShotsFromClipboard",
+            "ShotsNothingYet",
+            "ShotsSelectOne",
+            "ShotsOpen",
+            "ShotsShowInFolder",
+            "ShotsCount",
+            "ShotsShowing",
+            "ShotsImageCopied",
+            "ShotsPathCopied",
+            "ShotsRecycled",
+            "ShotsDeleted",
+            "ShotsCannotDelete",
+            "ShotsKeepingOn",
+            "ShotsKeepingOff",
+            "ShotsFavourite",
+            "ShotsUnfavourite",
+            "ShotsFavouriteTip",
+            "ShotsFavouritesOnly",
+            "ShotsThumbnails",
+            "ShotsList",
+            "ShotsDetails",
+            "ShotsColName",
+            "ShotsColTaken",
+            "ShotsColDimensions",
+            "ShotsColSize",
+            "ShotsColSource",
+            "ShotsSourceFolder",
+            "ShotsSourceClipboard",
+            "ShotsSelected",
+            "ShotsPathsCopied",
+            "ShotsImagesCopied",
+            "ShotsRecycledMany",
+            "ShotsDeletedMany",
             "CommandsCommands",
             "CommandsWorkspace",
             "CommandsNoFolderChosenYet",
@@ -1094,6 +1176,93 @@ namespace DevDeck.App.Localisation
         /// <summary>{0} logical cores</summary>
         public string MemCores => Strings.Text("MemCores");
 
+        /// <summary>of {0} physical</summary>
+        public string MemOfPhysical => Strings.Text("MemOfPhysical");
+
+        /// <summary>{0} available</summary>
+        public string MemAvailable => Strings.Text("MemAvailable");
+
+        /// <summary>waiting…</summary>
+        public string MemWaiting => Strings.Text("MemWaiting");
+
+        /// <summary>done</summary>
+        public string MemStatusDone => Strings.Text("MemStatusDone");
+
+        /// <summary>needs administrator</summary>
+        public string MemStatusNeedsAdmin => Strings.Text("MemStatusNeedsAdmin");
+
+        /// <summary>failed</summary>
+        public string MemStatusFailed => Strings.Text("MemStatusFailed");
+
+        /// <summary>not on this platform</summary>
+        public string MemStatusUnsupported => Strings.Text("MemStatusUnsupported");
+
+        /// <summary>skipped</summary>
+        public string MemStatusSkipped => Strings.Text("MemStatusSkipped");
+
+        /// <summary>Collect DevDeck's own garbage</summary>
+        public string MemStepCollectOwnGarbage => Strings.Text("MemStepCollectOwnGarbage");
+
+        /// <summary>Full collection with large-object compaction, then hands this app's ow</summary>
+        public string MemStepCollectOwnGarbageWhy => Strings.Text("MemStepCollectOwnGarbageWhy");
+
+        /// <summary>Trim every process's working set</summary>
+        public string MemStepTrimProcessWorkingSets => Strings.Text("MemStepTrimProcessWorkingSets");
+
+        /// <summary>Asks every process this account may touch to page out what it is not u</summary>
+        public string MemStepTrimProcessWorkingSetsWhy => Strings.Text("MemStepTrimProcessWorkingSetsWhy");
+
+        /// <summary>Empty all working sets, system-wide</summary>
+        public string MemStepEmptySystemWorkingSets => Strings.Text("MemStepEmptySystemWorkingSets");
+
+        /// <summary>The same, for every process on the machine - services and other sessio</summary>
+        public string MemStepEmptySystemWorkingSetsWhy => Strings.Text("MemStepEmptySystemWorkingSetsWhy");
+
+        /// <summary>Flush modified pages to disk</summary>
+        public string MemStepFlushModifiedPages => Strings.Text("MemStepFlushModifiedPages");
+
+        /// <summary>Writes dirty pages out so they can be freed. Costs disk writes, so it </summary>
+        public string MemStepFlushModifiedPagesWhy => Strings.Text("MemStepFlushModifiedPagesWhy");
+
+        /// <summary>Trim the system file cache</summary>
+        public string MemStepTrimFileCache => Strings.Text("MemStepTrimFileCache");
+
+        /// <summary>Hands back memory Windows is holding for cached files. The cache refil</summary>
+        public string MemStepTrimFileCacheWhy => Strings.Text("MemStepTrimFileCacheWhy");
+
+        /// <summary>Purge the low-priority standby cache</summary>
+        public string MemStepPurgeLowPriorityStandby => Strings.Text("MemStepPurgeLowPriorityStandby");
+
+        /// <summary>Frees the cheap half of the standby cache: prefetch data and pages not</summary>
+        public string MemStepPurgeLowPriorityStandbyWhy => Strings.Text("MemStepPurgeLowPriorityStandbyWhy");
+
+        /// <summary>Purge the standby cache</summary>
+        public string MemStepPurgeStandbyList => Strings.Text("MemStepPurgeStandbyList");
+
+        /// <summary>Frees the standby cache outright. This is the step that actually moves</summary>
+        public string MemStepPurgeStandbyListWhy => Strings.Text("MemStepPurgeStandbyListWhy");
+
+        /// <summary>Purge the disk cache</summary>
+        public string MemStepDropPageCacheMac => Strings.Text("MemStepDropPageCacheMac");
+
+        /// <summary>Runs purge, which drops the disk cache. Needs an administrator.</summary>
+        public string MemStepDropPageCacheMacWhy => Strings.Text("MemStepDropPageCacheMacWhy");
+
+        /// <summary>Drop the kernel page cache</summary>
+        public string MemStepDropPageCacheLinux => Strings.Text("MemStepDropPageCacheLinux");
+
+        /// <summary>Writes to /proc/sys/vm/drop_caches. Needs root, and the cache refills </summary>
+        public string MemStepDropPageCacheLinuxWhy => Strings.Text("MemStepDropPageCacheLinuxWhy");
+
+        /// <summary>Windows has no page cache to drop; the standby steps are its equivalen</summary>
+        public string MemWhyNoPageCache => Strings.Text("MemWhyNoPageCache");
+
+        /// <summary>No kernel but Windows lets one process trim another's resident pages, </summary>
+        public string MemWhyTrimWindowsOnly => Strings.Text("MemWhyTrimWindowsOnly");
+
+        /// <summary>Windows only - this is a call into the Windows memory manager with no </summary>
+        public string MemWhyWindowsOnly => Strings.Text("MemWhyWindowsOnly");
+
         /// <summary>Cleaning…</summary>
         public string MemCleaning => Strings.Text("MemCleaning");
 
@@ -1294,6 +1463,12 @@ namespace DevDeck.App.Localisation
 
         /// <summary>What you have copied, once you switch it on.</summary>
         public string NavClipboardBlurb => Strings.Text("NavClipboardBlurb");
+
+        /// <summary>Screenshots</summary>
+        public string NavScreenshots => Strings.Text("NavScreenshots");
+
+        /// <summary>Every screenshot you take, in one place.</summary>
+        public string NavScreenshotsBlurb => Strings.Text("NavScreenshotsBlurb");
 
         /// <summary>Log</summary>
         public string NavLog => Strings.Text("NavLog");
@@ -1577,6 +1752,21 @@ namespace DevDeck.App.Localisation
         /// <summary>Group icon...</summary>
         public string HttpGroupIcon => Strings.Text("HttpGroupIcon");
 
+        /// <summary>Send every request in this group, all at once</summary>
+        public string HttpSendGroup => Strings.Text("HttpSendGroup");
+
+        /// <summary>Stop every request in this group that is still out</summary>
+        public string HttpStopGroup => Strings.Text("HttpStopGroup");
+
+        /// <summary>{0}: sending all {1} at once…</summary>
+        public string HttpGroupSending => Strings.Text("HttpGroupSending");
+
+        /// <summary>{0}: all {1} answered.</summary>
+        public string HttpGroupSent => Strings.Text("HttpGroupSent");
+
+        /// <summary>{0}: {1} sent, {2} did not answer 2xx or 3xx.</summary>
+        public string HttpGroupSentFailed => Strings.Text("HttpGroupSentFailed");
+
         /// <summary>No steps yet. Pick a command below and add it.</summary>
         public string AutomationNoStepsYet => Strings.Text("AutomationNoStepsYet");
 
@@ -1727,6 +1917,144 @@ namespace DevDeck.App.Localisation
         /// <summary>Nothing recorded yet.</summary>
         public string ClipsNothingRecordedYet => Strings.Text("ClipsNothingRecordedYet");
 
+        /// <summary>Screenshots</summary>
+        public string ShotsTitle => Strings.Text("ShotsTitle");
+
+        /// <summary>Every capture, newest first. Ctrl or Shift selects several. Drag out t</summary>
+        public string ShotsSubtitle => Strings.Text("ShotsSubtitle");
+
+        /// <summary>Also keep images I copy</summary>
+        public string ShotsKeepClipboardImages => Strings.Text("ShotsKeepClipboardImages");
+
+        /// <summary>For captures that never reach a file: Snipping Tool with automatic sav</summary>
+        public string ShotsKeepClipboardTip => Strings.Text("ShotsKeepClipboardTip");
+
+        /// <summary>Win+Shift+S captures appear here as Snipping Tool saves them to {0}. I</summary>
+        public string ShotsWindowsHint => Strings.Text("ShotsWindowsHint");
+
+        /// <summary>Screenshots the system saves in {0} appear here.</summary>
+        public string ShotsOtherHint => Strings.Text("ShotsOtherHint");
+
+        /// <summary>No screenshots folder found on this system yet. On Windows, Also keep </summary>
+        public string ShotsNoFolder => Strings.Text("ShotsNoFolder");
+
+        /// <summary>Open folder</summary>
+        public string ShotsOpenFolder => Strings.Text("ShotsOpenFolder");
+
+        /// <summary>Search by name or date</summary>
+        public string ShotsSearch => Strings.Text("ShotsSearch");
+
+        /// <summary>Copy image</summary>
+        public string ShotsCopyImage => Strings.Text("ShotsCopyImage");
+
+        /// <summary>Copy path</summary>
+        public string ShotsCopyPath => Strings.Text("ShotsCopyPath");
+
+        /// <summary>Delete</summary>
+        public string ShotsDelete => Strings.Text("ShotsDelete");
+
+        /// <summary>Show more</summary>
+        public string ShotsShowMore => Strings.Text("ShotsShowMore");
+
+        /// <summary>from the clipboard</summary>
+        public string ShotsFromClipboard => Strings.Text("ShotsFromClipboard");
+
+        /// <summary>No screenshots yet.</summary>
+        public string ShotsNothingYet => Strings.Text("ShotsNothingYet");
+
+        /// <summary>Select a screenshot to see it here.</summary>
+        public string ShotsSelectOne => Strings.Text("ShotsSelectOne");
+
+        /// <summary>Open</summary>
+        public string ShotsOpen => Strings.Text("ShotsOpen");
+
+        /// <summary>Show in folder</summary>
+        public string ShotsShowInFolder => Strings.Text("ShotsShowInFolder");
+
+        /// <summary>{0} screenshots</summary>
+        public string ShotsCount => Strings.Text("ShotsCount");
+
+        /// <summary>Showing {0} of {1}</summary>
+        public string ShotsShowing => Strings.Text("ShotsShowing");
+
+        /// <summary>Image copied.</summary>
+        public string ShotsImageCopied => Strings.Text("ShotsImageCopied");
+
+        /// <summary>Path copied.</summary>
+        public string ShotsPathCopied => Strings.Text("ShotsPathCopied");
+
+        /// <summary>Sent to the Recycle Bin.</summary>
+        public string ShotsRecycled => Strings.Text("ShotsRecycled");
+
+        /// <summary>Deleted.</summary>
+        public string ShotsDeleted => Strings.Text("ShotsDeleted");
+
+        /// <summary>Could not delete it. Is it open somewhere?</summary>
+        public string ShotsCannotDelete => Strings.Text("ShotsCannotDelete");
+
+        /// <summary>Keeping images you copy, in {0}.</summary>
+        public string ShotsKeepingOn => Strings.Text("ShotsKeepingOn");
+
+        /// <summary>Stopped keeping copied images. Those already kept stay until you delet</summary>
+        public string ShotsKeepingOff => Strings.Text("ShotsKeepingOff");
+
+        /// <summary>Favourite</summary>
+        public string ShotsFavourite => Strings.Text("ShotsFavourite");
+
+        /// <summary>Unfavourite</summary>
+        public string ShotsUnfavourite => Strings.Text("ShotsUnfavourite");
+
+        /// <summary>Favourite</summary>
+        public string ShotsFavouriteTip => Strings.Text("ShotsFavouriteTip");
+
+        /// <summary>Favourites only</summary>
+        public string ShotsFavouritesOnly => Strings.Text("ShotsFavouritesOnly");
+
+        /// <summary>Thumbnails</summary>
+        public string ShotsThumbnails => Strings.Text("ShotsThumbnails");
+
+        /// <summary>List</summary>
+        public string ShotsList => Strings.Text("ShotsList");
+
+        /// <summary>Details</summary>
+        public string ShotsDetails => Strings.Text("ShotsDetails");
+
+        /// <summary>Name</summary>
+        public string ShotsColName => Strings.Text("ShotsColName");
+
+        /// <summary>Taken</summary>
+        public string ShotsColTaken => Strings.Text("ShotsColTaken");
+
+        /// <summary>Dimensions</summary>
+        public string ShotsColDimensions => Strings.Text("ShotsColDimensions");
+
+        /// <summary>Size</summary>
+        public string ShotsColSize => Strings.Text("ShotsColSize");
+
+        /// <summary>Source</summary>
+        public string ShotsColSource => Strings.Text("ShotsColSource");
+
+        /// <summary>Screenshots folder</summary>
+        public string ShotsSourceFolder => Strings.Text("ShotsSourceFolder");
+
+        /// <summary>Clipboard</summary>
+        public string ShotsSourceClipboard => Strings.Text("ShotsSourceClipboard");
+
+        /// <summary>{0} selected</summary>
+        public string ShotsSelected => Strings.Text("ShotsSelected");
+
+        /// <summary>{0} paths copied.</summary>
+        public string ShotsPathsCopied => Strings.Text("ShotsPathsCopied");
+
+        /// <summary>{0} images copied as files.</summary>
+        public string ShotsImagesCopied => Strings.Text("ShotsImagesCopied");
+
+        /// <summary>{0} sent to the Recycle Bin.</summary>
+        public string ShotsRecycledMany => Strings.Text("ShotsRecycledMany");
+
+        /// <summary>{0} deleted.</summary>
+        public string ShotsDeletedMany => Strings.Text("ShotsDeletedMany");
+
         /// <summary>Commands</summary>
         public string CommandsCommands => Strings.Text("CommandsCommands");
 
@@ -1847,7 +2175,7 @@ namespace DevDeck.App.Localisation
         /// <summary>Environment name</summary>
         public string EnvironmentEnvironmentName => Strings.Text("EnvironmentEnvironmentName");
 
-        /// <summary>+ Add value</summary>
+        /// <summary>Add value</summary>
         public string EnvironmentAddValue => Strings.Text("EnvironmentAddValue");
 
         /// <summary>Done</summary>
@@ -1940,7 +2268,7 @@ namespace DevDeck.App.Localisation
         /// <summary>Headers</summary>
         public string HttpHeaders => Strings.Text("HttpHeaders");
 
-        /// <summary>+ Add</summary>
+        /// <summary>Add</summary>
         public string HttpAdd => Strings.Text("HttpAdd");
 
         /// <summary>Send this header</summary>

@@ -58,6 +58,11 @@ namespace DevDeck.App
         public static readonly Geometry Clipboard = Geometry.Parse(
             "M6 2.6 H10 V4.6 H6 Z M6 3.6 H3.8 V13.6 H12.2 V3.6 H10 M5.8 7.4 H10.2 M5.8 10 H9");
 
+        /// <summary>The corners of a selection round a hill and a sun: a captured piece of screen.</summary>
+        public static readonly Geometry Screenshots = Geometry.Parse(
+            "M2.4 5.4 V2.4 H5.4 M10.6 2.4 H13.6 V5.4 M13.6 10.6 V13.6 H10.6 M5.4 13.6 H2.4 V10.6 "
+            + "M4.8 11 L7 8.4 L8.6 10 L9.6 9 L11.2 11 M10 5.6 A0.9 0.9 0 1 1 9.99 5.6 Z");
+
         /// <summary>Lines of text, getting shorter: a log, rather than a document.</summary>
         public static readonly Geometry Log = Geometry.Parse(
             "M3 3.6 H13 M3 6.4 H13 M3 9.2 H10.5 M3 12 H8");
@@ -257,6 +262,18 @@ namespace DevDeck.App
 
         public static readonly Geometry List = Geometry.Parse(
             "M5.6 4.2 H13.4 M5.6 8 H13.4 M5.6 11.8 H13.4 M2.8 4.2 H2.81 M2.8 8 H2.81 M2.8 11.8 H2.81");
+
+        /// <summary>Three dots in a row: more actions, in a menu.</summary>
+        public static readonly Geometry More = Geometry.Parse(
+            "M3.4 7.2 A0.8 0.8 0 1 1 3.39 7.2 Z M8 7.2 A0.8 0.8 0 1 1 7.99 7.2 Z M12.6 7.2 A0.8 0.8 0 1 1 12.59 7.2 Z");
+
+        /// <summary>A table with a header row and a name column: a details view.</summary>
+        public static readonly Geometry Table = Geometry.Parse(
+            "M2.4 3.2 H13.6 V12.8 H2.4 Z M2.4 6 H13.6 M2.4 9.4 H13.6 M6.2 3.2 V12.8");
+
+        /// <summary>A box with an arrow leaving it: opens in another application.</summary>
+        public static readonly Geometry External = Geometry.Parse(
+            "M9.4 2.6 H13.4 V6.6 M13.4 2.6 L7.6 8.4 M11.6 9.4 V13.4 H2.6 V4.4 H6.6");
 
         /// <summary>A sheet with a folded corner.</summary>
         public static readonly Geometry File = Geometry.Parse(

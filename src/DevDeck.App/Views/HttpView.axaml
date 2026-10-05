@@ -34,53 +34,81 @@
 
         <Grid.ContextMenu>
           <ContextMenu x:DataType="vm:HttpViewModel" Opening="RowMenuOpening">
-            <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}" />
+            <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Edit}" /></MenuItem.Icon>
+            </MenuItem>
             <MenuItem Header="{loc:T HttpNameItAfterTheURL}"
-                      Command="{Binding RenameCommand}" />
+                      Command="{Binding RenameCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Link}" /></MenuItem.Icon>
+            </MenuItem>
             <MenuItem Header="{loc:T HttpDuplicate}"
-                      Command="{Binding DuplicateCommand}" />
+                      Command="{Binding DuplicateCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Copy}" /></MenuItem.Icon>
+            </MenuItem>
             <MenuItem Header="{loc:T HttpChooseIcon}"
-                      Command="{Binding ChooseIconCommand}" />
+                      Command="{Binding ChooseIconCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Star}" /></MenuItem.Icon>
+            </MenuItem>
             <Separator />
 
             <!-- Named colours rather than swatches alone. A flag means whatever the person using
                  it decided it means, and a menu of seven unlabelled squares says nothing about
                  which is which to someone who cannot tell two of them apart. -->
             <MenuItem Header="{loc:T HttpFlag}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
               <MenuItem Header="{loc:T HttpNoFlag}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="" />
+                        CommandParameter="">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
+              </MenuItem>
               <Separator />
               <MenuItem Header="{loc:T HttpRed}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="red" />
+                        CommandParameter="red">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{loc:T HttpAmber}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="amber" />
+                        CommandParameter="amber">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{loc:T HttpGreen}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="green" />
+                        CommandParameter="green">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{loc:T HttpBlue}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="blue" />
+                        CommandParameter="blue">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{loc:T HttpPurple}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="purple" />
+                        CommandParameter="purple">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{loc:T HttpGrey}"
                         Command="{Binding FlagCommand}"
-                        CommandParameter="grey" />
+                        CommandParameter="grey">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+              </MenuItem>
             </MenuItem>
 
             <!-- The groups that exist, then a way to make one. The existing ones are listed
                  because filing into a group by typing its name again is how two groups called
                  almost the same thing appear. -->
             <MenuItem Header="{loc:T HttpMoveToGroup}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Folder}" /></MenuItem.Icon>
               <MenuItem Header="{loc:T HttpNoGroup}"
                         Command="{Binding MoveToGroupCommand}"
-                        CommandParameter="" />
+                        CommandParameter="">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
+              </MenuItem>
               <Separator />
               <MenuItem Header="{loc:T HttpNewGroup}"
-                        Command="{Binding MoveToNewGroupCommand}" />
+                        Command="{Binding MoveToNewGroupCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Add}" /></MenuItem.Icon>
+              </MenuItem>
               <Separator IsVisible="{Binding HasGroups}" />
 
               <!-- Each choice carries its own command, so the generated items need no ancestor
@@ -90,6 +118,7 @@
               <MenuItem Header="{loc:T HttpExisting}"
                         ItemsSource="{Binding GroupChoices}"
                         IsVisible="{Binding HasGroups}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.List}" /></MenuItem.Icon>
                 <MenuItem.Styles>
                   <Style Selector="MenuItem > MenuItem" x:DataType="vm:GroupChoice">
                     <Setter Property="Header" Value="{Binding Name}" />
@@ -102,10 +131,14 @@
 
             <Separator />
             <MenuItem Header="{loc:T HttpCopyAsCurl}"
-                      Command="{Binding CopyCurlCommand}" />
+                      Command="{Binding CopyCurlCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Terminal}" /></MenuItem.Icon>
+            </MenuItem>
             <Separator />
             <MenuItem Header="{loc:T HttpDeleteThisRequest}"
-                      Command="{Binding DeleteRequestCommand}" />
+                      Command="{Binding DeleteRequestCommand}">
+              <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Delete}" /></MenuItem.Icon>
+            </MenuItem>
           </ContextMenu>
         </Grid.ContextMenu>
 
@@ -384,6 +417,31 @@
       <Setter Property="Background" Value="{DynamicResource SteelHover}" />
     </Style>
 
+    <!-- Send the whole group: the header's colours, so it reads as part of the header, and the
+         accent under the pointer, as every button that starts something. -->
+    <Style Selector="Button.groupplay">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Padding" Value="9,0" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Button.groupplay:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
+    </Style>
+
+    <Style Selector="Button.groupplay:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="Button.groupstop, Button.groupstop:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
     <!-- The count, which is the one thing on the header that is not the name. Quieter than the
          name and quieter than the icon, because it is the answer to a question nobody asked
          until they were already looking at the row. -->
@@ -511,6 +569,22 @@
       <Setter Property="Foreground" Value="{DynamicResource Bad}" />
     </Style>
 
+    <!-- The response tools sit right of the status, and below it under 600 pixels; see
+         ResponseBar. Set by styles rather than on the element, because a value written on the
+         element outranks any style and the narrow one could never move it. -->
+    <Style Selector="StackPanel#ResponseTools">
+      <Setter Property="DockPanel.Dock" Value="Right" />
+      <Setter Property="Margin" Value="10,0,0,0" />
+    </Style>
+
+    <ContainerQuery Name="ResponseBar" Query="max-width:600">
+      <Style Selector="StackPanel#ResponseTools">
+        <Setter Property="DockPanel.Dock" Value="Bottom" />
+        <Setter Property="Margin" Value="0,6,0,0" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+      </Style>
+    </ContainerQuery>
+
   </UserControl.Styles>
 
   <!-- The tree's width is driven from the code-behind and found there by index off this Grid,
@@ -523,12 +597,25 @@
       <DockPanel LastChildFill="True">
 
         <StackPanel DockPanel.Dock="Bottom" Margin="10" Spacing="6">
-          <Button Content="{loc:T HttpNewRequest}" HorizontalAlignment="Stretch"
+          <TextBlock Text="{Binding GroupStatus}" FontSize="11" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextMuted}"
+                     IsVisible="{Binding GroupStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <Button HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center"
-                  Command="{Binding NewRequestCommand}" />
-          <Button Content="{loc:T HttpPasteACurlCommand}" HorizontalAlignment="Stretch"
+                  Command="{Binding NewRequestCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+              <TextBlock Text="{loc:T HttpNewRequest}" />
+            </StackPanel>
+          </Button>
+          <Button HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center"
-                  Command="{Binding PasteCurlCommand}" />
+                  Command="{Binding PasteCurlCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Clipboard}" />
+              <TextBlock Text="{loc:T HttpPasteACurlCommand}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
 
         <!-- Two lists stacked rather than one tree control: the requests filed under nothing sit
@@ -563,7 +650,26 @@
                 <DataTemplate x:DataType="vm:RequestGroup">
                   <StackPanel>
 
-                    <Button Classes="group" Click="GroupClicked" Tag="{Binding}">
+                    <!-- The play button sits beside the header rather than inside it: the header's
+                         whole width is the collapse toggle, and a button within a button would
+                         leave which of the two a click meant to the pointer's exact position. -->
+                    <Grid ColumnDefinitions="*,Auto">
+                    <Button Grid.Column="1" Classes="groupplay"
+                            IsVisible="{Binding !Running}"
+                            ToolTip.Tip="{loc:T HttpSendGroup}"
+                            Command="{Binding $parent[UserControl].((vm:HttpViewModel)DataContext).SendGroupCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
+                    </Button>
+                    <!-- In the play button's place while the group runs: stop where you pressed go. -->
+                    <Button Grid.Column="1" Classes="groupplay groupstop"
+                            IsVisible="{Binding Running}"
+                            ToolTip.Tip="{loc:T HttpStopGroup}"
+                            Command="{Binding $parent[UserControl].((vm:HttpViewModel)DataContext).StopGroupCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                    </Button>
+                    <Button Grid.Column="0" Classes="group" Click="GroupClicked" Tag="{Binding}">
 
                       <!-- Right-click sets the icon. There is nowhere else to put it: a group is
                            not a thing that can be selected, so it has no place in the request
@@ -571,7 +677,9 @@
                            is already the collapse toggle. -->
                       <Button.ContextMenu>
                         <ContextMenu Opening="GroupMenuOpening" Tag="{Binding}">
-                          <MenuItem Header="{loc:T HttpGroupIcon}" Click="GroupIconClicked" />
+                          <MenuItem Header="{loc:T HttpGroupIcon}" Click="GroupIconClicked">
+                            <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Star}" /></MenuItem.Icon>
+                          </MenuItem>
                         </ContextMenu>
                       </Button.ContextMenu>
 
@@ -594,6 +702,7 @@
                                    Text="{Binding Tally}" />
                       </Grid>
                     </Button>
+                    </Grid>
 
                     <ListBox Classes="saved"
                              ItemsSource="{Binding Requests}"
@@ -647,12 +756,22 @@
                    ToolTip.Tip="{Binding EnvironmentNote}" />
 
         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
-          <Button Classes="bare" Content="{loc:T Clear}"
+          <Button Classes="bare"
                   Command="{Binding ClearEnvironmentCommand}"
                   IsVisible="{Binding HasEnvironment}"
-                  ToolTip.Tip="{loc:T HttpSendRequestsExactlyAsTheyAre}" />
-          <Button Content="{loc:T HttpEdit}" Click="EditEnvironments"
-                  ToolTip.Tip="{loc:T HttpAddEnvironmentsAndTheValuesName}" />
+                  ToolTip.Tip="{loc:T HttpSendRequestsExactlyAsTheyAre}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+              <TextBlock Text="{loc:T Clear}" />
+            </StackPanel>
+          </Button>
+          <Button Click="EditEnvironments"
+                  ToolTip.Tip="{loc:T HttpAddEnvironmentsAndTheValuesName}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Power}" />
+              <TextBlock Text="{loc:T HttpEdit}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
 
       </Grid>
@@ -669,46 +788,86 @@
                  PlaceholderText="{loc:T HttpLocalhost5000HealthOrPasteA}"
                  ToolTip.Tip="{loc:T HttpACurlCommandPastedHereIs}" />
 
-        <Button Grid.Column="2" Classes="go" Content="{loc:T Send}" Margin="0,0,6,0"
+        <Button Grid.Column="2" Classes="go" Margin="0,0,6,0"
                 ToolTip.Tip="Ctrl+Enter"
                 Command="{Binding SendCommand}"
-                IsVisible="{Binding !Sending}" />
+                IsVisible="{Binding !Sending}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Send}" />
+            <TextBlock Text="{loc:T Send}" />
+          </StackPanel>
+        </Button>
 
-        <Button Grid.Column="2" Content="{loc:T Cancel}" Margin="0,0,6,0"
+        <Button Grid.Column="2" Margin="0,0,6,0"
                 Command="{Binding CancelCommand}"
-                IsVisible="{Binding Sending}" />
+                IsVisible="{Binding Sending}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+            <TextBlock Text="{loc:T Cancel}" />
+          </StackPanel>
+        </Button>
 
-        <Button Grid.Column="3" Content="⋯" ToolTip.Tip="{loc:T HttpMore}">
+        <Button Grid.Column="3" ToolTip.Tip="{loc:T HttpMore}">
+          <Path Classes="icon" Data="{x:Static app:Icons.More}" />
           <Button.Flyout>
             <MenuFlyout>
-              <MenuItem Header="{loc:T HttpCopyAsCurl}" Command="{Binding CopyCurlCommand}" />
-              <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}" />
-              <MenuItem Header="{loc:T HttpNameItAfterTheURL}" Command="{Binding RenameCommand}" />
-              <MenuItem Header="{loc:T HttpDuplicate}" Command="{Binding DuplicateCommand}" />
+              <MenuItem Header="{loc:T HttpCopyAsCurl}" Command="{Binding CopyCurlCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Terminal}" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{loc:T HttpRename}" Command="{Binding RenameAsCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Edit}" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{loc:T HttpNameItAfterTheURL}" Command="{Binding RenameCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Link}" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{loc:T HttpDuplicate}" Command="{Binding DuplicateCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Copy}" /></MenuItem.Icon>
+              </MenuItem>
               <Separator />
 
               <!-- The same two submenus as the row's own menu, because the row is not always
                    where the hand is: the panel is often driven from the editor with the tree
                    barely looked at. -->
               <MenuItem Header="{loc:T HttpFlag}">
-                <MenuItem Header="{loc:T HttpNoFlag}" Command="{Binding FlagCommand}" CommandParameter="" />
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                <MenuItem Header="{loc:T HttpNoFlag}" Command="{Binding FlagCommand}" CommandParameter="">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator />
-                <MenuItem Header="{loc:T HttpRed}" Command="{Binding FlagCommand}" CommandParameter="red" />
-                <MenuItem Header="{loc:T HttpAmber}" Command="{Binding FlagCommand}" CommandParameter="amber" />
-                <MenuItem Header="{loc:T HttpGreen}" Command="{Binding FlagCommand}" CommandParameter="green" />
-                <MenuItem Header="{loc:T HttpBlue}" Command="{Binding FlagCommand}" CommandParameter="blue" />
-                <MenuItem Header="{loc:T HttpPurple}" Command="{Binding FlagCommand}" CommandParameter="purple" />
-                <MenuItem Header="{loc:T HttpGrey}" Command="{Binding FlagCommand}" CommandParameter="grey" />
+                <MenuItem Header="{loc:T HttpRed}" Command="{Binding FlagCommand}" CommandParameter="red">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{loc:T HttpAmber}" Command="{Binding FlagCommand}" CommandParameter="amber">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{loc:T HttpGreen}" Command="{Binding FlagCommand}" CommandParameter="green">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{loc:T HttpBlue}" Command="{Binding FlagCommand}" CommandParameter="blue">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{loc:T HttpPurple}" Command="{Binding FlagCommand}" CommandParameter="purple">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{loc:T HttpGrey}" Command="{Binding FlagCommand}" CommandParameter="grey">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Flag}" /></MenuItem.Icon>
+                </MenuItem>
               </MenuItem>
 
               <MenuItem Header="{loc:T HttpMoveToGroup}">
-                <MenuItem Header="{loc:T HttpNoGroup}" Command="{Binding MoveToGroupCommand}" CommandParameter="" />
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Folder}" /></MenuItem.Icon>
+                <MenuItem Header="{loc:T HttpNoGroup}" Command="{Binding MoveToGroupCommand}" CommandParameter="">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator />
-                <MenuItem Header="{loc:T HttpNewGroup}" Command="{Binding MoveToNewGroupCommand}" />
+                <MenuItem Header="{loc:T HttpNewGroup}" Command="{Binding MoveToNewGroupCommand}">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Add}" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator IsVisible="{Binding HasGroups}" />
                 <MenuItem Header="{loc:T HttpExisting}"
                           ItemsSource="{Binding GroupChoices}"
                           IsVisible="{Binding HasGroups}">
+                  <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.List}" /></MenuItem.Icon>
                   <MenuItem.Styles>
                     <Style Selector="MenuItem > MenuItem" x:DataType="vm:GroupChoice">
                       <Setter Property="Header" Value="{Binding Name}" />
@@ -720,7 +879,9 @@
               </MenuItem>
 
               <Separator />
-              <MenuItem Header="{loc:T HttpDeleteThisRequest}" Command="{Binding DeleteRequestCommand}" />
+              <MenuItem Header="{loc:T HttpDeleteThisRequest}" Command="{Binding DeleteRequestCommand}">
+                <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Delete}" /></MenuItem.Icon>
+              </MenuItem>
             </MenuFlyout>
           </Button.Flyout>
         </Button>
@@ -752,8 +913,13 @@
              usually needs it before it needs a body at all. -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
           <TextBlock Grid.Column="0" Text="{loc:T HttpHeaders}" Classes="label" VerticalAlignment="Center" />
-          <Button Grid.Column="1" Classes="bare" Content="{loc:T HttpAdd}"
-                  Command="{Binding AddHeaderCommand}" />
+          <Button Grid.Column="1" Classes="bare"
+                  Command="{Binding AddHeaderCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+              <TextBlock Text="{loc:T HttpAdd}" />
+            </StackPanel>
+          </Button>
         </Grid>
 
         <!-- Ten rows to begin with, then it scrolls, and the splitter below moves that line. A
@@ -779,9 +945,11 @@
                          Text="{Binding Name, Mode=TwoWay}" PlaceholderText="{loc:T Name}" />
                 <TextBox Grid.Column="2" Margin="0,0,6,0" AttachedToVisualTree="CompleteHere"
                          Text="{Binding Value, Mode=TwoWay}" PlaceholderText="{loc:T HttpValue}" />
-                <Button Grid.Column="3" Classes="bare" Content="✕"
+                <Button Grid.Column="3" Classes="bare"
                         Command="{Binding $parent[ItemsControl].((vm:HttpViewModel)DataContext).RemoveHeaderCommand}"
-                        CommandParameter="{Binding}" />
+                        CommandParameter="{Binding}">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                </Button>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -796,71 +964,104 @@
 
         <GridSplitter Grid.Row="4" Classes="pane" ResizeDirection="Rows" />
 
-        <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,8">
+        <!-- The status on the left, the tools on the right - and below it instead, when the pane
+             is too narrow for both (the ContainerQuery at the top). Moved as one block rather than
+             wrapped button by button, which left ragged rows and a button alone on the last line. -->
+        <DockPanel Grid.Row="5" Margin="0,4,0,8"
+                   Container.Name="ResponseBar" Container.Sizing="Width">
 
-          <TextBlock Grid.Column="0" Classes="tone"
-                     Classes.good="{Binding Result.Tone, Converter={x:Static vm:Is.Good}}"
-                     Classes.warn="{Binding Result.Tone, Converter={x:Static vm:Is.Warn}}"
-                     Classes.bad="{Binding Result.Tone, Converter={x:Static vm:Is.Bad}}"
-                     Text="{Binding Status}" VerticalAlignment="Center" />
+          <StackPanel Name="ResponseTools" Orientation="Horizontal" VerticalAlignment="Center">
 
-          <!-- What the body was read as, which is worth saying because it is worked out from the
-               bytes and not only from the content type: a server that labels JSON as text/plain
-               still gets it formatted, and one that labels an HTML error page as JSON is shown to
-               have done so. -->
-          <TextBlock Grid.Column="1" Margin="10,0,0,0"
-                     FontSize="11" FontFamily="{DynamicResource MonoFont}"
-                     Foreground="{DynamicResource TextFaint}"
-                     VerticalAlignment="Center"
-                     Text="{Binding ResponseKind}"
-                     IsVisible="{Binding HasResult}" />
+            <!-- Only for a reply that is both a thing to look at and a thing to read: an image, an
+                 SVG, a PDF, a page, a table. JSON has one form and gets no switch. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,10,0"
+                        IsVisible="{Binding ShowingPreviewSwitch}">
+              <Button Classes="seg first" Classes.on="{Binding !ShowingSource}"
+                      ToolTip.Tip="{loc:T HttpPreviewTip}"
+                      Command="{Binding ShowPreviewCommand}">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Eye}" />
+                  <TextBlock Text="{Binding PreviewLabel}" />
+                </StackPanel>
+              </Button>
+              <Button Classes="seg last" Classes.on="{Binding ShowingSource}"
+                      ToolTip.Tip="{loc:T HttpSourceTip}"
+                      Command="{Binding ShowSourceCommand}">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Code}" />
+                  <TextBlock Text="{loc:T HttpSource}" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
 
-          <!-- Size, page count, or why it would not draw: said beside the switch it is about. -->
-          <TextBlock Grid.Column="2" Margin="10,0" FontSize="11"
-                     Foreground="{DynamicResource TextFaint}"
-                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                     Text="{Binding PreviewNote}"
-                     IsVisible="{Binding ShowingPreviewSwitch}" />
+            <ToggleButton Margin="0,0,6,0"
+                          ToolTip.Tip="{loc:T HttpHeaders}"
+                          FontSize="11.5" Padding="10,5"
+                          Background="{DynamicResource SteelRaised}"
+                          Foreground="{DynamicResource Text}"
+                          BorderBrush="{DynamicResource Line}"
+                          BorderThickness="1" CornerRadius="2"
+                          IsChecked="{Binding ShowingHeaders, Mode=TwoWay}"
+                          IsVisible="{Binding HasResult}">
+              <Path Classes="icon" Data="{x:Static app:Icons.List}" />
+            </ToggleButton>
 
-          <!-- Only for a reply that is both a thing to look at and a thing to read: an image, an
-               SVG, a PDF, a page, a table. JSON has one form and gets no switch. -->
-          <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,10,0"
-                      IsVisible="{Binding ShowingPreviewSwitch}">
-            <Button Classes="seg first" Classes.on="{Binding !ShowingSource}"
-                    Content="{Binding PreviewLabel}" ToolTip.Tip="{loc:T HttpPreviewTip}"
-                    Command="{Binding ShowPreviewCommand}" />
-            <Button Classes="seg last" Classes.on="{Binding ShowingSource}"
-                    Content="{loc:T HttpSource}" ToolTip.Tip="{loc:T HttpSourceTip}"
-                    Command="{Binding ShowSourceCommand}" />
+            <!-- Headers, Open, Save and Copy are icons alone, named by their tooltips, so the row fits
+                 the narrowest pane the window allows. -->
+
+            <!-- Before Copy rather than after it, because for the replies where both exist this is
+                 the one that works: an image or a download has nothing useful to put on a clipboard,
+                 and saving is the only thing to do with it. -->
+            <Button Margin="0,0,6,0"
+                    ToolTip.Tip="{loc:T HttpOpenTip}"
+                    Command="{Binding OpenResponseCommand}"
+                    IsVisible="{Binding HasResult}">
+              <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+            </Button>
+
+            <Button Margin="0,0,6,0"
+                    ToolTip.Tip="{loc:T HttpSaveResponse}"
+                    Command="{Binding SaveResponseCommand}"
+                    IsVisible="{Binding HasResult}">
+              <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+            </Button>
+
+            <Button
+                    ToolTip.Tip="{loc:T Copy}"
+                    Command="{Binding CopyResponseCommand}"
+                    IsVisible="{Binding HasResult}">
+              <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+            </Button>
+
           </StackPanel>
 
-          <ToggleButton Grid.Column="4" Content="{loc:T HttpHeaders}" Margin="0,0,6,0"
-                        FontSize="11.5" Padding="10,5"
-                        Background="{DynamicResource SteelRaised}"
-                        Foreground="{DynamicResource Text}"
-                        BorderBrush="{DynamicResource Line}"
-                        BorderThickness="1" CornerRadius="2"
-                        IsChecked="{Binding ShowingHeaders, Mode=TwoWay}"
-                        IsVisible="{Binding HasResult}" />
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
+            <TextBlock Classes="tone"
+                       Classes.good="{Binding Result.Tone, Converter={x:Static vm:Is.Good}}"
+                       Classes.warn="{Binding Result.Tone, Converter={x:Static vm:Is.Warn}}"
+                       Classes.bad="{Binding Result.Tone, Converter={x:Static vm:Is.Bad}}"
+                       Text="{Binding Status}" VerticalAlignment="Center" />
 
-          <!-- Before Copy rather than after it, because for the replies where both exist this is
-               the one that works: an image or a download has nothing useful to put on a clipboard,
-               and saving is the only thing to do with it. -->
-          <Button Grid.Column="5" Content="{loc:T HttpOpen}" Margin="0,0,6,0"
-                  ToolTip.Tip="{loc:T HttpOpenTip}"
-                  Command="{Binding OpenResponseCommand}"
-                  IsVisible="{Binding HasResult}" />
+            <!-- What the body was read as, which is worth saying because it is worked out from the
+                 bytes and not only from the content type: a server that labels JSON as text/plain
+                 still gets it formatted, and one that labels an HTML error page as JSON is shown to
+                 have done so. -->
+            <TextBlock Margin="10,0,0,0"
+                       FontSize="11" FontFamily="{DynamicResource MonoFont}"
+                       Foreground="{DynamicResource TextFaint}"
+                       VerticalAlignment="Center"
+                       Text="{Binding ResponseKind}"
+                       IsVisible="{Binding HasResult}" />
 
-          <Button Grid.Column="6" Content="{loc:T HttpSave}" Margin="0,0,6,0"
-                  ToolTip.Tip="{loc:T HttpSaveResponse}"
-                  Command="{Binding SaveResponseCommand}"
-                  IsVisible="{Binding HasResult}" />
+            <!-- Size, page count, or why it would not draw: said beside the switch it is about. -->
+            <TextBlock Margin="10,0,0,0" MaxWidth="260" FontSize="11"
+                       Foreground="{DynamicResource TextFaint}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       Text="{Binding PreviewNote}"
+                       IsVisible="{Binding ShowingPreviewSwitch}" />
+          </StackPanel>
 
-          <Button Grid.Column="7" Content="{loc:T Copy}"
-                  Command="{Binding CopyResponseCommand}"
-                  IsVisible="{Binding HasResult}" />
-
-        </Grid>
+        </DockPanel>
 
         <!-- Coloured by what the body turned out to be, which is worked out from the bytes rather
              than only from the content type - so a JSON body labelled text/plain is still drawn as
@@ -1023,7 +1224,9 @@
                         <ContextMenu x:DataType="vm:HttpViewModel" Opening="HeaderMenuOpening">
                           <MenuItem Header="{loc:T HttpCopyHeader}"
                                     Command="{Binding CopyHeaderCommand}"
-                                    CommandParameter="{Binding $parent[ContextMenu].Tag}" />
+                                    CommandParameter="{Binding $parent[ContextMenu].Tag}">
+                            <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Copy}" /></MenuItem.Icon>
+                          </MenuItem>
                         </ContextMenu>
                       </Border.ContextMenu>
 

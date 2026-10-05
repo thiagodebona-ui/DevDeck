@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:DevDeck.App"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
@@ -166,14 +167,29 @@
                   SelectedItem="{Binding Casing, Mode=TwoWay}"
                   IsVisible="{Binding Selected.NeedsCase}" />
 
-        <Button Content="{loc:T ToolboxAgain}" Command="{Binding AgainCommand}"
-                IsVisible="{Binding Selected.Generates}" />
+        <Button Command="{Binding AgainCommand}"
+                IsVisible="{Binding Selected.Generates}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+            <TextBlock Text="{loc:T ToolboxAgain}" />
+          </StackPanel>
+        </Button>
 
-        <Button Content="{loc:T ToolboxPaste}" Command="{Binding PasteInCommand}"
-                IsVisible="{Binding !Selected.Generates}" />
+        <Button Command="{Binding PasteInCommand}"
+                IsVisible="{Binding !Selected.Generates}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Clipboard}" />
+            <TextBlock Text="{loc:T ToolboxPaste}" />
+          </StackPanel>
+        </Button>
 
-        <Button Content="{loc:T Clear}" Command="{Binding ClearCommand}"
-                IsVisible="{Binding !Selected.Generates}" />
+        <Button Command="{Binding ClearCommand}"
+                IsVisible="{Binding !Selected.Generates}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+            <TextBlock Text="{loc:T Clear}" />
+          </StackPanel>
+        </Button>
 
         <TextBlock Text="{Binding Statistics}" Classes="label" VerticalAlignment="Center"
                    Margin="4,0,0,0" />
@@ -211,17 +227,37 @@
           <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,0"
                       IsVisible="{Binding Selected.HasTree}">
             <Button Classes="seg first" Classes.on="{Binding !TreeChosen}"
-                    Content="{loc:T ToolboxText}" Command="{Binding ShowTextCommand}" />
+ Command="{Binding ShowTextCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.File}" />
+                <TextBlock Text="{loc:T ToolboxText}" />
+              </StackPanel>
+            </Button>
             <Button Classes="seg last" Classes.on="{Binding TreeChosen}"
-                    Content="{loc:T ToolboxTree}" ToolTip.Tip="{loc:T ToolboxTreeTip}"
-                    Command="{Binding ShowTreeCommand}" />
+ ToolTip.Tip="{loc:T ToolboxTreeTip}"
+                    Command="{Binding ShowTreeCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.List}" />
+                <TextBlock Text="{loc:T ToolboxTree}" />
+              </StackPanel>
+            </Button>
           </StackPanel>
 
-          <Button Grid.Column="2" Content="{loc:T ToolboxUseAsInput}" Margin="0,0,8,0"
+          <Button Grid.Column="2" Margin="0,0,8,0"
                   Command="{Binding ChainCommand}"
-                  IsVisible="{Binding !Selected.Generates}" />
+                  IsVisible="{Binding !Selected.Generates}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
+              <TextBlock Text="{loc:T ToolboxUseAsInput}" />
+            </StackPanel>
+          </Button>
 
-          <Button Grid.Column="3" Content="{loc:T Copy}" Command="{Binding CopyOutCommand}" />
+          <Button Grid.Column="3" Command="{Binding CopyOutCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+              <TextBlock Text="{loc:T Copy}" />
+            </StackPanel>
+          </Button>
 
         </Grid>
 

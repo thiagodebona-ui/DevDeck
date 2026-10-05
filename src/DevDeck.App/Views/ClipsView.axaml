@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:DevDeck.App"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
@@ -118,14 +119,29 @@
       <TextBox Grid.Column="0" Margin="0,0,8,0"
                Text="{Binding Query, Mode=TwoWay}"
                PlaceholderText="{loc:T ClipsSearchWhatYouHaveCopied}" />
-      <Button Grid.Column="1" Content="{loc:T Copy}" Margin="0,0,6,0"
+      <Button Grid.Column="1" Margin="0,0,6,0"
               Command="{Binding UseCommand}"
-              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <Button Grid.Column="2" Content="{loc:T ClipsPin}" Margin="0,0,6,0"
+              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+          <TextBlock Text="{loc:T Copy}" />
+        </StackPanel>
+      </Button>
+      <Button Grid.Column="2" Margin="0,0,6,0"
               Command="{Binding PinCommand}"
-              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <Button Grid.Column="3" Classes="danger" Content="{loc:T ClipsClearAll}"
-              Command="{Binding ClearCommand}" />
+              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Pin}" />
+          <TextBlock Text="{loc:T ClipsPin}" />
+        </StackPanel>
+      </Button>
+      <Button Grid.Column="3" Classes="danger"
+              Command="{Binding ClearCommand}">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+          <TextBlock Text="{loc:T ClipsClearAll}" />
+        </StackPanel>
+      </Button>
     </Grid>
 
     <TextBlock DockPanel.Dock="Bottom" Classes="label" Margin="0,10,0,0"
@@ -140,9 +156,9 @@
           <DataTemplate x:DataType="core:Clip">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
 
-              <TextBlock Grid.Column="0" Text="📌" FontSize="10"
-                         VerticalAlignment="Center"
-                         IsVisible="{Binding Pinned}" />
+              <Path Grid.Column="0" Classes="icon" Data="{x:Static app:Icons.Pin}"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding Pinned}" />
 
               <!-- The tooltip carries the head of the clip, because a single trimmed line cannot
                    tell two curl commands or two stack traces apart and those are exactly what this
@@ -184,15 +200,22 @@
               <!-- Per-row rather than only in the toolbar: the thing being copied is the row under
                    the pointer, and making that a two-step selection is friction for the action the
                    whole panel exists to perform. -->
-              <Button Grid.Column="2" Content="{loc:T Copy}" Padding="8,3" FontSize="10.5"
+              <Button Grid.Column="2" Padding="8,3" FontSize="10.5"
                       VerticalAlignment="Center"
                       Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).UseCommand}"
-                      CommandParameter="{Binding}" />
+                      CommandParameter="{Binding}">
+                <StackPanel Classes="iconLabel">
+                  <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                  <TextBlock Text="{loc:T Copy}" />
+                </StackPanel>
+              </Button>
 
-              <Button Grid.Column="3" Content="✕" Padding="7,3" FontSize="10.5"
+              <Button Grid.Column="3" Padding="7,3" FontSize="10.5"
                       VerticalAlignment="Center"
                       Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).RemoveCommand}"
-                      CommandParameter="{Binding}" />
+                      CommandParameter="{Binding}">
+                <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+              </Button>
 
             </Grid>
           </DataTemplate>

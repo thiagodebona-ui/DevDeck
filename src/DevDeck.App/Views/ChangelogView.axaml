@@ -71,11 +71,21 @@
           <TextBlock Classes="note" Text="{Binding Version}" />
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button Content="{loc:T ChangelogCheck}" Command="{Binding CheckCommand}" />
-          <Button Content="{loc:T SettingsOpenTheReleasePage}" IsVisible="{Binding HasUpdate}"
+          <Button Command="{Binding CheckCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+              <TextBlock Text="{loc:T ChangelogCheck}" />
+            </StackPanel>
+          </Button>
+          <Button IsVisible="{Binding HasUpdate}"
                   Command="{Binding GetUpdateCommand}"
                   Background="{DynamicResource Accent}" Foreground="{DynamicResource OnAccent}"
-                  BorderThickness="0" />
+                  BorderThickness="0">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+              <TextBlock Text="{loc:T SettingsOpenTheReleasePage}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>

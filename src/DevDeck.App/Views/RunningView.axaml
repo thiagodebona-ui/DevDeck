@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:DevDeck.App"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:core="using:DevDeck.Core"
@@ -127,37 +128,72 @@
       <Setter Property="Margin" Value="0,0,0,10" />
     </Style>
 
+    <!-- On a narrow window the buttons over the two lists keep only their icons - each is named
+         by its tooltip - so the row fits beside its heading instead of running under the
+         panel on the right. -->
+    <ContainerQuery Name="Panes" Query="max-width:1000">
+      <Style Selector="Grid.bar Button StackPanel.iconLabel > TextBlock">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </ContainerQuery>
+
+    <!-- Set by styles rather than on the element, because a value written on the element
+         outranks any style and the narrow rule could never move it. -->
+    <Style Selector="StackPanel#HeadControls">
+      <Setter Property="DockPanel.Dock" Value="Right" />
+      <Setter Property="Margin" Value="12,0,0,0" />
+    </Style>
+
+    <ContainerQuery Name="Head" Query="max-width:820">
+      <Style Selector="StackPanel#HeadControls">
+        <Setter Property="DockPanel.Dock" Value="Bottom" />
+        <Setter Property="Margin" Value="0,8,0,0" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+      </Style>
+    </ContainerQuery>
+
   </UserControl.Styles>
 
   <Panel>
 
     <DockPanel Margin="20" LastChildFill="True">
 
-      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
-        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+      <!-- The title on the left and its controls on the right - or under it, when the page is
+           too narrow for both (the ContainerQuery at the top): side by side at any width, the
+           filter box grew over the title. -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12"
+                 Container.Name="Head" Container.Sizing="Width">
+        <StackPanel Name="HeadControls" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBox Width="220" Margin="0,0,12,0" VerticalAlignment="Center"
+                   Text="{Binding Filter, Mode=TwoWay}"
+                   PlaceholderText="{loc:T RunningFilter}" />
+
+          <CheckBox Content="{loc:T RunningOnlyLikelyPorts}" FontSize="11.5" Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource TextMuted}"
+                    IsChecked="{Binding OnlyInteresting, Mode=TwoWay}"
+                    ToolTip.Tip="{loc:T RunningHidesSystemServicesAndEphemeralPorts}" />
+
+          <CheckBox Content="{loc:T RunningAutoRefresh}" FontSize="11.5" Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource TextMuted}"
+                    IsChecked="{Binding AutoRefresh, Mode=TwoWay}"
+                    ToolTip.Tip="{loc:T RunningAutoRefreshTip}" />
+
+          <Button Command="{Binding RefreshCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+              <TextBlock Text="{loc:T Refresh}" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <StackPanel Spacing="2" VerticalAlignment="Center">
           <TextBlock Text="{loc:T RunningRunning}" FontSize="17" FontWeight="SemiBold"
                      Foreground="{DynamicResource Text}" />
           <TextBlock Text="{Binding Status}" Classes="label" />
         </StackPanel>
-
-        <TextBox Grid.Column="1" Width="220" Margin="0,0,12,0" VerticalAlignment="Center"
-                 Text="{Binding Filter, Mode=TwoWay}"
-                 PlaceholderText="{loc:T RunningFilter}" />
-
-        <CheckBox Grid.Column="2" Content="{loc:T RunningOnlyLikelyPorts}" FontSize="11.5" Margin="0,0,10,0"
-                  VerticalAlignment="Center"
-                  Foreground="{DynamicResource TextMuted}"
-                  IsChecked="{Binding OnlyInteresting, Mode=TwoWay}"
-                  ToolTip.Tip="{loc:T RunningHidesSystemServicesAndEphemeralPorts}" />
-
-        <CheckBox Grid.Column="3" Content="{loc:T RunningAutoRefresh}" FontSize="11.5" Margin="0,0,10,0"
-                  VerticalAlignment="Center"
-                  Foreground="{DynamicResource TextMuted}"
-                  IsChecked="{Binding AutoRefresh, Mode=TwoWay}"
-                  ToolTip.Tip="{loc:T RunningAutoRefreshTip}" />
-
-        <Button Grid.Column="4" Content="{loc:T Refresh}" Command="{Binding RefreshCommand}" />
-      </Grid>
+      </DockPanel>
 
       <!-- The tiles. Everything on this page at a glance, before any list is read. -->
       <UniformGrid DockPanel.Dock="Top" Rows="1" Margin="0,0,-8,14">
@@ -192,22 +228,39 @@
 
       </UniformGrid>
 
-      <Grid ColumnDefinitions="*,16,340">
+      <!-- A container for the query on the list buttons. Not the Lists grid itself: an element
+           with both a Name and a Container.Name loses its generated field. -->
+      <Grid ColumnDefinitions="*,16,340" Container.Name="Panes" Container.Sizing="Width">
 
         <!-- Left: the two lists, as before. -->
         <Grid Grid.Column="0" Name="Lists" RowDefinitions="Auto,*,Auto,Auto,*">
 
-          <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,6">
+          <Grid Grid.Row="0" Classes="bar" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,6">
             <TextBlock Grid.Column="0" Text="{loc:T RunningListening}" Classes="head" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="{loc:T RunningCopyUrl}" Margin="0,0,6,0"
+            <Button ToolTip.Tip="{loc:T RunningCopyUrl}" Grid.Column="1" Margin="0,0,6,0"
                     Command="{Binding CopyPortUrlCommand}"
-                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}" />
-            <Button Grid.Column="2" Content="{loc:T RunningOpen}" Margin="0,0,6,0"
+                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                <TextBlock Text="{loc:T RunningCopyUrl}" />
+              </StackPanel>
+            </Button>
+            <Button ToolTip.Tip="{loc:T RunningOpen}" Grid.Column="2" Margin="0,0,6,0"
                     Command="{Binding OpenPortCommand}"
-                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}" />
-            <Button Grid.Column="3" Classes="danger" Content="{loc:T RunningStopWhatHasIt}"
+                    IsEnabled="{Binding SelectedPort.IsWeb, FallbackValue=False}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+                <TextBlock Text="{loc:T RunningOpen}" />
+              </StackPanel>
+            </Button>
+            <Button ToolTip.Tip="{loc:T RunningStopWhatHasIt}" Grid.Column="3" Classes="danger"
                     Command="{Binding KillPortCommand}"
-                    IsEnabled="{Binding SelectedPort, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    IsEnabled="{Binding SelectedPort, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                <TextBlock Text="{loc:T RunningStopWhatHasIt}" />
+              </StackPanel>
+            </Button>
           </Grid>
 
           <ListBox Grid.Row="1" Classes="rows" MinHeight="120"
@@ -231,26 +284,51 @@
             </ListBox.ItemTemplate>
           </ListBox>
 
-          <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,18,0,6"
+          <Grid Grid.Row="2" Classes="bar" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,18,0,6"
                 IsVisible="{Binding ShowContainers}">
             <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
               <TextBlock Text="{loc:T RunningContainers}" Classes="head" />
               <TextBlock Text="{Binding EngineNote}" Classes="label" IsVisible="{Binding !HasEngine}" />
             </StackPanel>
 
-            <Button Grid.Column="1" Content="{loc:T RunningStart}" Margin="0,0,6,0"
-                    Command="{Binding StartContainerCommand}" />
-            <Button Grid.Column="2" Content="{loc:T RunningRestart}" Margin="0,0,6,0"
-                    Command="{Binding RestartContainerCommand}" />
-            <Button Grid.Column="3" Classes="danger" Content="{loc:T Stop}" Margin="0,0,6,0"
-                    Command="{Binding StopContainerCommand}" />
-            <Button Grid.Column="4" Content="{loc:T RunningLogs}" Margin="0,0,6,0"
-                    Command="{Binding ShowLogsCommand}" />
-            <Button Grid.Column="5" Content="⋯">
+            <Button ToolTip.Tip="{loc:T RunningStart}" Grid.Column="1" Margin="0,0,6,0"
+                    Command="{Binding StartContainerCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon solid" Data="{x:Static app:Icons.Run}" />
+                <TextBlock Text="{loc:T RunningStart}" />
+              </StackPanel>
+            </Button>
+            <Button ToolTip.Tip="{loc:T RunningRestart}" Grid.Column="2" Margin="0,0,6,0"
+                    Command="{Binding RestartContainerCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                <TextBlock Text="{loc:T RunningRestart}" />
+              </StackPanel>
+            </Button>
+            <Button ToolTip.Tip="{loc:T Stop}" Grid.Column="3" Classes="danger" Margin="0,0,6,0"
+                    Command="{Binding StopContainerCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                <TextBlock Text="{loc:T Stop}" />
+              </StackPanel>
+            </Button>
+            <Button ToolTip.Tip="{loc:T RunningLogs}" Grid.Column="4" Margin="0,0,6,0"
+                    Command="{Binding ShowLogsCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Log}" />
+                <TextBlock Text="{loc:T RunningLogs}" />
+              </StackPanel>
+            </Button>
+            <Button Grid.Column="5" ToolTip.Tip="{loc:T HttpMore}">
+              <Path Classes="icon" Data="{x:Static app:Icons.More}" />
               <Button.Flyout>
                 <MenuFlyout>
-                  <MenuItem Header="{loc:T RunningOpenInABrowser}" Command="{Binding OpenContainerCommand}" />
-                  <MenuItem Header="{loc:T RunningFollowItsLogInTheDeck}" Command="{Binding FollowInDeckCommand}" />
+                  <MenuItem Header="{loc:T RunningOpenInABrowser}" Command="{Binding OpenContainerCommand}">
+                    <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.External}" /></MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="{loc:T RunningFollowItsLogInTheDeck}" Command="{Binding FollowInDeckCommand}">
+                    <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Log}" /></MenuItem.Icon>
+                  </MenuItem>
                 </MenuFlyout>
               </Button.Flyout>
             </Button>
@@ -302,8 +380,12 @@
                     <TextBlock Classes="label" TextWrapping="Wrap" Text="{loc:T RunningHealthBlurb}" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="mini" VerticalAlignment="Top"
-                          Content="{loc:T RunningCheckNow}"
-                          Command="{Binding CheckHealthCommand}" />
+                          Command="{Binding CheckHealthCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Pulse}" />
+                      <TextBlock Text="{loc:T RunningCheckNow}" />
+                    </StackPanel>
+                  </Button>
                 </Grid>
 
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
@@ -311,7 +393,12 @@
                            Text="{Binding NewHealthUrl, Mode=TwoWay}"
                            PlaceholderText="{loc:T RunningHealthPlaceholder}"
                            KeyDown="HealthUrlKeyDown" />
-                  <Button Grid.Column="1" Content="{loc:T Add}" Command="{Binding AddHealthCheckCommand}" />
+                  <Button Grid.Column="1" Command="{Binding AddHealthCheckCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                      <TextBlock Text="{loc:T Add}" />
+                    </StackPanel>
+                  </Button>
                 </Grid>
 
                 <TextBlock Classes="label" TextWrapping="Wrap"
@@ -335,13 +422,20 @@
                                      ToolTip.Tip="{Binding Note}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
-                          <Button Classes="mini" Content="{loc:T RunningOpen}"
+                          <Button Classes="mini"
                                   CommandParameter="{Binding}"
-                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).OpenHealthCheckCommand}" />
-                          <Button Classes="mini danger" Content="✕"
+                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).OpenHealthCheckCommand}">
+                            <StackPanel Classes="iconLabel">
+                              <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+                              <TextBlock Text="{loc:T RunningOpen}" />
+                            </StackPanel>
+                          </Button>
+                          <Button Classes="mini danger"
                                   ToolTip.Tip="{loc:T Remove}"
                                   CommandParameter="{Binding}"
-                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).RemoveHealthCheckCommand}" />
+                                  Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).RemoveHealthCheckCommand}">
+                            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                          </Button>
                         </StackPanel>
                       </Grid>
                     </DataTemplate>
@@ -359,7 +453,12 @@
                            Text="{Binding PortToCheck, Mode=TwoWay}"
                            PlaceholderText="{loc:T RunningPortPlaceholder}"
                            KeyDown="PortKeyDown" />
-                  <Button Grid.Column="1" Content="{loc:T RunningCheck}" Command="{Binding CheckPortCommand}" />
+                  <Button Grid.Column="1" Command="{Binding CheckPortCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Hash}" />
+                      <TextBlock Text="{loc:T RunningCheck}" />
+                    </StackPanel>
+                  </Button>
                 </Grid>
                 <StackPanel Orientation="Horizontal" Spacing="8"
                             IsVisible="{Binding PortAnswer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
@@ -388,9 +487,14 @@
                                    VerticalAlignment="Center"
                                    FontFamily="{DynamicResource MonoFont}"
                                    Text="{Binding Elapsed}" />
-                        <Button Grid.Column="3" Classes="mini danger" Content="{loc:T Stop}"
+                        <Button Grid.Column="3" Classes="mini danger"
                                 CommandParameter="{Binding}"
-                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).StopDeckCommandCommand}" />
+                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).StopDeckCommandCommand}">
+                          <StackPanel Classes="iconLabel">
+                            <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                            <TextBlock Text="{loc:T Stop}" />
+                          </StackPanel>
+                        </Button>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -415,10 +519,14 @@
                                    FontFamily="{DynamicResource MonoFont}"
                                    Text="{Binding Size}" />
                         <Button Grid.Column="3" Classes="mini danger" Margin="8,0,0,0"
-                                Content="{loc:T RunningKill}"
                                 ToolTip.Tip="{loc:T RunningKillTip}"
                                 CommandParameter="{Binding}"
-                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).KillProcessCommand}" />
+                                Command="{Binding $parent[UserControl].((vm:RunningViewModel)DataContext).KillProcessCommand}">
+                          <StackPanel Classes="iconLabel">
+                            <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                            <TextBlock Text="{loc:T RunningKill}" />
+                          </StackPanel>
+                        </Button>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -442,7 +550,12 @@
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,12">
           <TextBlock Grid.Column="0" Text="{Binding SelectedContainer.Name}" Classes="head"
                      VerticalAlignment="Center" />
-          <Button Grid.Column="1" Content="{loc:T RunningClose}" Command="{Binding CloseLogsCommand}" />
+          <Button Grid.Column="1" Command="{Binding CloseLogsCommand}">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+              <TextBlock Text="{loc:T RunningClose}" />
+            </StackPanel>
+          </Button>
         </Grid>
         <ScrollViewer Margin="14,0,14,14">
           <SelectableTextBlock Text="{Binding Logs}"

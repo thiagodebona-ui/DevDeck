@@ -367,6 +367,30 @@ namespace DevDeck.Core
         public bool ClipboardCapture { get; set; }
 
         /// <summary>
+        ///  Whether images put on the clipboard are kept in the Screenshots gallery.
+        /// </summary>
+        /// <remarks>
+        ///  Off until the user turns it on, for the same reason as the text history. The gallery
+        ///  does not need it to show Win+Shift+S captures - Snipping Tool saves those to a folder
+        ///  the gallery reads - so this only matters when that saving is off.
+        /// </remarks>
+        public bool ScreenshotsFromClipboard { get; set; }
+
+        /// <summary>
+        ///  How the Screenshots gallery is drawn: "Thumbnails", "List" or "Details".
+        /// </summary>
+        /// <remarks>
+        ///  A name rather than an enum, so a file written by a later version with a layout this one
+        ///  does not know still loads; anything unrecognised is drawn as thumbnails.
+        /// </remarks>
+        public string ScreenshotsLayout { get; set; } = "Thumbnails";
+
+        /// <summary>
+        ///  How wide the preview beside the Screenshots gallery was left. Zero means "not set".
+        /// </summary>
+        public double ScreenshotsPreviewWidth { get; set; }
+
+        /// <summary>
         ///  The chains: named sequences of commands run one after another.
         /// </summary>
         /// <remarks>

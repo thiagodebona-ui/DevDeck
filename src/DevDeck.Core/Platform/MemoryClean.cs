@@ -292,42 +292,18 @@ namespace DevDeck.Core
             }
         }
 
-        public static string Title(MemoryStep step) => step switch
-        {
-            MemoryStep.CollectOwnGarbage => "Collect DevDeck's own garbage",
-            MemoryStep.TrimProcessWorkingSets => "Trim every process's working set",
-            MemoryStep.EmptySystemWorkingSets => "Empty all working sets, system-wide",
-            MemoryStep.FlushModifiedPages => "Flush modified pages to disk",
-            MemoryStep.TrimFileCache => "Trim the system file cache",
-            MemoryStep.PurgeLowPriorityStandby => "Purge the low-priority standby cache",
-            MemoryStep.PurgeStandbyList => "Purge the standby cache",
-            MemoryStep.DropPageCache => OperatingSystem.IsMacOS()
-                ? "Purge the disk cache"
-                : "Drop the kernel page cache",
-            _ => step.ToString(),
-        };
+        /// <remarks>
+        ///  The words come from the translated table, by the step's own name: a step added to the
+        ///  enum without a row in gen.py shows its key, which the language tests then catch.
+        /// </remarks>
+        public static string Title(MemoryStep step) => Strings.Text(Key(step));
 
-        public static string Explain(MemoryStep step) => step switch
-        {
-            MemoryStep.CollectOwnGarbage =>
-                "Full collection with large-object compaction, then hands this app's own pages back.",
-            MemoryStep.TrimProcessWorkingSets =>
-                "Asks every process this account may touch to page out what it is not using. On its own this only moves pages to the standby cache.",
-            MemoryStep.EmptySystemWorkingSets =>
-                "The same, for every process on the machine - services and other sessions included.",
-            MemoryStep.FlushModifiedPages =>
-                "Writes dirty pages out so they can be freed. Costs disk writes, so it can take a few seconds.",
-            MemoryStep.TrimFileCache =>
-                "Hands back memory Windows is holding for cached files. The cache refills as files are read again.",
-            MemoryStep.PurgeLowPriorityStandby =>
-                "Frees the cheap half of the standby cache: prefetch data and pages nothing has asked for twice.",
-            MemoryStep.PurgeStandbyList =>
-                "Frees the standby cache outright. This is the step that actually moves the number in Task Manager.",
-            MemoryStep.DropPageCache => OperatingSystem.IsMacOS()
-                ? "Runs purge, which drops the disk cache. Needs an administrator."
-                : "Writes to /proc/sys/vm/drop_caches. Needs root, and the cache refills as files are read again.",
-            _ => string.Empty,
-        };
+        public static string Explain(MemoryStep step) => Strings.Text(Key(step) + "Why");
+
+        /// <summary>The table key for a step: the page-cache one differs between macOS and Linux.</summary>
+        private static string Key(MemoryStep step) => step == MemoryStep.DropPageCache
+            ? (OperatingSystem.IsMacOS() ? "MemStepDropPageCacheMac" : "MemStepDropPageCacheLinux")
+            : "MemStep" + step;
 
         /// <summary>Why a step is not on offer here, for the one line beside a disabled row.</summary>
         public static string WhyUnsupported(MemoryStep step)
@@ -339,22 +315,20 @@ namespace DevDeck.Core
 
             if (step == MemoryStep.DropPageCache)
             {
-                return "Windows has no page cache to drop; the standby steps are its equivalent.";
+                return Strings.Text("MemWhyNoPageCache");
             }
 
-            return step == MemoryStep.TrimProcessWorkingSets
-                ? "No kernel but Windows lets one process trim another's resident pages, at any privilege."
-                : "Windows only - this is a call into the Windows memory manager with no equivalent here.";
+            return Strings.Text(step == MemoryStep.TrimProcessWorkingSets ? "MemWhyTrimWindowsOnly" : "MemWhyWindowsOnly");
         }
 
-        public static string Describe(StepStatus status) => status switch
+        public static string Describe(StepStatus status) => Strings.Text(status switch
         {
-            StepStatus.Done => "done",
-            StepStatus.NeedsAdmin => "needs administrator",
-            StepStatus.Failed => "failed",
-            StepStatus.Unsupported => "not on this platform",
-            _ => "skipped",
-        };
+            StepStatus.Done => "MemStatusDone",
+            StepStatus.NeedsAdmin => "MemStatusNeedsAdmin",
+            StepStatus.Failed => "MemStatusFailed",
+            StepStatus.Unsupported => "MemStatusUnsupported",
+            _ => "MemStatusSkipped",
+        });
 
         /// <summary>Reads a stored list of step names back, dropping any this build no longer has.</summary>
         public static List<MemoryStep> ParseSteps(IReadOnlyCollection<string>? names)

@@ -208,6 +208,7 @@ namespace DevDeck.App.ViewModels
                 new("Running", "NavRunning", "NavRunningBlurb", Icons.Running, Running),
                 new("Automation", "NavAutomation", "NavAutomationBlurb", Icons.Automation, Automation),
                 new("Clipboard", "NavClipboard", "NavClipboardBlurb", Icons.Clipboard, new ClipsViewModel(settings)),
+                new("Screenshots", "NavScreenshots", "NavScreenshotsBlurb", Icons.Screenshots, new ScreenshotsViewModel(settings)),
                 new("Log", "NavLog", "NavLogBlurb", Icons.Log, new LogViewModel()),
                 new("Memory/CPU", "NavMemory", MemoryBlurb(), Icons.Memory, Memory),
                 new("Settings", "NavSettings", "NavSettingsBlurb", Icons.Settings, Preferences),
@@ -316,7 +317,14 @@ namespace DevDeck.App.ViewModels
 
         public ObservableCollection<Section> Sections { get; }
 
-        /// <summary>Puts the sections in the user's saved order. Ones it does not name keep their place at the end.</summary>
+        /// <summary>
+        ///  Puts the sections in the user's saved order.
+        /// </summary>
+        /// <remarks>
+        ///  A section the saved order does not name is new since it was saved, and goes in right
+        ///  after the section it ships after, rather than at the bottom: a new page belongs beside
+        ///  its neighbour, and a user who arranged the rail once should not have to again.
+        /// </remarks>
         private static void Arrange(ObservableCollection<Section> sections, List<string> order)
         {
             if (order.Count == 0)
@@ -324,12 +332,27 @@ namespace DevDeck.App.ViewModels
                 return;
             }
 
-            // Stable, so the sections the saved order does not mention stay in their shipped order.
-            List<Section> arranged = [.. sections.OrderBy(section =>
+            List<Section> shipped = [.. sections];
+
+            // Stable, so several new sections after the same neighbour keep their shipped order.
+            List<Section> arranged = [.. shipped.OrderBy(section =>
             {
                 int at = order.IndexOf(section.Name);
 
-                return at < 0 ? int.MaxValue : at;
+                if (at >= 0)
+                {
+                    return at;
+                }
+
+                for (int i = shipped.IndexOf(section) - 1; i >= 0; i--)
+                {
+                    if (order.IndexOf(shipped[i].Name) is var before and >= 0)
+                    {
+                        return before + 0.5;
+                    }
+                }
+
+                return -0.5;
             })];
 
             sections.Clear();

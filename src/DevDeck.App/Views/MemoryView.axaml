@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:DevDeck.App"
              xmlns:loc="using:DevDeck.App.Localisation"
              xmlns:vm="using:DevDeck.App.ViewModels"
              xmlns:views="using:DevDeck.App.Views"
@@ -277,6 +278,25 @@
       </Style.Animations>
     </Style>
 
+    <!-- The gauges' columns, by the width of their card; see Readings. In styles rather than on
+         the grid, because a value written on the element outranks any style. -->
+    <Style Selector="UniformGrid#ReadingGrid">
+      <Setter Property="Columns" Value="4" />
+      <Setter Property="RowSpacing" Value="14" />
+    </Style>
+
+    <ContainerQuery Name="Readings" Query="max-width:1000">
+      <Style Selector="UniformGrid#ReadingGrid">
+        <Setter Property="Columns" Value="2" />
+      </Style>
+    </ContainerQuery>
+
+    <ContainerQuery Name="Readings" Query="max-width:520">
+      <Style Selector="UniformGrid#ReadingGrid">
+        <Setter Property="Columns" Value="1" />
+      </Style>
+    </ContainerQuery>
+
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*,Auto">
@@ -286,8 +306,18 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
         <TextBlock Grid.Column="0" Text="{loc:T MemoryMemoryAndProcessor}" FontSize="17" FontWeight="SemiBold"
                    Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
-        <Button Grid.Column="1" Content="{Binding WidgetLabel}" Command="{Binding WidgetCommand}" />
-        <Button Grid.Column="2" Content="{loc:T Refresh}" Margin="8,0,0,0" Command="{Binding RefreshCommand}" />
+        <Button Grid.Column="1" Command="{Binding WidgetCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Gauge}" />
+            <TextBlock Text="{Binding WidgetLabel}" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding RefreshCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+            <TextBlock Text="{loc:T Refresh}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 
@@ -300,8 +330,12 @@
         <!-- The two readings as gauges, side by side: they are read together, and stacking them
              makes the second look like a detail of the first. Same control the widget's dial is
              built from, so a ring means the same thing in both places. -->
-        <Border Classes="card" Padding="20,12">
-          <UniformGrid Rows="1">
+        <!-- Four across where there is room, two by two where there is not, and one per line on
+             the narrowest window (the ContainerQuery at the top): side by side at any width, each
+             text column shrank until it broke a word per line. -->
+        <Border Classes="card" Padding="20,12"
+                Container.Name="Readings" Container.Sizing="Width">
+          <UniformGrid Name="ReadingGrid">
 
             <Grid Classes="reading" ColumnDefinitions="Auto,*">
               <Panel Grid.Column="0">
@@ -318,8 +352,8 @@
               </Panel>
               <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
               <TextBlock Classes="figure" Text="{Binding Used}" />
-              <TextBlock Classes="stat" Text="{Binding Total, StringFormat='of {0} physical'}" />
-              <TextBlock Classes="stat" Text="{Binding Available, StringFormat='{}{0} available'}" />
+              <TextBlock Classes="stat" Text="{Binding TotalLine}" TextWrapping="Wrap" />
+              <TextBlock Classes="stat" Text="{Binding AvailableLine}" TextWrapping="Wrap" />
               </StackPanel>
             </Grid>
 
@@ -337,9 +371,9 @@
                 </StackPanel>
               </Panel>
               <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="3">
-              <TextBlock Classes="figure" Text="{Binding Cores}" />
-              <TextBlock Classes="stat" Text="{loc:T MemoryAcrossAllCores}" />
-              <TextBlock Classes="stat" Text="{loc:T MemorySampledEveryTwoSeconds}" />
+              <TextBlock Classes="figure" Text="{Binding Cores}" TextWrapping="Wrap" />
+              <TextBlock Classes="stat" Text="{loc:T MemoryAcrossAllCores}" TextWrapping="Wrap" />
+              <TextBlock Classes="stat" Text="{loc:T MemorySampledEveryTwoSeconds}" TextWrapping="Wrap" />
               </StackPanel>
             </Grid>
 
@@ -407,22 +441,27 @@
 
               <!-- The same column definitions as the rows below, so a head sits over what it
                    names. They did not: the header grid was missing the disc's column. -->
-              <Grid ColumnDefinitions="Auto,260,*,96,64,Auto" Margin="8,0,0,6">
+              <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto" Margin="8,0,0,6">
                 <Border Grid.Column="0" Classes="disc" Opacity="0" IsHitTestVisible="False" />
                 <TextBlock Grid.Column="1" Classes="head" Text="{loc:T MemoryProcess}" />
                 <TextBlock Grid.Column="2" Classes="head" Text="{loc:T MemoryShareOfTheHeaviest}"
                            Margin="16,0,0,0" />
                 <TextBlock Grid.Column="3" Classes="head" Text="{loc:T MemoryMemory2}" TextAlignment="Right" />
                 <TextBlock Grid.Column="4" Classes="head" Text="CPU" TextAlignment="Right" />
-                <Button Grid.Column="5" Classes="end" Content="{loc:T RunningKill}"
-                        Opacity="0" IsHitTestVisible="False" />
+                <Button Grid.Column="5" Classes="end"
+                        Opacity="0" IsHitTestVisible="False">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                    <TextBlock Text="{loc:T RunningKill}" />
+                  </StackPanel>
+                </Button>
               </Grid>
 
               <ItemsControl ItemsSource="{Binding Processes}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ProcessRow">
                     <Border Classes="row" ToolTip.Tip="{Binding Detail}">
-                      <Grid ColumnDefinitions="Auto,260,*,96,64,Auto">
+                      <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto">
 
                         <Border Grid.Column="0" Classes="disc">
                           <TextBlock Text="{Binding Initial}" FontSize="11" FontWeight="SemiBold"
@@ -432,7 +471,7 @@
 
                         <!-- Name and pid side by side. Stacked, the pid was a second line of text
                              holding the row open and giving the bar something to collide with. -->
-                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
+                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ClipToBounds="True">
                           <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13"
                                      Foreground="{DynamicResource Text}"
                                      TextTrimming="CharacterEllipsis" MaxWidth="180"
@@ -461,10 +500,15 @@
                                    Text="{Binding Cpu}"
                                    Foreground="{DynamicResource TextMuted}" />
 
-                        <Button Grid.Column="5" Classes="end" Content="{loc:T RunningKill}"
+                        <Button Grid.Column="5" Classes="end"
                                 ToolTip.Tip="{loc:T RunningKillTip}"
                                 CommandParameter="{Binding}"
-                                Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).EndProcessCommand}" />
+                                Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).EndProcessCommand}">
+                          <StackPanel Classes="iconLabel">
+                            <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                            <TextBlock Text="{loc:T RunningKill}" />
+                          </StackPanel>
+                        </Button>
 
                       </Grid>
                     </Border>
@@ -481,14 +525,16 @@
              it ran, because most of them are irreversible-sounding and none of them are obvious. -->
         <StackPanel Spacing="10">
 
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Grid.Column="0" Text="{loc:T MemoryCleanupSteps}" FontSize="13.5" FontWeight="SemiBold"
-                       Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
-            <TextBlock Grid.Column="1" Classes="stat" VerticalAlignment="Center"
+          <!-- The note under the heading rather than beside it: beside it, a long translation
+               grew over the heading on a narrow window. -->
+          <StackPanel Spacing="4">
+            <TextBlock Text="{loc:T MemoryCleanupSteps}" FontSize="13.5" FontWeight="SemiBold"
+                       Foreground="{DynamicResource Text}" />
+            <TextBlock Classes="stat" TextWrapping="Wrap"
                        IsVisible="{Binding NeedsElevation}"
                        Foreground="{DynamicResource Warn}"
                        Text="{loc:T MemorySomeTickedStepsNeedAnAdministrator}" />
-          </Grid>
+          </StackPanel>
 
           <ItemsControl ItemsSource="{Binding Steps}">
             <ItemsControl.ItemTemplate>
@@ -534,7 +580,12 @@
                    Text="{Binding Status}" FontSize="12" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextMuted}" />
         <Button Grid.Column="1" Classes="go" VerticalAlignment="Center"
-                Content="{Binding CleanLabel}" Command="{Binding CleanCommand}" />
+ Command="{Binding CleanCommand}">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" />
+            <TextBlock Text="{Binding CleanLabel}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 

@@ -1,6 +1,7 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:app="using:DevDeck.App"
         x:Class="DevDeck.App.Views.IconPicker"
         Title="{loc:T IconPickerTitle}"
         Width="392" Height="418"
@@ -70,11 +71,21 @@
 
         <!-- No icon is a choice, not the absence of one, so it gets a button of its own rather
              than being reached by unpicking something. -->
-        <Button Grid.Column="0" Classes="plain" Content="{loc:T IconPickerNone}"
-                Click="NoneClick" />
+        <Button Grid.Column="0" Classes="plain"
+                Click="NoneClick">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+            <TextBlock Text="{loc:T IconPickerNone}" />
+          </StackPanel>
+        </Button>
 
-        <Button Grid.Column="2" Classes="plain" Content="{loc:T Cancel}"
-                IsCancel="True" Click="CancelClick" />
+        <Button Grid.Column="2" Classes="plain"
+                IsCancel="True" Click="CancelClick">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+            <TextBlock Text="{loc:T Cancel}" />
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
 

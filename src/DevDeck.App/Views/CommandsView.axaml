@@ -334,16 +334,24 @@
                 <!-- The project already says how to build itself. Reading that is faster and more
                      accurate than retyping it, and it is what makes the deck useful on a repository
                      the user has just opened. -->
-                <Button Content="{loc:T ImportFromThisProject}"
-                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         ToolTip.Tip="{loc:T CommandsReadsPackageJsonMakefileCargoToml}"
-                        Command="{Binding ImportCommand}" />
+                        Command="{Binding ImportCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Download}" />
+                    <TextBlock Text="{loc:T ImportFromThisProject}" />
+                  </StackPanel>
+                </Button>
 
                 <!-- The starters are only seeded on a fresh install, so this is how a deck that
                      already existed gets them. It adds what is missing and nothing else. -->
-                <Button Content="{loc:T CommandsAddTheStarterCommands}"
-                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                        Command="{Binding AddStartersCommand}" />
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Command="{Binding AddStartersCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+                    <TextBlock Text="{loc:T CommandsAddTheStarterCommands}" />
+                  </StackPanel>
+                </Button>
 
                 <!-- A command worth keeping is a command worth pointing at from a README or a
                      ticket, and the moment that occurs to someone is while they are looking at it. -->
@@ -462,9 +470,14 @@
                     <TextBlock Grid.Column="1" Text="{Binding Selected.ConvertNote}" FontSize="12"
                                TextWrapping="Wrap" VerticalAlignment="Center"
                                Foreground="{DynamicResource Text}" />
-                    <Button Grid.Column="2" Content="{loc:T CmdUndoConvert}"
+                    <Button Grid.Column="2"
                             IsVisible="{Binding Selected.CanUndoConvert}"
-                            Command="{Binding Selected.UndoConvertCommand}" />
+                            Command="{Binding Selected.UndoConvertCommand}">
+                      <StackPanel Classes="iconLabel">
+                        <Path Classes="icon" Data="{x:Static app:Icons.Left}" />
+                        <TextBlock Text="{loc:T CmdUndoConvert}" />
+                      </StackPanel>
+                    </Button>
                   </Grid>
                 </Border>
                 <TextBlock Classes="label" Margin="0,6,0,0"
@@ -516,40 +529,57 @@
                            Text="{loc:T CommandsParametersHelp}" />
               </StackPanel>
 
-              <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto">
-                <Button Grid.Column="0" Classes="go" Command="{Binding Selected.RunCommand}">
+              <!-- Wraps rather than squeezing: with icons on the buttons the row outgrew a narrow
+                   window, and the checkbox labels broke one letter per line. -->
+              <WrapPanel LineSpacing="8">
+                <Button Classes="go" Command="{Binding Selected.RunCommand}">
                   <StackPanel Classes="iconLabel">
                     <Path Classes="icon solid" Data="{x:Static app:Icons.Run}" />
                     <TextBlock Text="{loc:T Run}" />
                   </StackPanel>
                 </Button>
-                <Button Grid.Column="1" Margin="8,0,0,0" Command="{Binding Selected.StopCommand}">
+                <Button Margin="8,0,0,0" Command="{Binding Selected.StopCommand}">
                   <StackPanel Classes="iconLabel">
                     <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
                     <TextBlock Text="{loc:T Stop}" />
                   </StackPanel>
                 </Button>
-                <Button Grid.Column="2" Content="{loc:T Save}" Margin="8,0,0,0"
-                        Command="{Binding SaveCommand}" />
+                <Button Margin="8,0,0,0"
+                        Command="{Binding SaveCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Save}" />
+                    <TextBlock Text="{loc:T Save}" />
+                  </StackPanel>
+                </Button>
 
                 <!-- Only after a failure. A button that is always there invites asking about runs
                      that went fine, which costs a round trip to be told nothing is wrong. -->
-                <Button Grid.Column="3" Content="{loc:T CommandsExplainThisFailure}" Margin="8,0,0,0"
+                <Button Margin="8,0,0,0"
                         IsVisible="{Binding CanExplain}"
-                        Command="{Binding ExplainFailureCommand}" />
+                        Command="{Binding ExplainFailureCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Assistant}" />
+                    <TextBlock Text="{loc:T CommandsExplainThisFailure}" />
+                  </StackPanel>
+                </Button>
 
-                <CheckBox Grid.Column="4" Margin="18,0,0,0" VerticalAlignment="Center"
+                <CheckBox Margin="18,0,12,0" VerticalAlignment="Center"
                           IsChecked="{Binding Selected.Detached}"
                           Content="{loc:T CommandsRunAndDonTWaitFor}" />
-                <CheckBox Grid.Column="5" VerticalAlignment="Center"
+                <CheckBox VerticalAlignment="Center"
                           IsChecked="{Binding Follow}"
                           Content="{loc:T CommandsFollowOutput}" />
-                <ToggleButton Name="SelectOutput" Grid.Column="6" Margin="12,0,0,0" VerticalAlignment="Center"
-                              Content="{loc:T SelectText}" ToolTip.Tip="{loc:T SelectTextTip}"
+                <ToggleButton Name="SelectOutput" Margin="12,0,0,0" VerticalAlignment="Center"
+                              ToolTip.Tip="{loc:T SelectTextTip}"
                               FontSize="11.5" Padding="10,5" BorderThickness="1" CornerRadius="2"
                               Background="{DynamicResource SteelRaised}" Foreground="{DynamicResource Text}"
-                              BorderBrush="{DynamicResource Line}" />
-              </Grid>
+                              BorderBrush="{DynamicResource Line}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Case}" />
+                    <TextBlock Text="{loc:T SelectText}" />
+                  </StackPanel>
+                </ToggleButton>
+              </WrapPanel>
 
             </StackPanel>
           </Border>
@@ -610,8 +640,13 @@
         <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12.5" LineHeight="20"
                    Foreground="{DynamicResource TextFaint}"
                    Text="{loc:T CommandsEveryCommandRunsInsideThisFolder}" />
-        <Button Classes="go" Content="{loc:T CommandsChooseAFolder}" HorizontalAlignment="Center"
-                Click="BrowseClick" />
+        <Button Classes="go" HorizontalAlignment="Center"
+                Click="BrowseClick">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Folder}" />
+            <TextBlock Text="{loc:T CommandsChooseAFolder}" />
+          </StackPanel>
+        </Button>
       </StackPanel>
 
     </Panel>

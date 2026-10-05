@@ -44,7 +44,7 @@ the Assistant or the HTTP client at a server yourself.
 - [Download](#download) · [Getting started](#getting-started)
 - [Features at a glance](#features-at-a-glance)
 - [Commands](#commands) · [Automation](#automation) · [Assistant](#assistant) · [HTTP](#http) ·
-  [Running](#running) · [Toolbox](#toolbox) · [Clipboard](#clipboard) ·
+  [Running](#running) · [Toolbox](#toolbox) · [Clipboard](#clipboard) · [Screenshots](#screenshots) ·
   [Memory/CPU](#memorycpu) · [Log](#log) · [Settings](#settings) · [Changelog](#changelog)
 - [Reaching DevDeck from anywhere](#reaching-devdeck-from-anywhere)
 - [Where your data lives](#where-your-data-lives)
@@ -127,6 +127,7 @@ commands run there.
 | **Running** | What is listening on which port, your containers, health checks, and the heaviest processes. |
 | **Toolbox** | Offline text tools: JSON/XML formatting, Base64, URL, JWT, hashes, UUIDs, regex and more. |
 | **Clipboard** | An opt-in history of what you copied, searchable, with pinning. |
+| **Screenshots** | Every Win+Shift+S capture in one gallery: thumbnails, list or details, favourites, multi-select copy and drag. |
 | **Memory/CPU** | Live gauges for memory, CPU, disk and GPU, plus one-click memory cleanup. |
 | **Log** | Everything DevDeck itself did this session, for when something needs explaining. |
 | **Settings** | Theme, language, AI, keep-awake, notifications, hotkey and more. |
@@ -345,8 +346,12 @@ A small, fast API client built into the deck.
   to file it there; **Alt+Up** / **Alt+Down** move the selected one.
 - **Send from the list.** The ▶ beside each saved request sends it straight away. Requests run in
   parallel, each keeping its own reply - select a request to see what it got.
+- **Run a whole group.** The ▷ on a group header sends every request in the group at once - a quick
+  smoke test of an API - and becomes a ■ that cancels whatever is still out. A line under the list
+  says how many answered.
 - **Resizable panes.** Drag the headers, body and reply panes to the split you like; it is
-  remembered.
+  remembered. On a narrow window the reply's buttons move under its status line rather than off
+  the edge.
 
 ---
 
@@ -416,6 +421,28 @@ A history of what you copied, so the command you copied an hour ago is still the
   guess, not a guarantee).
 - **Search** the history, **Copy** an entry back, **Pin** the ones you keep reaching for, and
   **Clear all** when you are done. Links are recognised and can be opened.
+
+---
+
+## Screenshots
+
+Every screenshot on the machine, in one place.
+
+- **Win+Shift+S captures appear by themselves.** The page reads the folder Snipping Tool saves to
+  (*Pictures\Screenshots*, wherever OneDrive has put it), so a capture taken while DevDeck was
+  closed is there too, and a new one lands in the gallery as you take it. If nothing shows up,
+  turn on automatic saving in Snipping Tool's settings.
+- **Thumbnails, List or Details**, newest first. Details has a column for each fact and scrolls
+  sideways on a narrow window. Drag the divider to size the preview; both are remembered.
+- **Search** by name or date, **star favourites** and show **Favourites only**.
+- **Select several** with Ctrl or Shift. **Copy path** copies every path, one per line; **Copy
+  image** copies one picture, or several as files; **Favourite** and **Delete** work on the whole
+  selection. Delete sends files to the Recycle Bin.
+- **Drag tiles out** into Teams, a Jira comment, a browser upload or a folder - all of the selected
+  ones at once. Double-click opens a screenshot; **Show in folder** finds it in Explorer.
+- **Also keep images I copy** (off until you turn it on) collects captures that never become a file,
+  such as Snipping Tool with automatic saving off or an image copied from a browser. A capture that
+  arrives both ways is kept once, and these are cleared after 30 days unless they are favourites.
 
 ---
 
@@ -527,6 +554,8 @@ your whole deck with it.
 | `secrets.json` | Secret values, **encrypted** with your Windows account (DPAPI). They can only be read by you, on this machine. |
 | `history.json` | Past runs of each command. |
 | `clips.json` | Clipboard history, if you turned it on. |
+| `shots.json` | Which screenshots you starred as favourites. |
+| `shots/` | Images kept from the clipboard, if you turned *Also keep images I copy* on. |
 | `conversations/` | Saved Assistant conversations. |
 
 To start over, use **Settings → Reset everything**, or delete `settings.json` while DevDeck is

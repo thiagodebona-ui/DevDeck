@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:DevDeck.App.Localisation"
+        xmlns:app="using:DevDeck.App"
         xmlns:vm="using:DevDeck.App.ViewModels"
         xmlns:core="using:DevDeck.Core"
         x:Class="DevDeck.App.Views.EnvironmentEditor"
@@ -74,8 +75,18 @@
 
       <DockPanel Grid.Column="0" LastChildFill="True">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
-          <Button Content="{loc:T EnvironmentAdd}" Click="AddEnvironment" />
-          <Button Classes="danger" Content="{loc:T Remove}" Click="RemoveEnvironment" />
+          <Button Click="AddEnvironment">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+              <TextBlock Text="{loc:T EnvironmentAdd}" />
+            </StackPanel>
+          </Button>
+          <Button Classes="danger" Click="RemoveEnvironment">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+              <TextBlock Text="{loc:T Remove}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
 
         <ListBox Name="Names" Classes="names"
@@ -100,7 +111,12 @@
                    PlaceholderText="{loc:T EnvironmentEnvironmentName}"
                    TextChanged="NameEdited"
                    LostFocus="NameDone" />
-          <Button Grid.Column="1" Content="{loc:T EnvironmentAddValue}" Click="AddValue" />
+          <Button Grid.Column="1" Click="AddValue">
+            <StackPanel Classes="iconLabel">
+              <Path Classes="icon" Data="{x:Static app:Icons.Add}" />
+              <TextBlock Text="{loc:T EnvironmentAddValue}" />
+            </StackPanel>
+          </Button>
         </Grid>
 
         <!-- The same padding as the header list, and for the same reason: the scrollbar overlays
@@ -120,7 +136,12 @@
       <TextBlock Name="Note" Grid.Column="0" Classes="label"
                  VerticalAlignment="Center" TextWrapping="Wrap" />
 
-      <Button Grid.Column="1" Content="{loc:T EnvironmentDone}" Click="DoneClick" IsDefault="True" />
+      <Button Grid.Column="1" Click="DoneClick" IsDefault="True">
+        <StackPanel Classes="iconLabel">
+          <Path Classes="icon" Data="{x:Static app:Icons.Check}" />
+          <TextBlock Text="{loc:T EnvironmentDone}" />
+        </StackPanel>
+      </Button>
 
     </Grid>
 
