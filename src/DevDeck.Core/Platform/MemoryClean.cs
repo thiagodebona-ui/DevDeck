@@ -10,7 +10,9 @@ namespace DevDeck.Core
     /// <remarks>
     ///  The first seven are V2's, with V2's numbering kept so a settings file listing steps by name
     ///  carries over unchanged. <see cref="DropPageCache"/> is new, and is the only step Linux and
-    ///  macOS have at all.
+    ///  macOS have at all. The two after it are Windows memory-manager commands V2 never sent;
+    ///  numbered on from the end, because the number is also the step's bit in the elevated
+    ///  helper's exit code.
     /// </remarks>
     internal enum MemoryStep
     {
@@ -22,6 +24,21 @@ namespace DevDeck.Core
         PurgeLowPriorityStandby = 5,
         TrimFileCache = 6,
         DropPageCache = 7,
+        CombineMemoryPages = 8,
+        FlushRegistryCache = 9,
+    }
+
+    /// <summary>A ready-made set of ticks, for people who do not want to choose step by step.</summary>
+    internal enum CleanPreset
+    {
+        /// <summary>Only what runs without an administrator: no prompt, ever.</summary>
+        Quick,
+
+        /// <summary>The first-run defaults: everything that pays for itself.</summary>
+        Recommended,
+
+        /// <summary>Every step this platform has, the slow ones included.</summary>
+        Deep,
     }
 
     internal enum StepStatus
@@ -153,6 +170,23 @@ namespace DevDeck.Core
         [DllImport("ntdll.dll")]
         private static extern int NtSetSystemInformation(int infoClass, ref int information, int length);
 
+        [DllImport("ntdll.dll", EntryPoint = "NtSetSystemInformation")]
+        private static extern int NtSetSystemInformationCombine(
+            int infoClass, ref MemoryCombineInformationEx information, int length);
+
+        // The registry flush takes no buffer at all.
+        [DllImport("ntdll.dll", EntryPoint = "NtSetSystemInformation")]
+        private static extern int NtSetSystemInformationEmpty(int infoClass, IntPtr information, int length);
+
+        /// <summary>MEMORY_COMBINE_INFORMATION_EX: the kernel fills in how many pages it merged.</summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MemoryCombineInformationEx
+        {
+            public IntPtr Handle;
+            public UIntPtr PagesCombined;
+            public uint Flags;
+        }
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetProcessTimes(
@@ -201,6 +235,13 @@ namespace DevDeck.Core
 
         private const int SystemMemoryListInformation = 80;
 
+        // Merges identical physical pages into one shared copy - what Windows 10's memory
+        // compression era calls page combining, and what Mem Reduct's "combine memory lists" sends.
+        private const int SystemCombinePhysicalMemoryInformation = 130;
+
+        // Writes the registry hives' dirty pages out and lets their cached views go.
+        private const int SystemRegistryReconciliationInformation = 155;
+
         // SYSTEM_MEMORY_LIST_COMMAND. The same commands RAMMap's Empty menu sends.
         private const int MemoryEmptyWorkingSets = 2;
         private const int MemoryFlushModifiedList = 3;
@@ -209,6 +250,7 @@ namespace DevDeck.Core
 
         private const int StatusSuccess = 0;
         private const int StatusPrivilegeNotHeld = unchecked((int)0xC0000061);
+        private const int StatusAccessDenied = unchecked((int)0xC0000022);
         private const int ErrorAccessDenied = 5;
         private const int ErrorPrivilegeNotHeld = 1314;
         #endregion
@@ -219,13 +261,19 @@ namespace DevDeck.Core
         ///  after every trim or it purges a cache that is about to be refilled. Flushing modified
         ///  pages comes before the purges for the same reason: a dirty page cannot be freed until
         ///  it has been written out.
+        ///
+        ///  Combining goes first, while the duplicate pages are still resident - after a trim they
+        ///  are on the standby list, where combining cannot reach them. The registry flush writes
+        ///  hive pages out, so it sits with the other flush, ahead of the purges that free them.
         /// </remarks>
         public static readonly IReadOnlyList<MemoryStep> Order =
         [
             MemoryStep.CollectOwnGarbage,
+            MemoryStep.CombineMemoryPages,
             MemoryStep.TrimProcessWorkingSets,
             MemoryStep.EmptySystemWorkingSets,
             MemoryStep.FlushModifiedPages,
+            MemoryStep.FlushRegistryCache,
             MemoryStep.TrimFileCache,
             MemoryStep.PurgeLowPriorityStandby,
             MemoryStep.PurgeStandbyList,
@@ -239,11 +287,14 @@ namespace DevDeck.Core
         ///  FlushModifiedPages is left out, as in V2 - it costs disk writes and can stall for
         ///  seconds, which is a poor trade for a button people press casually. DropPageCache is
         ///  left out for the matching reason on the other platforms: it needs root and drops a
-        ///  cache that is not waste.
+        ///  cache that is not waste. The registry flush is left out because it writes to disk for
+        ///  a few megabytes at most; combining is in, because it frees memory without throwing
+        ///  away anything that would have to be read back.
         /// </remarks>
         public static readonly IReadOnlyList<MemoryStep> Defaults =
         [
             MemoryStep.CollectOwnGarbage,
+            MemoryStep.CombineMemoryPages,
             MemoryStep.TrimProcessWorkingSets,
             MemoryStep.EmptySystemWorkingSets,
             MemoryStep.TrimFileCache,
@@ -262,6 +313,36 @@ namespace DevDeck.Core
             MemoryStep.DropPageCache => !OperatingSystem.IsWindows(),
             _ => OperatingSystem.IsWindows(),
         };
+
+        /// <summary>The steps a preset ticks, limited to what this platform has, in run order.</summary>
+        public static IReadOnlyList<MemoryStep> StepsFor(CleanPreset preset) => preset switch
+        {
+            CleanPreset.Quick => Available.Where(step => !NeedsAdmin(step)).ToList(),
+            CleanPreset.Deep => Available,
+            _ => Order.Where(step => Defaults.Contains(step) && Supported(step)).ToList(),
+        };
+
+        /// <summary>
+        ///  The preset a set of ticks amounts to, or null when it is a hand-made selection.
+        /// </summary>
+        /// <remarks>
+        ///  Checked narrowest first: on Linux and macOS Quick and Recommended can come out as the
+        ///  same set, and the cheaper name is the more useful one to light up.
+        /// </remarks>
+        public static CleanPreset? PresetOf(IEnumerable<MemoryStep> ticked)
+        {
+            HashSet<MemoryStep> set = ticked.Where(Supported).ToHashSet();
+
+            foreach (CleanPreset preset in new[] { CleanPreset.Quick, CleanPreset.Recommended, CleanPreset.Deep })
+            {
+                if (set.SetEquals(StepsFor(preset)))
+                {
+                    return preset;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>Whether a step can only run from an elevated process.</summary>
         public static bool NeedsAdmin(MemoryStep step) =>
@@ -520,8 +601,48 @@ namespace DevDeck.Core
                 MemoryStep.PurgeLowPriorityStandby => MemoryListCommand(MemoryPurgeLowPriorityStandbyList),
                 MemoryStep.PurgeStandbyList => MemoryListCommand(MemoryPurgeStandbyList),
                 MemoryStep.TrimFileCache => TrimFileCache(),
+                MemoryStep.CombineMemoryPages => CombineMemoryPages(),
+                MemoryStep.FlushRegistryCache => Report(NtSetSystemInformationEmpty(
+                    SystemRegistryReconciliationInformation, IntPtr.Zero, 0)),
                 _ => (StepStatus.Skipped, "unknown step"),
             };
+
+        /// <summary>
+        ///  Merges identical pages across every process into one shared, copy-on-write page.
+        /// </summary>
+        /// <remarks>
+        ///  Unlike the purges this throws nothing away: every process keeps seeing the same bytes,
+        ///  there are just fewer copies of them. Typically a few hundred megabytes on a machine
+        ///  running several browsers or several copies of the same runtime.
+        /// </remarks>
+        [SupportedOSPlatform("windows")]
+        private static (StepStatus, string) CombineMemoryPages()
+        {
+            MemoryCombineInformationEx information = new();
+
+            int status = NtSetSystemInformationCombine(
+                SystemCombinePhysicalMemoryInformation,
+                ref information,
+                Marshal.SizeOf<MemoryCombineInformationEx>());
+
+            if (status != StatusSuccess)
+            {
+                return Report(status);
+            }
+
+            ulong pages = information.PagesCombined.ToUInt64();
+
+            return (StepStatus.Done,
+                $"{pages:N0} page(s) combined, about {MemoryProbe.Describe((long)pages * Environment.SystemPageSize)}");
+        }
+
+        /// <summary>An NTSTATUS from a memory-manager call, as a step result.</summary>
+        private static (StepStatus, string) Report(int status) => status switch
+        {
+            StatusSuccess => (StepStatus.Done, "done"),
+            StatusPrivilegeNotHeld or StatusAccessDenied => (StepStatus.NeedsAdmin, "needs administrator"),
+            _ => (StepStatus.Failed, $"NTSTATUS 0x{status:X8}"),
+        };
 
         /// <summary>
         ///  Empties the working set of every process this account is allowed to open.
@@ -612,16 +733,7 @@ namespace DevDeck.Core
         private static (StepStatus, string) MemoryListCommand(int command)
         {
             int value = command;
-            int status = NtSetSystemInformation(SystemMemoryListInformation, ref value, sizeof(int));
-
-            if (status == StatusSuccess)
-            {
-                return (StepStatus.Done, "done");
-            }
-
-            return status == StatusPrivilegeNotHeld
-                ? (StepStatus.NeedsAdmin, "needs administrator")
-                : (StepStatus.Failed, $"NTSTATUS 0x{status:X8}");
+            return Report(NtSetSystemInformation(SystemMemoryListInformation, ref value, sizeof(int)));
         }
 
         /// <summary>

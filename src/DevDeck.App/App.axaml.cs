@@ -79,6 +79,7 @@ namespace DevDeck.App
                 // place before anything is drawn or the window flashes the wrong palette.
                 AppSettings settings = AppSettings.Load();
 
+                ThemeManager.SetEffect(settings.ThemeEffect);
                 ThemeManager.Apply(this, AppTheme.Parse(settings.Theme));
 
                 // For the same reason, and before the same first frame: a window built in English

@@ -24,6 +24,16 @@ namespace DevDeck.Core
     /// </remarks>
     internal sealed record ProcessUsage(int Id, string Name, long WorkingSet, double CpuPercent = 0)
     {
+        /// <summary>
+        ///  Every process this row stands for: just <see cref="Id"/>, or each copy of one
+        ///  executable when the list is grouped.
+        /// </summary>
+        public IReadOnlyList<int> Ids { get; init; } = [Id];
+
+        public int Count => Ids.Count;
+
+        public bool IsGroup => Ids.Count > 1;
+
         /// <summary>"836 MB", for a list that shows the size beside the name.</summary>
         public string Size => MemoryProbe.Describe(WorkingSet);
     }
@@ -270,6 +280,32 @@ namespace DevDeck.Core
             catch (Exception exception)
             {
                 return Strings.Format("RunKillFailed", name, exception.Message);
+            }
+        }
+
+        /// <summary>
+        ///  Ends one process and its tree, quietly, for ending a whole group: whether it went is
+        ///  all the caller counts. A member that already exited because its parent was ended a
+        ///  moment ago counts as not ended, which is honest - it was not this call that did it.
+        /// </summary>
+        public static bool TryEnd(int id)
+        {
+            if (id == Environment.ProcessId)
+            {
+                return false;
+            }
+
+            try
+            {
+                using Process process = Process.GetProcessById(id);
+
+                process.Kill(entireProcessTree: true);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

@@ -23,6 +23,8 @@ namespace DevDeck.App.ViewModels
             this.settings = settings;
 
             theme = AppTheme.Parse(settings.Theme);
+            effect = Effects.FirstOrDefault(choice => string.Equals(choice.Id, settings.ThemeEffect, StringComparison.OrdinalIgnoreCase))
+                ?? Effects[0];
             language = AppLanguage.Parse(settings.Language);
             keepAwake = settings.KeepAwake;
             stayAvailable = settings.StayAvailable;
@@ -99,6 +101,24 @@ namespace DevDeck.App.ViewModels
         }
 
         public IReadOnlyList<ThemePalette> Themes { get; } = AppTheme.All;
+
+        /// <summary>"Match the theme", "None", then each effect, in the app's language.</summary>
+        public IReadOnlyList<EffectChoice> Effects { get; } =
+            [.. ThemeEffect.Choices.Select(id => new EffectChoice(id))];
+
+        /// <summary>
+        ///  The background effect, applied the moment it is picked - for the theme's reason: an
+        ///  effect you cannot see until you press a button is one you cannot choose.
+        /// </summary>
+        [ObservableProperty]
+        private EffectChoice effect;
+
+        partial void OnEffectChanged(EffectChoice value)
+        {
+            settings.ThemeEffect = value.Id == ThemeEffect.MatchTheme ? null : value.Id;
+            ThemeManager.SetEffect(settings.ThemeEffect);
+            Save();
+        }
 
         public IReadOnlyList<LanguageChoice> Languages { get; } = AppLanguage.All;
 

@@ -56,9 +56,8 @@ namespace DevDeck.App.ViewModels
 
             Mark();
 
-            // Never a row that is out of reach: it could be shown selected but not clicked back to.
-            selected = Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand && !c.IsInUse)
-                ?? Commands.FirstOrDefault(c => !c.IsInUse);
+            selected = Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand)
+                ?? Commands.FirstOrDefault();
         }
 
         public ObservableCollection<CommandItem> Commands { get; }
@@ -240,14 +239,11 @@ namespace DevDeck.App.ViewModels
             Commands.Add(item);
             settings.CustomCommands.Add(command);
 
-            // A chain may already name it - a step left broken by an earlier delete - in which case
-            // its row is out of reach the moment it arrives, and selecting it would select nothing.
+            // A chain may already name it - a step left broken by an earlier delete - and its row
+            // gets that chain's pill straight away.
             Mark();
 
-            if (!item.IsInUse)
-            {
-                Selected = item;
-            }
+            Selected = item;
 
             OnPropertyChanged(nameof(HasCommands));
             Save();
@@ -419,23 +415,12 @@ namespace DevDeck.App.ViewModels
         ///  Asks again which commands are in use, after a chain or a watch changed.
         /// </summary>
         /// <remarks>
-        ///  Called by the automation panel. A selected command that has just been put in a chain
-        ///  loses the selection to the first one still in reach: a selected row the user cannot
-        ///  click is a selection they cannot see the edges of.
-        ///
-        ///  Only here, not when the selection changes. The palette, a link or Explain this failure
-        ///  may select an in-use command on purpose to show its output, and taking the selection
-        ///  straight back off it would show them some other command's instead.
+        ///  Called by the automation panel. The selection stays where it is: a command a chain runs
+        ///  is still one to read and edit, and only Delete changes with its use.
         /// </remarks>
         public void UsageChanged()
         {
             Mark();
-
-            if (Selected is { IsInUse: true })
-            {
-                Selected = Commands.FirstOrDefault(command => !command.IsInUse);
-            }
-
             DeleteChanged();
         }
 
@@ -577,10 +562,9 @@ namespace DevDeck.App.ViewModels
             // the name and report a trend from a different command's runs.
             RunHistory.Instance.Forget(doomed.Name);
 
-            // The row that took its place, or the nearest one above, so Delete pressed again works
-            // down the list. Never a row out of reach, which would be selected but unclickable.
-            Selected = Commands.Skip(at).FirstOrDefault(command => !command.IsInUse)
-                ?? Commands.Take(at).LastOrDefault(command => !command.IsInUse);
+            // The row that took its place, or the one above, so Delete pressed again works down the
+            // list.
+            Selected = Commands.Skip(at).FirstOrDefault() ?? Commands.Take(at).LastOrDefault();
 
             OnPropertyChanged(nameof(HasCommands));
             Save();

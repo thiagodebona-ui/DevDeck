@@ -185,6 +185,12 @@ namespace DevDeck.Core
         /// <summary>Leave processes that are busy right now out of a trim.</summary>
         public bool MemorySkipBusy { get; set; } = true;
 
+        /// <summary>
+        ///  One row per program in the largest-processes list, every copy of it summed.
+        /// </summary>
+        /// <remarks>On by default: forty rows of "node" is a list nobody can read.</remarks>
+        public bool MemoryGroupProcesses { get; set; } = true;
+
         /// <summary>Show every process in the cleaner's list, not only the ones with a window.</summary>
         public bool MemoryShowAllProcesses { get; set; }
 
@@ -211,6 +217,18 @@ namespace DevDeck.Core
         ///  which is the only honest way to judge a memory cleaner. Capped when written.
         /// </remarks>
         public List<string> MemoryHistory { get; set; } = [];
+
+        /// <summary>
+        ///  The background effect, by <see cref="ThemeBackdrop"/> name, or "Theme" to wear the one
+        ///  the theme brings. Missing reads as "Theme", so older files keep their look.
+        /// </summary>
+        public string? ThemeEffect { get; set; }
+
+        /// <summary>
+        ///  Disk targets ticked in the space cleaner, by <see cref="SpaceTarget"/> name.
+        /// </summary>
+        /// <remarks>Missing rather than empty for "never chosen", as with <see cref="MemorySteps"/>.</remarks>
+        public List<string>? SpaceTargets { get; set; }
 
         /// <summary>The saved requests in the HTTP panel.</summary>
         /// <remarks>

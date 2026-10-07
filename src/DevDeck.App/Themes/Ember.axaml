@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Ember: the last of a fire, in charcoal and orange, with sparks rising from the bottom of the
+       window and flickering out. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#120A07" />
+  <SolidColorBrush x:Key="Panel" Color="#D91A0F0B" />
+  <SolidColorBrush x:Key="Steel" Color="#E6221410" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#2D1B15" />
+  <SolidColorBrush x:Key="SteelHover" Color="#3A231B" />
+  <SolidColorBrush x:Key="Line" Color="#44291E" />
+  <SolidColorBrush x:Key="CodeBg" Color="#0C0604" />
+
+  <SolidColorBrush x:Key="Text" Color="#F3E4D8" />
+  <SolidColorBrush x:Key="TextMuted" Color="#B39684" />
+  <SolidColorBrush x:Key="TextFaint" Color="#7A6152" />
+
+  <SolidColorBrush x:Key="Accent" Color="#FF8A3D" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#FFA766" />
+  <SolidColorBrush x:Key="OnAccent" Color="#2A1102" />
+
+  <SolidColorBrush x:Key="Good" Color="#A6D96A" />
+  <SolidColorBrush x:Key="Bad" Color="#FF5A4E" />
+  <SolidColorBrush x:Key="Warn" Color="#FFC24D" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#1A0F0B" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#FF7A59" />
+  <SolidColorBrush x:Key="SynString" Color="#E6C27A" />
+  <SolidColorBrush x:Key="SynComment" Color="#7A6152" />
+  <SolidColorBrush x:Key="SynNumber" Color="#FFB86B" />
+  <SolidColorBrush x:Key="SynVariable" Color="#F2A0A0" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#0C0604" />
+
+</ResourceDictionary>

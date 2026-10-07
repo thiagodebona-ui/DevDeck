@@ -371,6 +371,7 @@ namespace DevDeck.App.Localisation
             "AutomationMoveStepUp",
             "AutomationMoveStepDown",
             "AutomationRemoveStep",
+            "AutomationShowStepCode",
             "AutomationStepIsMissing",
             "AutomationStepOnTip",
             "AutomationSameStepTwiceIsFine",
@@ -571,6 +572,101 @@ namespace DevDeck.App.Localisation
             "MemoryWidgetQuitDevDeck",
             "MemoryWidgetClickToClean",
             "MemoryWidgetFreed",
+            "MemGroup",
+            "MemGroupTip",
+            "MemProcessCount",
+            "MemDetailGroup",
+            "MemEndGroup",
+            "MemEndGroupDetail",
+            "MemEndedGroup",
+            "SettingsEffect",
+            "SettingsEffectNote",
+            "EffectTheme",
+            "EffectNone",
+            "EffectAurora",
+            "EffectRain",
+            "EffectStars",
+            "EffectGrid",
+            "EffectEmbers",
+            "EffectSnow",
+            "EffectPetals",
+            "MemStepCombineMemoryPages",
+            "MemStepCombineMemoryPagesWhy",
+            "MemStepFlushRegistryCache",
+            "MemStepFlushRegistryCacheWhy",
+            "MemAgoNow",
+            "MemAgoMinutes",
+            "MemAgoHours",
+            "MemAgoDays",
+            "MemCleanTitle",
+            "MemCleanIntro",
+            "MemPresetQuick",
+            "MemPresetQuickNote",
+            "MemPresetQuickTip",
+            "MemPresetRecommended",
+            "MemPresetRecommendedNote",
+            "MemPresetRecommendedTip",
+            "MemPresetDeep",
+            "MemPresetDeepNote",
+            "MemPresetDeepTip",
+            "MemPresetCustom",
+            "MemTicked",
+            "MemHistoryNone",
+            "MemLastClean",
+            "MemHistoryTotal",
+            "MemFreedSummaryAvail",
+            "MemAdminSkipped",
+            "MemOptSkipBusy",
+            "MemOptSkipBusyTip",
+            "MemOptAllowElevation",
+            "MemOptAllowElevationTip",
+            "MemSparedTitle",
+            "MemSparedNone",
+            "MemSpare",
+            "MemSpared",
+            "MemSpareTip",
+            "MemUnspareTip",
+            "MemAutoTitle",
+            "MemAutoOn",
+            "MemAutoCooldown",
+            "MemAutoMinutes",
+            "MemAutoIdle",
+            "MemAutoSeconds",
+            "MemAutoNote",
+            "MemAutoLast",
+            "MemAutoRan",
+            "SpaceTitle",
+            "SpaceIntro",
+            "SpaceScan",
+            "SpaceScanning",
+            "SpaceEmpty",
+            "SpaceNothingHere",
+            "SpaceFree",
+            "SpaceFreeNothing",
+            "SpaceFreeing",
+            "SpaceNothingTicked",
+            "SpaceOutcome",
+            "SpaceOutcomeSkipped",
+            "SpaceFailed",
+            "SpaceDone",
+            "SpaceRecycleConfirm",
+            "SpaceRecycleConfirmDetail",
+            "SpaceRecycleConfirmGo",
+            "SpaceWindowsOnly",
+            "SpaceUserTemp",
+            "SpaceUserTempWhy",
+            "SpaceRecycleBin",
+            "SpaceRecycleBinWhy",
+            "SpaceCrashDumps",
+            "SpaceCrashDumpsWhy",
+            "SpaceNuGetHttpCache",
+            "SpaceNuGetHttpCacheWhy",
+            "SpaceNpmCache",
+            "SpaceNpmCacheWhy",
+            "SpaceYarnCache",
+            "SpaceYarnCacheWhy",
+            "SpacePipCache",
+            "SpacePipCacheWhy",
             "NamePromptRename",
             "PaletteRunACommand",
             "PaletteTypeACommandAPanelOr",
@@ -972,7 +1068,7 @@ namespace DevDeck.App.Localisation
         /// <summary>Move down (Alt+Down)</summary>
         public string CmdMoveDown => Strings.Text("CmdMoveDown");
 
-        /// <summary>Used by {0}, so it cannot be selected or deleted. Take it out of there</summary>
+        /// <summary>Used by {0}. You can edit it here; to delete it, take it out of there </summary>
         public string CmdInUseRow => Strings.Text("CmdInUseRow");
 
         /// <summary>Converting to {0} with AI…</summary>
@@ -1782,6 +1878,9 @@ namespace DevDeck.App.Localisation
         /// <summary>Remove this step</summary>
         public string AutomationRemoveStep => Strings.Text("AutomationRemoveStep");
 
+        /// <summary>Show this step's code on the Commands page</summary>
+        public string AutomationShowStepCode => Strings.Text("AutomationShowStepCode");
+
         /// <summary>No command by this name</summary>
         public string AutomationStepIsMissing => Strings.Text("AutomationStepIsMissing");
 
@@ -2381,6 +2480,291 @@ namespace DevDeck.App.Localisation
 
         /// <summary>freed</summary>
         public string MemoryWidgetFreed => Strings.Text("MemoryWidgetFreed");
+
+        /// <summary>Group by program</summary>
+        public string MemGroup => Strings.Text("MemGroup");
+
+        /// <summary>One row per program, with the memory and processor of all its processe</summary>
+        public string MemGroupTip => Strings.Text("MemGroupTip");
+
+        /// <summary>{0} processes</summary>
+        public string MemProcessCount => Strings.Text("MemProcessCount");
+
+        /// <summary>{0} · {1} processes · {2} · {3}% of physical memory · pids {4}</summary>
+        public string MemDetailGroup => Strings.Text("MemDetailGroup");
+
+        /// <summary>End all {1} copies of {0}?</summary>
+        public string MemEndGroup => Strings.Text("MemEndGroup");
+
+        /// <summary>{0} processes named {1}, and everything they started, will be ended. A</summary>
+        public string MemEndGroupDetail => Strings.Text("MemEndGroupDetail");
+
+        /// <summary>Ended {0} of {1} {2} processes.</summary>
+        public string MemEndedGroup => Strings.Text("MemEndedGroup");
+
+        /// <summary>Background effect</summary>
+        public string SettingsEffect => Strings.Text("SettingsEffect");
+
+        /// <summary>Aurora, Matrix, Cosmos, Synthwave, Ember, Frost and Sakura come with a</summary>
+        public string SettingsEffectNote => Strings.Text("SettingsEffectNote");
+
+        /// <summary>Match the theme</summary>
+        public string EffectTheme => Strings.Text("EffectTheme");
+
+        /// <summary>None</summary>
+        public string EffectNone => Strings.Text("EffectNone");
+
+        /// <summary>Aurora</summary>
+        public string EffectAurora => Strings.Text("EffectAurora");
+
+        /// <summary>Digital rain</summary>
+        public string EffectRain => Strings.Text("EffectRain");
+
+        /// <summary>Starfield</summary>
+        public string EffectStars => Strings.Text("EffectStars");
+
+        /// <summary>Neon grid</summary>
+        public string EffectGrid => Strings.Text("EffectGrid");
+
+        /// <summary>Embers</summary>
+        public string EffectEmbers => Strings.Text("EffectEmbers");
+
+        /// <summary>Snowfall</summary>
+        public string EffectSnow => Strings.Text("EffectSnow");
+
+        /// <summary>Falling petals</summary>
+        public string EffectPetals => Strings.Text("EffectPetals");
+
+        /// <summary>Combine identical memory pages</summary>
+        public string MemStepCombineMemoryPages => Strings.Text("MemStepCombineMemoryPages");
+
+        /// <summary>Merges pages that hold the same bytes into one shared copy. Frees memo</summary>
+        public string MemStepCombineMemoryPagesWhy => Strings.Text("MemStepCombineMemoryPagesWhy");
+
+        /// <summary>Flush the registry cache</summary>
+        public string MemStepFlushRegistryCache => Strings.Text("MemStepFlushRegistryCache");
+
+        /// <summary>Writes the registry's pending changes to disk and lets go of the memor</summary>
+        public string MemStepFlushRegistryCacheWhy => Strings.Text("MemStepFlushRegistryCacheWhy");
+
+        /// <summary>just now</summary>
+        public string MemAgoNow => Strings.Text("MemAgoNow");
+
+        /// <summary>{0} min ago</summary>
+        public string MemAgoMinutes => Strings.Text("MemAgoMinutes");
+
+        /// <summary>{0} h ago</summary>
+        public string MemAgoHours => Strings.Text("MemAgoHours");
+
+        /// <summary>{0} d ago</summary>
+        public string MemAgoDays => Strings.Text("MemAgoDays");
+
+        /// <summary>Clean memory</summary>
+        public string MemCleanTitle => Strings.Text("MemCleanTitle");
+
+        /// <summary>Pick a preset, or tick the steps one by one below. Each step says what</summary>
+        public string MemCleanIntro => Strings.Text("MemCleanIntro");
+
+        /// <summary>Quick</summary>
+        public string MemPresetQuick => Strings.Text("MemPresetQuick");
+
+        /// <summary>No administrator prompt</summary>
+        public string MemPresetQuickNote => Strings.Text("MemPresetQuickNote");
+
+        /// <summary>Only the steps that need no administrator: trims every process and Dev</summary>
+        public string MemPresetQuickTip => Strings.Text("MemPresetQuickTip");
+
+        /// <summary>Recommended</summary>
+        public string MemPresetRecommended => Strings.Text("MemPresetRecommended");
+
+        /// <summary>Everything that pays for itself</summary>
+        public string MemPresetRecommendedNote => Strings.Text("MemPresetRecommendedNote");
+
+        /// <summary>The trims, page combining and the standby purges - the steps that free</summary>
+        public string MemPresetRecommendedTip => Strings.Text("MemPresetRecommendedTip");
+
+        /// <summary>Deep</summary>
+        public string MemPresetDeep => Strings.Text("MemPresetDeep");
+
+        /// <summary>Every step, the slow ones too</summary>
+        public string MemPresetDeepNote => Strings.Text("MemPresetDeepNote");
+
+        /// <summary>Every step this system has, including the flushes that write to disk. </summary>
+        public string MemPresetDeepTip => Strings.Text("MemPresetDeepTip");
+
+        /// <summary>Custom selection</summary>
+        public string MemPresetCustom => Strings.Text("MemPresetCustom");
+
+        /// <summary>{0} of {1} steps ticked</summary>
+        public string MemTicked => Strings.Text("MemTicked");
+
+        /// <summary>No cleans yet. The last {0} will show here, with what each one freed.</summary>
+        public string MemHistoryNone => Strings.Text("MemHistoryNone");
+
+        /// <summary>Last clean: {0} · {1}</summary>
+        public string MemLastClean => Strings.Text("MemLastClean");
+
+        /// <summary>{0} cleans · {1} freed in all</summary>
+        public string MemHistoryTotal => Strings.Text("MemHistoryTotal");
+
+        /// <summary>{0} · {1} · available {2} → {3}</summary>
+        public string MemFreedSummaryAvail => Strings.Text("MemFreedSummaryAvail");
+
+        /// <summary>Some ticked steps need an administrator and the prompt is switched off</summary>
+        public string MemAdminSkipped => Strings.Text("MemAdminSkipped");
+
+        /// <summary>Leave busy processes alone</summary>
+        public string MemOptSkipBusy => Strings.Text("MemOptSkipBusy");
+
+        /// <summary>A process using the processor right now is skipped by the trim: trimmi</summary>
+        public string MemOptSkipBusyTip => Strings.Text("MemOptSkipBusyTip");
+
+        /// <summary>Ask for an administrator when a step needs one</summary>
+        public string MemOptAllowElevation => Strings.Text("MemOptAllowElevation");
+
+        /// <summary>Off, the steps that need an administrator are skipped and Windows neve</summary>
+        public string MemOptAllowElevationTip => Strings.Text("MemOptAllowElevationTip");
+
+        /// <summary>Never trimmed</summary>
+        public string MemSparedTitle => Strings.Text("MemSparedTitle");
+
+        /// <summary>Nothing yet. Press Spare on a process above to keep it out of every tr</summary>
+        public string MemSparedNone => Strings.Text("MemSparedNone");
+
+        /// <summary>Spare</summary>
+        public string MemSpare => Strings.Text("MemSpare");
+
+        /// <summary>Spared</summary>
+        public string MemSpared => Strings.Text("MemSpared");
+
+        /// <summary>Never trim this process. Press again to let it be trimmed.</summary>
+        public string MemSpareTip => Strings.Text("MemSpareTip");
+
+        /// <summary>Trim this process again from the next clean</summary>
+        public string MemUnspareTip => Strings.Text("MemUnspareTip");
+
+        /// <summary>Automatic clean</summary>
+        public string MemAutoTitle => Strings.Text("MemAutoTitle");
+
+        /// <summary>Clean by itself when memory in use passes</summary>
+        public string MemAutoOn => Strings.Text("MemAutoOn");
+
+        /// <summary>At most once every</summary>
+        public string MemAutoCooldown => Strings.Text("MemAutoCooldown");
+
+        /// <summary>minutes</summary>
+        public string MemAutoMinutes => Strings.Text("MemAutoMinutes");
+
+        /// <summary>Only once I have been away for</summary>
+        public string MemAutoIdle => Strings.Text("MemAutoIdle");
+
+        /// <summary>seconds</summary>
+        public string MemAutoSeconds => Strings.Text("MemAutoSeconds");
+
+        /// <summary>Runs the ticked steps without ever asking for an administrator: steps </summary>
+        public string MemAutoNote => Strings.Text("MemAutoNote");
+
+        /// <summary>Last automatic clean at {1}: {0}</summary>
+        public string MemAutoLast => Strings.Text("MemAutoLast");
+
+        /// <summary>Automatic clean: {0}</summary>
+        public string MemAutoRan => Strings.Text("MemAutoRan");
+
+        /// <summary>Free up disk space</summary>
+        public string SpaceTitle => Strings.Text("SpaceTitle");
+
+        /// <summary>Caches and leftovers that come back by themselves when they are needed</summary>
+        public string SpaceIntro => Strings.Text("SpaceIntro");
+
+        /// <summary>Measure again</summary>
+        public string SpaceScan => Strings.Text("SpaceScan");
+
+        /// <summary>Measuring…</summary>
+        public string SpaceScanning => Strings.Text("SpaceScanning");
+
+        /// <summary>empty</summary>
+        public string SpaceEmpty => Strings.Text("SpaceEmpty");
+
+        /// <summary>Not on this machine.</summary>
+        public string SpaceNothingHere => Strings.Text("SpaceNothingHere");
+
+        /// <summary>Free up {0}</summary>
+        public string SpaceFree => Strings.Text("SpaceFree");
+
+        /// <summary>Free up space</summary>
+        public string SpaceFreeNothing => Strings.Text("SpaceFreeNothing");
+
+        /// <summary>Freeing…</summary>
+        public string SpaceFreeing => Strings.Text("SpaceFreeing");
+
+        /// <summary>Nothing is ticked, so there was nothing to free.</summary>
+        public string SpaceNothingTicked => Strings.Text("SpaceNothingTicked");
+
+        /// <summary>{0} freed · {1} file(s) removed</summary>
+        public string SpaceOutcome => Strings.Text("SpaceOutcome");
+
+        /// <summary>{0} freed · {1} removed · {2} in use, left alone</summary>
+        public string SpaceOutcomeSkipped => Strings.Text("SpaceOutcomeSkipped");
+
+        /// <summary>failed — {0}</summary>
+        public string SpaceFailed => Strings.Text("SpaceFailed");
+
+        /// <summary>Freed {0} of disk space.</summary>
+        public string SpaceDone => Strings.Text("SpaceDone");
+
+        /// <summary>Empty the recycle bin?</summary>
+        public string SpaceRecycleConfirm => Strings.Text("SpaceRecycleConfirm");
+
+        /// <summary>Everything in the recycle bin ({0}) will be deleted permanently. This </summary>
+        public string SpaceRecycleConfirmDetail => Strings.Text("SpaceRecycleConfirmDetail");
+
+        /// <summary>Empty it</summary>
+        public string SpaceRecycleConfirmGo => Strings.Text("SpaceRecycleConfirmGo");
+
+        /// <summary>Windows only - elsewhere this folder is shared with running programs a</summary>
+        public string SpaceWindowsOnly => Strings.Text("SpaceWindowsOnly");
+
+        /// <summary>Temporary files</summary>
+        public string SpaceUserTemp => Strings.Text("SpaceUserTemp");
+
+        /// <summary>Your temp folder, files more than a day old. DevDeck's own scripts are</summary>
+        public string SpaceUserTempWhy => Strings.Text("SpaceUserTempWhy");
+
+        /// <summary>Recycle bin</summary>
+        public string SpaceRecycleBin => Strings.Text("SpaceRecycleBin");
+
+        /// <summary>Deletes what is in the recycle bin, permanently. Never ticked unless y</summary>
+        public string SpaceRecycleBinWhy => Strings.Text("SpaceRecycleBinWhy");
+
+        /// <summary>Crash dumps and error reports</summary>
+        public string SpaceCrashDumps => Strings.Text("SpaceCrashDumps");
+
+        /// <summary>Memory dumps and Windows Error Reporting files left behind by programs</summary>
+        public string SpaceCrashDumpsWhy => Strings.Text("SpaceCrashDumpsWhy");
+
+        /// <summary>NuGet download cache</summary>
+        public string SpaceNuGetHttpCache => Strings.Text("SpaceNuGetHttpCache");
+
+        /// <summary>The HTTP cache of package downloads. Restored packages are not touched</summary>
+        public string SpaceNuGetHttpCacheWhy => Strings.Text("SpaceNuGetHttpCacheWhy");
+
+        /// <summary>npm cache</summary>
+        public string SpaceNpmCache => Strings.Text("SpaceNpmCache");
+
+        /// <summary>npm's content cache - what npm cache clean empties. node_modules folde</summary>
+        public string SpaceNpmCacheWhy => Strings.Text("SpaceNpmCacheWhy");
+
+        /// <summary>Yarn cache</summary>
+        public string SpaceYarnCache => Strings.Text("SpaceYarnCache");
+
+        /// <summary>Yarn's package cache. The next install downloads again what it needs.</summary>
+        public string SpaceYarnCacheWhy => Strings.Text("SpaceYarnCacheWhy");
+
+        /// <summary>pip cache</summary>
+        public string SpacePipCache => Strings.Text("SpacePipCache");
+
+        /// <summary>pip's wheel and download cache. The next install downloads again what </summary>
+        public string SpacePipCacheWhy => Strings.Text("SpacePipCacheWhy");
 
         /// <summary>Rename</summary>
         public string NamePromptRename => Strings.Text("NamePromptRename");

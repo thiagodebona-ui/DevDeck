@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Sakura: the one light living theme. Blossom pink on white, with petals tumbling across the
+       window behind the cards. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#FFF7F9" />
+  <SolidColorBrush x:Key="Panel" Color="#E6FFFFFF" />
+  <SolidColorBrush x:Key="Steel" Color="#F2FBEEF2" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#F6E3EA" />
+  <SolidColorBrush x:Key="SteelHover" Color="#F0D6E0" />
+  <SolidColorBrush x:Key="Line" Color="#EBCBD6" />
+  <SolidColorBrush x:Key="CodeBg" Color="#FFFDFE" />
+
+  <SolidColorBrush x:Key="Text" Color="#3B2A33" />
+  <SolidColorBrush x:Key="TextMuted" Color="#7D6270" />
+  <SolidColorBrush x:Key="TextFaint" Color="#AD94A1" />
+
+  <SolidColorBrush x:Key="Accent" Color="#E05A8A" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#EA80A6" />
+  <SolidColorBrush x:Key="OnAccent" Color="#FFFFFF" />
+
+  <SolidColorBrush x:Key="Good" Color="#3C9D6B" />
+  <SolidColorBrush x:Key="Bad" Color="#D2434F" />
+  <SolidColorBrush x:Key="Warn" Color="#C98A1E" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#FFF7F9" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#B0447A" />
+  <SolidColorBrush x:Key="SynString" Color="#3C8D6B" />
+  <SolidColorBrush x:Key="SynComment" Color="#AD94A1" />
+  <SolidColorBrush x:Key="SynNumber" Color="#C9682E" />
+  <SolidColorBrush x:Key="SynVariable" Color="#5B6FC8" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#F3DDE5" />
+
+</ResourceDictionary>

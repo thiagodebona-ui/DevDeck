@@ -151,6 +151,10 @@
 
   <Grid ColumnDefinitions="212,*">
 
+    <!-- The living layer of the animated themes, behind the rail and every page. It draws nothing
+         at all for a theme without an effect, and never takes a click. -->
+    <views:Backdrop Grid.Column="0" Grid.ColumnSpan="2" />
+
     <Border Grid.Column="0" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
       <DockPanel LastChildFill="True">
 
@@ -231,8 +235,12 @@
         </StackPanel>
       </Button>
 
-    <ContentControl Content="{Binding Selected}">
-      <ContentControl.ContentTemplate>
+    <!-- A short cross-fade between pages, so switching reads as moving rather than as a flash. -->
+    <TransitioningContentControl Content="{Binding Selected}">
+      <TransitioningContentControl.PageTransition>
+        <CrossFade Duration="0:0:0.16" />
+      </TransitioningContentControl.PageTransition>
+      <TransitioningContentControl.ContentTemplate>
         <DataTemplate x:DataType="vm:Section">
           <Panel>
 
@@ -252,8 +260,8 @@
 
           </Panel>
         </DataTemplate>
-      </ContentControl.ContentTemplate>
-    </ContentControl>
+      </TransitioningContentControl.ContentTemplate>
+    </TransitioningContentControl>
 
     </DockPanel>
 

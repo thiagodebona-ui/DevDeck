@@ -1,6 +1,56 @@
 namespace DevDeck.Core
 {
     /// <summary>
+    ///  A living layer drawn behind the whole window, under every panel.
+    /// </summary>
+    /// <remarks>
+    ///  Stored by name. Each one paints with the palette's own brushes - Accent, the syntax
+    ///  colours, Text - rather than colours of its own, so an effect picked separately from the
+    ///  theme still belongs to it.
+    /// </remarks>
+    internal enum ThemeBackdrop
+    {
+        None,
+
+        /// <summary>Slow drifting curtains of colour.</summary>
+        Aurora,
+
+        /// <summary>Columns of falling glyphs.</summary>
+        Rain,
+
+        /// <summary>Three layers of stars drifting past, the odd shooting star.</summary>
+        Stars,
+
+        /// <summary>A neon grid rolling towards a striped sun on the horizon.</summary>
+        Grid,
+
+        /// <summary>Sparks rising and flickering out.</summary>
+        Embers,
+
+        /// <summary>Snow drifting down and swaying.</summary>
+        Snow,
+
+        /// <summary>Petals tumbling across the window.</summary>
+        Petals,
+    }
+
+    /// <summary>The background-effect choice, which is either "whatever the theme brings" or one effect.</summary>
+    internal static class ThemeEffect
+    {
+        /// <summary>What the setting holds when the theme decides.</summary>
+        public const string MatchTheme = "Theme";
+
+        public static IReadOnlyList<string> Choices { get; } =
+            [MatchTheme, .. Enum.GetNames<ThemeBackdrop>()];
+
+        /// <summary>The effect to draw, given the setting and the theme being worn.</summary>
+        public static ThemeBackdrop Resolve(string? setting, ThemePalette palette) =>
+            Enum.TryParse(setting, ignoreCase: true, out ThemeBackdrop chosen)
+                ? chosen
+                : palette.Backdrop;
+    }
+
+    /// <summary>
     ///  One named palette the app can wear.
     /// </summary>
     /// <remarks>
@@ -9,7 +59,8 @@ namespace DevDeck.Core
     ///  its own variant rather than from our brushes. A palette therefore has to say which variant
     ///  it belongs to, or a light palette ends up with dark scrollbars down the side of it.
     /// </remarks>
-    internal sealed record ThemePalette(string Id, string Name, bool IsDark)
+    internal sealed record ThemePalette(
+        string Id, string Name, bool IsDark, ThemeBackdrop Backdrop = ThemeBackdrop.None, bool Glow = false)
     {
         /// <summary>The resource dictionary behind this palette, under Themes/.</summary>
         public string Source => $"avares://DevDeck/Themes/{Id}.axaml";
@@ -56,7 +107,18 @@ namespace DevDeck.Core
             new("Darcula", "Darcula", IsDark: true),
             new("SolarizedDark", "Solarized Dark", IsDark: true),
             new("Contrast", "High Contrast", IsDark: true),
+
+            // The living themes: a palette, an effect behind the window, and for the neon ones a
+            // glow on cards and the main buttons. Panels are slightly translucent in these, so the
+            // effect shows through the rail and the cards without fighting the text on them.
+            new("Aurora", "Aurora", IsDark: true, ThemeBackdrop.Aurora, Glow: true),
+            new("Matrix", "Matrix", IsDark: true, ThemeBackdrop.Rain, Glow: true),
+            new("Cosmos", "Cosmos", IsDark: true, ThemeBackdrop.Stars),
+            new("Synthwave", "Synthwave", IsDark: true, ThemeBackdrop.Grid, Glow: true),
+            new("Ember", "Ember", IsDark: true, ThemeBackdrop.Embers),
+            new("Frost", "Frost", IsDark: true, ThemeBackdrop.Snow),
             Light,
+            new("Sakura", "Sakura", IsDark: false, ThemeBackdrop.Petals),
             new("SolarizedLight", "Solarized Light", IsDark: false),
             new("Paper", "Paper", IsDark: false),
             new("OneLight", "One Light", IsDark: false),

@@ -62,6 +62,77 @@ namespace DevDeck.App
             Dress(app);
 
             Current = wanted;
+
+            Glow(app, wanted.Glow);
+
+            Changed?.Invoke();
+        }
+
+        /// <summary>Raised after a palette or effect change, for the backdrop to redraw.</summary>
+        public static event Action? Changed;
+
+        /// <summary>The effect setting as stored: an effect name, or "Theme" / null for the theme's own.</summary>
+        private static string? effectSetting;
+
+        /// <summary>The background effect to draw now, after "match the theme" is resolved.</summary>
+        public static ThemeBackdrop Effect => ThemeEffect.Resolve(effectSetting, Current);
+
+        public static void SetEffect(string? setting)
+        {
+            effectSetting = setting;
+            Changed?.Invoke();
+        }
+
+        /// <summary>The glow style currently added to the application, so the next theme can take it off.</summary>
+        private static Styles? glow;
+
+        /// <summary>
+        ///  Puts a soft accent-coloured halo on cards and on the main action buttons, or takes it off.
+        /// </summary>
+        /// <remarks>
+        ///  A style added to the application rather than a key in the palette: BoxShadow is not a
+        ///  brush, and every view declares its own <c>Border.card</c> - but none of them set a
+        ///  shadow, so one application-wide setter reaches all of them without editing a view.
+        ///  Built from the palette's Accent, so the neon themes glow in their own colour.
+        /// </remarks>
+        private static void Glow(Application app, bool on)
+        {
+            if (glow is not null)
+            {
+                app.Styles.Remove(glow);
+                glow = null;
+            }
+
+            if (!on || !app.TryGetResource("Accent", app.ActualThemeVariant, out object? found)
+                || found is not ISolidColorBrush accent)
+            {
+                return;
+            }
+
+            Color soft = Color.FromArgb(0x38, accent.Color.R, accent.Color.G, accent.Color.B);
+            Color strong = Color.FromArgb(0x70, accent.Color.R, accent.Color.G, accent.Color.B);
+
+            glow =
+            [
+                new Style(x => x.OfType<Avalonia.Controls.Border>().Class("card"))
+                {
+                    Setters = { new Setter(Avalonia.Controls.Border.BoxShadowProperty, new BoxShadows(new BoxShadow { Blur = 22, Color = soft })) },
+                },
+                // On the template's presenter, which is what draws a Button's face and so the one
+                // part with a BoxShadow to set.
+                new Style(x => x.OfType<Avalonia.Controls.Button>().Class("go").Template()
+                    .OfType<Avalonia.Controls.Presenters.ContentPresenter>())
+                {
+                    Setters =
+                    {
+                        new Setter(
+                            Avalonia.Controls.Presenters.ContentPresenter.BoxShadowProperty,
+                            new BoxShadows(new BoxShadow { Blur = 16, Color = strong })),
+                    },
+                },
+            ];
+
+            app.Styles.Add(glow);
         }
 
         /// <summary>

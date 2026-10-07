@@ -371,7 +371,7 @@
                         <Border Background="{DynamicResource Steel}"
                                 BorderBrush="{DynamicResource Line}" BorderThickness="1"
                                 CornerRadius="2" Padding="8,4" Margin="0,0,0,4">
-                          <Grid ColumnDefinitions="Auto,22,*,Auto,Auto,Auto" ColumnSpacing="4">
+                          <Grid ColumnDefinitions="Auto,22,*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
 
                             <!-- Off keeps the step in its place for later and skips it when the
                                  chain runs - quicker than removing it and adding it back. -->
@@ -398,7 +398,16 @@
                                          IsVisible="{Binding IsMissing}" />
                             </StackPanel>
 
+                            <!-- The code this step runs lives on its command; this opens it there. -->
                             <Button Grid.Column="3" Classes="step"
+                                    IsEnabled="{Binding !IsMissing}"
+                                    ToolTip.Tip="{loc:T AutomationShowStepCode}"
+                                    CommandParameter="{Binding}"
+                                    Command="{Binding $parent[UserControl].((vm:AutomationViewModel)DataContext).ShowStepCodeCommand}">
+                              <Path Classes="icon" Data="{x:Static app:Icons.Code}" />
+                            </Button>
+
+                            <Button Grid.Column="4" Classes="step"
                                     IsEnabled="{Binding CanMoveUp}"
                                     ToolTip.Tip="{loc:T AutomationMoveStepUp}"
                                     CommandParameter="{Binding}"
@@ -406,7 +415,7 @@
                               <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
                             </Button>
 
-                            <Button Grid.Column="4" Classes="step"
+                            <Button Grid.Column="5" Classes="step"
                                     IsEnabled="{Binding CanMoveDown}"
                                     ToolTip.Tip="{loc:T AutomationMoveStepDown}"
                                     CommandParameter="{Binding}"
@@ -414,7 +423,7 @@
                               <Path Classes="icon" Data="{x:Static app:Icons.Down}" />
                             </Button>
 
-                            <Button Grid.Column="5" Classes="step drop"
+                            <Button Grid.Column="6" Classes="step drop"
                                     ToolTip.Tip="{loc:T AutomationRemoveStep}"
                                     CommandParameter="{Binding}"
                                     Command="{Binding $parent[ItemsControl].((vm:ChainItem)DataContext).RemoveStepCommand}">

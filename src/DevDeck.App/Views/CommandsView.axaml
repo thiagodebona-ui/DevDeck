@@ -65,17 +65,12 @@
       <Setter Property="MinHeight" Value="0" />
     </Style>
 
-    <!-- A command a chain or a watch runs is out of reach here: it cannot be selected, so it
-         cannot be deleted from under the thing that runs it. The tip says what runs it, and shows
-         on the disabled row because that is the only row anyone will wonder about. -->
+    <!-- A command a chain or a watch runs is selected, read and edited like any other - its
+         pills say what runs it, and so does this tip. Only Delete is held back, by the model, so
+         it cannot be removed from under the thing that runs it. It used to be out of reach
+         altogether, which left no way to see or fix the code a chain was running. -->
     <Style Selector="ListBox.commands ListBoxItem" x:DataType="vm:CommandItem">
-      <Setter Property="IsEnabled" Value="{Binding !IsInUse}" />
       <Setter Property="ToolTip.Tip" Value="{Binding InUseTip}" />
-      <Setter Property="ToolTip.ShowOnDisabled" Value="True" />
-    </Style>
-
-    <Style Selector="ListBox.commands ListBoxItem:disabled">
-      <Setter Property="Opacity" Value="0.45" />
     </Style>
 
     <!-- The pills under a command for the chains and watches that run it. A chain's pill is in

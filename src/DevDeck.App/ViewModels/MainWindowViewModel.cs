@@ -153,6 +153,7 @@ namespace DevDeck.App.ViewModels
             Automation = new AutomationViewModel(settings, commands);
 
             commands.Renamed = Automation.Renamed;
+            Automation.ShowDeck = () => Show("Commands");
 
             // A chain the assistant wrote lands where chains live, and is run from there even when
             // it is started from the transcript. Create chain opens the page on it - the same as a

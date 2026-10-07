@@ -583,6 +583,29 @@ namespace DevDeck.App.ViewModels
         private readonly AppSettings settings;
         private readonly CommandsViewModel deck;
 
+        /// <summary>Shows the Commands page, set by the window: this panel cannot switch the rail itself.</summary>
+        public Action? ShowDeck { get; set; }
+
+        /// <summary>
+        ///  Opens a chain step's command on the Commands page, to read or edit its code.
+        /// </summary>
+        /// <remarks>
+        ///  A chain names its steps rather than copying them, so the code lives on the command - and
+        ///  this is the shortest way from "what does step 3 run" to the answer.
+        /// </remarks>
+        [RelayCommand]
+        private void ShowStepCode(StepRow? step)
+        {
+            if (step is null
+                || deck.Commands.FirstOrDefault(command => command.Name == step.Name) is not { } command)
+            {
+                return;
+            }
+
+            ShowDeck?.Invoke();
+            deck.Selected = command;
+        }
+
         public AutomationViewModel(AppSettings settings, CommandsViewModel deck)
         {
             this.settings = settings;

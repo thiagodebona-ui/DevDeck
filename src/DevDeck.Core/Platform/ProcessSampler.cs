@@ -31,7 +31,7 @@ namespace DevDeck.Core
         ///  three platforms, so this needs no per-OS branch. Processes that exit mid-enumeration
         ///  throw on access and are skipped.
         /// </remarks>
-        public IReadOnlyList<ProcessUsage> Top(int count)
+        public IReadOnlyList<ProcessUsage> Top(int count, bool group = false)
         {
             DateTime now = DateTime.UtcNow;
             double elapsed = (now - sampledAt).TotalMilliseconds;
@@ -83,10 +83,40 @@ namespace DevDeck.Core
 
             sampledAt = now;
 
-            return found
+            return (group ? Group(found) : found)
                 .OrderByDescending(usage => usage.WorkingSet)
                 .Take(count)
                 .ToList();
         }
+
+        /// <summary>
+        ///  Folds every copy of one executable into a single row: memory and processor summed.
+        /// </summary>
+        /// <remarks>
+        ///  A browser, an editor or a Node toolchain runs as dozens of processes with one name, and
+        ///  listed one by one they push everything else off the list while each looks harmless. As
+        ///  one row the answer to "what is using my memory" is the program, which is the question.
+        ///
+        ///  By name rather than by full path: reading each process's image path costs a handle per
+        ///  process every two seconds, and two different executables with the same name are rare
+        ///  enough that a list for the eye can live with it. The row keeps the id of its heaviest
+        ///  member, so a group of one is exactly the row it used to be.
+        /// </remarks>
+        public static IEnumerable<ProcessUsage> Group(IEnumerable<ProcessUsage> found) =>
+            found
+                .GroupBy(usage => usage.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(group =>
+                {
+                    List<ProcessUsage> members = [.. group.OrderByDescending(usage => usage.WorkingSet)];
+
+                    return new ProcessUsage(
+                        members[0].Id,
+                        members[0].Name,
+                        members.Sum(usage => usage.WorkingSet),
+                        Math.Min(100, members.Sum(usage => usage.CpuPercent)))
+                    {
+                        Ids = [.. members.Select(usage => usage.Id)],
+                    };
+                });
     }
 }

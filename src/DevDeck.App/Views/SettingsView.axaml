@@ -62,12 +62,19 @@
                         HorizontalAlignment="Stretch" />
             </StackPanel>
             <StackPanel Width="260" HorizontalAlignment="Left">
+              <TextBlock Classes="label" Text="{loc:T SettingsEffect}" />
+              <ComboBox ItemsSource="{Binding Effects}" SelectedItem="{Binding Effect}"
+                        HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Width="260" HorizontalAlignment="Left">
               <TextBlock Classes="label" Text="{loc:T SettingsLanguage}" />
               <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}"
                         HorizontalAlignment="Stretch" />
             </StackPanel>
             <TextBlock Classes="note"
                        Text="{loc:T SettingsFollowTheSystemTracksTheDesktop}" />
+            <TextBlock Classes="note"
+                       Text="{loc:T SettingsEffectNote}" />
             <TextBlock Classes="note"
                        Text="{loc:T SettingsTheLanguageChangesTheMomentYou}" />
           </StackPanel>

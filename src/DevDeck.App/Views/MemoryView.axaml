@@ -297,6 +297,156 @@
       </Style>
     </ContainerQuery>
 
+
+    <!-- A preset: a button that reads as a choice card, with what it does under its name. The
+         one matching the current ticks is outlined, so hand-ticking visibly leaves the presets. -->
+    <Style Selector="Button.preset">
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="MinWidth" Value="190" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+
+    <Style Selector="Button.preset.on">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="Button.preset.on /template/ ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.preset:pressed, Button.go:pressed">
+      <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <!-- A step or a disk target: one row of a shared card rather than a card each, so ten steps
+         read as one list instead of ten boxes. -->
+    <Style Selector="Border.item">
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Border.item:pointerover">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="Border.item.running">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <!-- Small pill beside a title: "administrator", "spared". -->
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource Track}" />
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Padding" Value="7,1,8,1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="8,0,0,0" />
+    </Style>
+
+    <Style Selector="Border.badge TextBlock">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.badge.count TextBlock">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Border.badge Path.icon">
+      <Setter Property="Stroke" Value="{DynamicResource Warn}" />
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="10,2,4,2" />
+      <Setter Property="Margin" Value="0,0,6,6" />
+    </Style>
+
+    <Style Selector="Button.chipClose">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4,2" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Button.chipClose:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- Spare on a process row: quiet like End task until hovered, and lit once it is on. -->
+    <Style Selector="Border.row:pointerover Button.spare">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Button.spare.on">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Path.sparedMark">
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="Margin" Value="6,1,0,0" />
+    </Style>
+
+    <!-- The history strip: one bar per clean, bottom-aligned, newest on the right. -->
+    <Style Selector="Border.bar">
+      <Setter Property="Width" Value="7" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <Setter Property="Background" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Border.bar.good">
+      <Setter Property="Background" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="13.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.size">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Margin" Value="12,2,0,0" />
+    </Style>
+
+    <Style Selector="TextBlock.size.empty">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="NumericUpDown">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="FormatString" Value="0" />
+      <Setter Property="Width" Value="110" />
+    </Style>
+
+
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*,Auto">
@@ -433,23 +583,32 @@
              a column of bars that turns twelve numbers into a shape you can read without them. -->
         <StackPanel Spacing="10">
 
-          <TextBlock Text="{loc:T MemoryLargestProcesses}" FontSize="13.5" FontWeight="SemiBold"
-                     Foreground="{DynamicResource Text}" />
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Classes="section" Text="{loc:T MemoryLargestProcesses}"
+                       VerticalAlignment="Center" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding GroupProcesses}"
+                      ToolTip.Tip="{loc:T MemGroupTip}" Content="{loc:T MemGroup}" />
+          </Grid>
 
           <Border Classes="card" Padding="8,10,14,10">
             <StackPanel>
 
               <!-- The same column definitions as the rows below, so a head sits over what it
                    names. They did not: the header grid was missing the disc's column. -->
-              <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto" Margin="8,0,0,6">
+              <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto,Auto" Margin="8,0,0,6">
                 <Border Grid.Column="0" Classes="disc" Opacity="0" IsHitTestVisible="False" />
                 <TextBlock Grid.Column="1" Classes="head" Text="{loc:T MemoryProcess}" />
                 <TextBlock Grid.Column="2" Classes="head" Text="{loc:T MemoryShareOfTheHeaviest}"
                            Margin="16,0,0,0" />
                 <TextBlock Grid.Column="3" Classes="head" Text="{loc:T MemoryMemory2}" TextAlignment="Right" />
                 <TextBlock Grid.Column="4" Classes="head" Text="CPU" TextAlignment="Right" />
-                <Button Grid.Column="5" Classes="end"
-                        Opacity="0" IsHitTestVisible="False">
+                <Button Grid.Column="5" Classes="end" Opacity="0" IsHitTestVisible="False">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Shield}" />
+                    <TextBlock Text="{loc:T MemSpared}" />
+                  </StackPanel>
+                </Button>
+                <Button Grid.Column="6" Classes="end" Opacity="0" IsHitTestVisible="False">
                   <StackPanel Classes="iconLabel">
                     <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
                     <TextBlock Text="{loc:T RunningKill}" />
@@ -461,7 +620,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ProcessRow">
                     <Border Classes="row" ToolTip.Tip="{Binding Detail}">
-                      <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto">
+                      <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto,Auto">
 
                         <Border Grid.Column="0" Classes="disc">
                           <TextBlock Text="{Binding Initial}" FontSize="11" FontWeight="SemiBold"
@@ -470,13 +629,22 @@
                         </Border>
 
                         <!-- Name and pid side by side. Stacked, the pid was a second line of text
-                             holding the row open and giving the bar something to collide with. -->
-                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ClipToBounds="True">
+                             holding the row open and giving the bar something to collide with. The
+                             shield between them marks a process no trim touches. -->
+                        <Grid Grid.Column="1" ColumnDefinitions="Auto,Auto,Auto,*" ClipToBounds="True">
                           <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13"
                                      Foreground="{DynamicResource Text}"
                                      TextTrimming="CharacterEllipsis" MaxWidth="180"
                                      VerticalAlignment="Center" />
-                          <TextBlock Grid.Column="1" Classes="pid" Text="{Binding Pid}"
+                          <!-- How many copies a grouped row stands for. -->
+                          <Border Grid.Column="1" Classes="badge count" IsVisible="{Binding IsGroup}"
+                                  Margin="7,0,0,0">
+                            <TextBlock Text="{Binding CountText}" />
+                          </Border>
+                          <Path Grid.Column="2" Classes="icon sparedMark"
+                                Data="{x:Static app:Icons.Shield}"
+                                IsVisible="{Binding IsSpared}" />
+                          <TextBlock Grid.Column="3" Classes="pid" Text="{Binding Pid}"
                                      Margin="8,1,0,0" />
                         </Grid>
 
@@ -500,7 +668,20 @@
                                    Text="{Binding Cpu}"
                                    Foreground="{DynamicResource TextMuted}" />
 
-                        <Button Grid.Column="5" Classes="end"
+                        <!-- Keeps the process out of every trim; pressed again, lets it back in. -->
+                        <Button Grid.Column="5" Classes="end spare"
+                                Classes.on="{Binding IsSpared}"
+                                ToolTip.Tip="{loc:T MemSpareTip}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).SpareProcessCommand}">
+                          <StackPanel Classes="iconLabel">
+                            <Path Classes="icon" Data="{x:Static app:Icons.Shield}" />
+                            <TextBlock Text="{loc:T MemSpare}" IsVisible="{Binding !IsSpared}" />
+                            <TextBlock Text="{loc:T MemSpared}" IsVisible="{Binding IsSpared}" />
+                          </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="6" Classes="end"
                                 ToolTip.Tip="{loc:T RunningKillTip}"
                                 CommandParameter="{Binding}"
                                 Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).EndProcessCommand}">
@@ -521,53 +702,289 @@
 
         </StackPanel>
 
-        <!-- The cleaner. Every step says what it does before it is ticked, and what it did after
-             it ran, because most of them are irreversible-sounding and none of them are obvious. -->
+        <!-- Clean memory: presets first, because most people want "do the sensible thing" rather
+             than ten decisions; the history under them answers "is this doing anything for me". -->
         <StackPanel Spacing="10">
 
-          <!-- The note under the heading rather than beside it: beside it, a long translation
+          <TextBlock Classes="section" Text="{loc:T MemCleanTitle}" />
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+
+              <TextBlock Classes="stat" TextWrapping="Wrap" Text="{loc:T MemCleanIntro}" />
+
+              <WrapPanel>
+                <Button Classes="preset" Classes.on="{Binding IsQuick}"
+                        Command="{Binding ApplyPresetCommand}" CommandParameter="Quick"
+                        ToolTip.Tip="{loc:T MemPresetQuickTip}">
+                  <StackPanel Spacing="3">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Bolt}" />
+                      <TextBlock Text="{loc:T MemPresetQuick}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <TextBlock Classes="stat" Text="{loc:T MemPresetQuickNote}" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="preset" Classes.on="{Binding IsRecommended}"
+                        Command="{Binding ApplyPresetCommand}" CommandParameter="Recommended"
+                        ToolTip.Tip="{loc:T MemPresetRecommendedTip}">
+                  <StackPanel Spacing="3">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" />
+                      <TextBlock Text="{loc:T MemPresetRecommended}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <TextBlock Classes="stat" Text="{loc:T MemPresetRecommendedNote}" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="preset" Classes.on="{Binding IsDeep}"
+                        Command="{Binding ApplyPresetCommand}" CommandParameter="Deep"
+                        ToolTip.Tip="{loc:T MemPresetDeepTip}">
+                  <StackPanel Spacing="3">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Flame}" />
+                      <TextBlock Text="{loc:T MemPresetDeep}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <TextBlock Classes="stat" Text="{loc:T MemPresetDeepNote}" />
+                  </StackPanel>
+                </Button>
+              </WrapPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="stat" Text="{Binding PresetName}" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextMuted}" />
+                <TextBlock Classes="stat" Text="·" />
+                <TextBlock Classes="stat" Text="{Binding TickedSummary}" />
+              </StackPanel>
+
+              <!-- Progress through the ticked steps, only while a clean runs. -->
+              <ProgressBar Classes="fill" IsVisible="{Binding IsBusy}"
+                           Minimum="0" Maximum="100" Value="{Binding CleanProgress}"
+                           Height="4" MinHeight="0" MinWidth="0" CornerRadius="2"
+                           Background="{DynamicResource Track}" />
+
+              <Border Height="1" Background="{DynamicResource Line}" Margin="0,2" />
+
+              <!-- The last cleans as bars, then the latest and the running total. -->
+              <Grid ColumnDefinitions="Auto,*">
+                <ItemsControl Grid.Column="0" ItemsSource="{Binding History}"
+                              Height="36" VerticalAlignment="Center" Margin="0,0,14,0"
+                              IsVisible="{Binding HasHistory}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="3" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HistoryBar">
+                      <Panel Height="36" Background="Transparent" ToolTip.Tip="{Binding Tip}">
+                        <Border Classes="bar" Classes.good="{Binding Good}" Height="{Binding Height}" />
+                      </Panel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding LastCleanText}" FontSize="12.5" TextWrapping="Wrap"
+                             Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="stat" Text="{Binding HistoryTotalText}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Grid>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- The steps. Every step says what it does before it is ticked, and what it did after it
+             ran, because most of them are irreversible-sounding and none of them are obvious. -->
+        <StackPanel Spacing="10">
+
+          <!-- The notes under the heading rather than beside it: beside it, a long translation
                grew over the heading on a narrow window. -->
           <StackPanel Spacing="4">
-            <TextBlock Text="{loc:T MemoryCleanupSteps}" FontSize="13.5" FontWeight="SemiBold"
-                       Foreground="{DynamicResource Text}" />
+            <TextBlock Classes="section" Text="{loc:T MemoryCleanupSteps}" />
             <TextBlock Classes="stat" TextWrapping="Wrap"
                        IsVisible="{Binding NeedsElevation}"
                        Foreground="{DynamicResource Warn}"
                        Text="{loc:T MemorySomeTickedStepsNeedAnAdministrator}" />
+            <TextBlock Classes="stat" TextWrapping="Wrap"
+                       IsVisible="{Binding AdminStepsSkipped}"
+                       Foreground="{DynamicResource Warn}"
+                       Text="{loc:T MemAdminSkipped}" />
           </StackPanel>
 
-          <ItemsControl ItemsSource="{Binding Steps}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:StepToggle">
-                <Border Classes="card" Classes.running="{Binding IsRunning}" Margin="0,0,0,7">
-                  <StackPanel Spacing="4">
-                    <Grid ColumnDefinitions="*,Auto,Auto">
-                      <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}"
-                                IsEnabled="{Binding IsSupported}"
-                                Content="{Binding Title}" />
-                      <!-- Turns while this step is the one running. -->
-                      <Ellipse Grid.Column="1" Classes="spinner"
-                               Classes.turning="{Binding IsRunning}"
-                               IsVisible="{Binding IsRunning}"
-                               VerticalAlignment="Center" Margin="0,0,10,0" />
-                      <TextBlock Grid.Column="2" Classes="stat" VerticalAlignment="Center"
-                                 IsVisible="{Binding NeedsAdmin}" Text="{loc:T MemoryAdministrator}" />
-                    </Grid>
-                    <TextBlock Classes="stat" Margin="28,0,0,0" TextWrapping="Wrap"
-                               Text="{Binding Explain}" />
-                    <TextBlock Classes="outcome"
-                               Classes.bad="{Binding OutcomeIsBad}"
-                               Classes.pending="{Binding IsWaiting}"
-                               Classes.working="{Binding IsRunning}"
-                               Margin="28,0,0,0"
-                               IsVisible="{Binding Outcome, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               Text="{Binding Outcome}" />
-                  </StackPanel>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <Border Classes="card" Padding="6,6">
+            <StackPanel Spacing="2">
 
+              <ItemsControl ItemsSource="{Binding Steps}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:StepToggle">
+                    <Border Classes="item" Classes.running="{Binding IsRunning}" Margin="0,0,0,2">
+                      <StackPanel Spacing="3">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                          <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}"
+                                    IsEnabled="{Binding IsSupported}"
+                                    Content="{Binding Title}" />
+                          <Border Grid.Column="1" Classes="badge" IsVisible="{Binding NeedsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <Path Classes="icon" Data="{x:Static app:Icons.Shield}" />
+                              <TextBlock Text="{loc:T MemoryAdministrator}" />
+                            </StackPanel>
+                          </Border>
+                          <!-- Turns while this step is the one running. -->
+                          <Ellipse Grid.Column="3" Classes="spinner"
+                                   Classes.turning="{Binding IsRunning}"
+                                   IsVisible="{Binding IsRunning}"
+                                   VerticalAlignment="Center" Margin="0,0,6,0" />
+                        </Grid>
+                        <TextBlock Classes="stat" Margin="28,0,0,0" TextWrapping="Wrap"
+                                   Text="{Binding Explain}" />
+                        <TextBlock Classes="outcome"
+                                   Classes.bad="{Binding OutcomeIsBad}"
+                                   Classes.pending="{Binding IsWaiting}"
+                                   Classes.working="{Binding IsRunning}"
+                                   Margin="28,0,0,0"
+                                   IsVisible="{Binding Outcome, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Text="{Binding Outcome}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Border Height="1" Background="{DynamicResource Line}" Margin="10,6" />
+
+              <!-- How the trim behaves, and what it never touches. -->
+              <StackPanel Spacing="8" Margin="10,2,10,8">
+                <CheckBox IsChecked="{Binding SkipBusy}" ToolTip.Tip="{loc:T MemOptSkipBusyTip}"
+                          Content="{loc:T MemOptSkipBusy}" />
+                <CheckBox IsChecked="{Binding AllowElevation}" IsVisible="{Binding !IsElevated}"
+                          ToolTip.Tip="{loc:T MemOptAllowElevationTip}"
+                          Content="{loc:T MemOptAllowElevation}" />
+
+                <TextBlock Classes="stat" Text="{loc:T MemSparedTitle}" Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextMuted}" />
+                <TextBlock Classes="stat" TextWrapping="Wrap" Text="{loc:T MemSparedNone}"
+                           IsVisible="{Binding !HasExcluded}" />
+                <ItemsControl ItemsSource="{Binding Excluded}" IsVisible="{Binding HasExcluded}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Classes="chip">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                          <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource Text}" />
+                          <Button Classes="chipClose" ToolTip.Tip="{loc:T MemUnspareTip}"
+                                  CommandParameter="{Binding}"
+                                  Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).UnspareCommand}">
+                            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                          </Button>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Disk space: the sizes are measured before anything is deleted, so the decision is made
+             with the number in front of it. -->
+        <StackPanel Spacing="10">
+
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Classes="section" Text="{loc:T SpaceTitle}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Command="{Binding ScanSpaceCommand}">
+              <StackPanel Classes="iconLabel">
+                <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                <TextBlock Text="{loc:T SpaceScan}" />
+              </StackPanel>
+            </Button>
+          </Grid>
+
+          <Border Classes="card" Padding="6,6">
+            <StackPanel Spacing="2">
+
+              <TextBlock Classes="stat" TextWrapping="Wrap" Margin="10,4,10,6" Text="{loc:T SpaceIntro}" />
+
+              <ItemsControl ItemsSource="{Binding SpaceItems}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SpaceItem">
+                    <Border Classes="item" Classes.running="{Binding IsWorking}" Margin="0,0,0,2"
+                            ToolTip.Tip="{Binding Where}">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="3">
+                          <CheckBox IsChecked="{Binding IsOn}" IsEnabled="{Binding IsSupported}"
+                                    Content="{Binding Title}" />
+                          <TextBlock Classes="stat" Margin="28,0,0,0" TextWrapping="Wrap"
+                                     Text="{Binding Explain}" />
+                          <TextBlock Classes="outcome" Classes.bad="{Binding OutcomeIsBad}"
+                                     Classes.pending="{Binding IsWorking}"
+                                     Margin="28,0,0,0"
+                                     IsVisible="{Binding Outcome, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     Text="{Binding Outcome}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Classes="size" Classes.empty="{Binding IsEmpty}"
+                                   Text="{Binding SizeText}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Border Height="1" Background="{DynamicResource Line}" Margin="10,6" />
+
+              <Grid ColumnDefinitions="*,Auto" Margin="10,2,4,4">
+                <TextBlock Grid.Column="0" Classes="stat" VerticalAlignment="Center" TextWrapping="Wrap"
+                           Margin="0,0,12,0" Text="{Binding SpaceStatus}" />
+                <Button Grid.Column="1" Classes="go" Command="{Binding FreeSpaceCommand}">
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                    <TextBlock Text="{Binding SpaceFreeLabel}" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Automatic clean: off unless asked for, and hemmed in by a threshold, a gap and
+             idleness, so it cannot turn into a cleaner that runs every two seconds. -->
+        <StackPanel Spacing="10">
+
+          <TextBlock Classes="section" Text="{loc:T MemAutoTitle}" />
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <WrapPanel>
+                <CheckBox IsChecked="{Binding AutoClean}" Content="{loc:T MemAutoOn}" Margin="0,0,10,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <NumericUpDown Value="{Binding AutoThreshold}" Minimum="50" Maximum="99" Increment="5"
+                                 IsEnabled="{Binding AutoClean}" />
+                  <TextBlock Classes="stat" VerticalAlignment="Center" Text="%" />
+                </StackPanel>
+              </WrapPanel>
+              <WrapPanel Margin="28,0,0,0" IsEnabled="{Binding AutoClean}">
+                <TextBlock Classes="stat" VerticalAlignment="Center" Margin="0,0,10,0" Text="{loc:T MemAutoCooldown}" />
+                <NumericUpDown Value="{Binding AutoCooldownMinutes}" Minimum="1" Maximum="1440" Increment="5" />
+                <TextBlock Classes="stat" VerticalAlignment="Center" Margin="10,0,0,0" Text="{loc:T MemAutoMinutes}" />
+              </WrapPanel>
+              <WrapPanel Margin="28,0,0,0" IsEnabled="{Binding AutoClean}">
+                <CheckBox IsChecked="{Binding AutoWhenIdle}" Content="{loc:T MemAutoIdle}" Margin="0,0,10,0" />
+                <NumericUpDown Value="{Binding AutoIdleSeconds}" Minimum="10" Maximum="3600" Increment="10"
+                               IsEnabled="{Binding AutoWhenIdle}" />
+                <TextBlock Classes="stat" VerticalAlignment="Center" Margin="10,0,0,0" Text="{loc:T MemAutoSeconds}" />
+              </WrapPanel>
+              <TextBlock Classes="stat" TextWrapping="Wrap" Text="{loc:T MemAutoNote}" />
+              <TextBlock Classes="outcome" Text="{Binding AutoStatus}"
+                         IsVisible="{Binding AutoStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
         </StackPanel>
 
       </StackPanel>

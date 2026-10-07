@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Cosmos: deep space in violet, three layers of stars drifting past at different speeds and
+       the odd shooting star. Quiet enough to leave on all day. -->
+
+  <SolidColorBrush x:Key="Ink" Color="#05040E" />
+  <SolidColorBrush x:Key="Panel" Color="#D90B0A1C" />
+  <SolidColorBrush x:Key="Steel" Color="#E6121029" />
+  <SolidColorBrush x:Key="SteelRaised" Color="#1B1838" />
+  <SolidColorBrush x:Key="SteelHover" Color="#242049" />
+  <SolidColorBrush x:Key="Line" Color="#2A2650" />
+  <SolidColorBrush x:Key="CodeBg" Color="#04030B" />
+
+  <SolidColorBrush x:Key="Text" Color="#E4E1FF" />
+  <SolidColorBrush x:Key="TextMuted" Color="#9A94C8" />
+  <SolidColorBrush x:Key="TextFaint" Color="#635D91" />
+
+  <SolidColorBrush x:Key="Accent" Color="#A78BFA" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#C4B5FD" />
+  <SolidColorBrush x:Key="OnAccent" Color="#120A2E" />
+
+  <SolidColorBrush x:Key="Good" Color="#6EE7B7" />
+  <SolidColorBrush x:Key="Bad" Color="#FB7185" />
+  <SolidColorBrush x:Key="Warn" Color="#FCD34D" />
+
+  <SolidColorBrush x:Key="WidgetBg" Color="#0B0A1C" Opacity="0.92" />
+
+  <SolidColorBrush x:Key="SynKeyword" Color="#F0ABFC" />
+  <SolidColorBrush x:Key="SynString" Color="#86EFAC" />
+  <SolidColorBrush x:Key="SynComment" Color="#635D91" />
+  <SolidColorBrush x:Key="SynNumber" Color="#FDBA74" />
+  <SolidColorBrush x:Key="SynVariable" Color="#93C5FD" />
+
+  <!-- The sunken track a progress bar is drawn into: always a step away from Ink,
+       or the bar has no groove to sit in. -->
+  <SolidColorBrush x:Key="Track" Color="#04030B" />
+
+</ResourceDictionary>

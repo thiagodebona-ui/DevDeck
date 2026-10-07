@@ -35,9 +35,26 @@ namespace DevDeck.App.Views
                     model.ToggleWidget = Toggle;
                     model.ShowApp = ShowApp;
                     model.QuitApp = QuitApp;
+                    model.Confirm = Confirm;
+
+                    if (IsAttachedToVisualTree())
+                    {
+                        model.ScanSpaceIfStale();
+                    }
                 }
             };
+
+            // The page is attached when it is navigated to, which is when the disk sizes are worth
+            // measuring - not at start-up, behind a page nobody has opened.
+            AttachedToVisualTree += (_, _) => (DataContext as MemoryViewModel)?.ScanSpaceIfStale();
         }
+
+        private bool IsAttachedToVisualTree() => TopLevel.GetTopLevel(this) is not null;
+
+        /// <summary>The same modal question the settings page asks; false when there is no window.</summary>
+        private async Task<bool> Confirm(string heading, string detail, string proceed) =>
+            TopLevel.GetTopLevel(this) is Window owner
+                && await ConfirmPrompt.Ask(owner, heading, detail, proceed);
 
         /// <summary>Opens or closes the floating readout, and reports which it did.</summary>
         private bool Toggle()
