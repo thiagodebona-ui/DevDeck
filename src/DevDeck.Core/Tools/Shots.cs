@@ -118,24 +118,39 @@ namespace DevDeck.Core
         /// <summary>The digest of the last clipboard image kept, so the same one is not kept twice.</summary>
         private string lastKept = string.Empty;
 
+        /// <summary>Where the system's screenshots may be, in order of preference, there or not.</summary>
+        private readonly IReadOnlyList<string> systemFolders;
+
         public Shots(string ownFolder, string? systemFolder, string index)
+            : this(ownFolder, systemFolder is null ? [] : [systemFolder], index)
+        {
+        }
+
+        public Shots(string ownFolder, IReadOnlyList<string> systemFolders, string index)
         {
             OwnFolder = ownFolder;
-            SystemFolder = systemFolder;
+            this.systemFolders = systemFolders;
             this.index = index;
             favourites = new HashSet<string>(LoadFavourites(index), PathComparer);
         }
 
         public static Shots Instance { get; } = new(
             System.IO.Path.Combine(SettingsPath.Directory, "shots"),
-            FindSystemFolder(),
+            SystemFolderCandidates(),
             System.IO.Path.Combine(SettingsPath.Directory, "shots.json"));
 
         /// <summary>Where clipboard captures are written.</summary>
         public string OwnFolder { get; }
 
-        /// <summary>Where the system saves its screenshots, or null when it has no such folder.</summary>
-        public string? SystemFolder { get; }
+        /// <summary>
+        ///  Where the system saves its screenshots, or null when it has no such folder right now.
+        /// </summary>
+        /// <remarks>
+        ///  Looked for on every read rather than once at start-up: a folder deleted and made again
+        ///  while the app runs, or made for the first time by the first capture, has to be picked
+        ///  up without a restart. Two directory checks at most, on a page that reads the disk anyway.
+        /// </remarks>
+        public string? SystemFolder => systemFolders.FirstOrDefault(Directory.Exists);
 
         /// <summary>Newest first, from both folders.</summary>
         public IReadOnlyList<Shot> All()
@@ -382,23 +397,23 @@ namespace DevDeck.Core
         ///  OneDrive, and only then the plain Pictures\Screenshots. On macOS the Desktop, where the
         ///  system puts them unless told otherwise - filtered by name, since a Desktop holds much
         ///  else. Elsewhere Pictures/Screenshots, which is GNOME's and KDE's default.
+        ///
+        ///  Every place it could be, whether it exists yet or not: <see cref="SystemFolder"/> picks
+        ///  the first one that does each time it is asked.
         /// </remarks>
-        public static string? FindSystemFolder()
+        public static IReadOnlyList<string> SystemFolderCandidates()
         {
-            if (OperatingSystem.IsWindows() && KnownScreenshots() is { } known && Directory.Exists(known))
-            {
-                return known;
-            }
-
             if (OperatingSystem.IsMacOS())
             {
-                return Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                return [Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)];
             }
 
             string pictures = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots");
 
-            return Directory.Exists(pictures) ? pictures : null;
+            return OperatingSystem.IsWindows() && KnownScreenshots() is { } known
+                ? [.. new[] { known, pictures }.Distinct(PathComparer)]
+                : [pictures];
         }
 
         /// <summary>
@@ -492,7 +507,11 @@ namespace DevDeck.Core
             // FOLDERID_Screenshots.
             Guid id = new("b7bede81-df94-4682-a7d8-57a52620b86f");
 
-            if (SHGetKnownFolderPath(id, 0, IntPtr.Zero, out IntPtr found) != 0)
+            // KF_FLAG_DONT_VERIFY: the path even while the folder is deleted, so it can be waited
+            // for. Without it a missing folder is an error and the app never looks there again.
+            const uint DontVerify = 0x4000;
+
+            if (SHGetKnownFolderPath(id, DontVerify, IntPtr.Zero, out IntPtr found) != 0)
             {
                 return null;
             }

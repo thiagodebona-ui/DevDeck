@@ -24,8 +24,50 @@ namespace DevDeck.App.Views
                 {
                     model.Copy = Copy;
                     model.Paste = Paste;
+
+                    model.PropertyChanged += (_, changed) =>
+                    {
+                        if (changed.PropertyName == nameof(ToolboxViewModel.Selected))
+                        {
+                            Fit(model);
+                        }
+                    };
+
+                    Fit(model);
                 }
             };
+        }
+
+        /// <summary>
+        ///  A generator has no input, so its output panel takes the input's place as well rather
+        ///  than sitting under an empty gap.
+        /// </summary>
+        private void Fit(ToolboxViewModel model)
+        {
+            bool alone = model.Selected.Generates;
+
+            Grid.SetRow(OutputPane, alone ? 0 : 2);
+            Grid.SetRowSpan(OutputPane, alone ? 3 : 1);
+        }
+
+        /// <summary>Enter in the search box opens the first tool it found; Escape clears it.</summary>
+        private void SearchKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+        {
+            if (DataContext is not ToolboxViewModel model)
+            {
+                return;
+            }
+
+            if (e.Key == Avalonia.Input.Key.Enter)
+            {
+                e.Handled = true;
+                model.PickFirst();
+            }
+            else if (e.Key == Avalonia.Input.Key.Escape)
+            {
+                e.Handled = true;
+                model.Search = string.Empty;
+            }
         }
 
         private async Task Copy(string text)

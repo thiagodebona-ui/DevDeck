@@ -19,6 +19,7 @@ namespace DevDeck.App.Views
                     model.Copy = Copy;
                     model.Paste = Paste;
                     model.Open = Open;
+                    model.Confirm = Confirm;
                 }
             };
         }
@@ -38,6 +39,11 @@ namespace DevDeck.App.Views
         }
 
         private IClipboard? Clipboard() => TopLevel.GetTopLevel(this)?.Clipboard;
+
+        /// <summary>The app's own question dialog; false when there is no window to ask over.</summary>
+        private async Task<bool> Confirm(string heading, string detail, string proceed) =>
+            TopLevel.GetTopLevel(this) is Window owner
+                && await ConfirmPrompt.Ask(owner, heading, detail, proceed);
 
         private async Task Copy(string text)
         {

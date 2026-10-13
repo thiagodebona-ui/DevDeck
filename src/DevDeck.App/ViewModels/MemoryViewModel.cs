@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Avalonia;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -99,10 +100,62 @@ namespace DevDeck.App.ViewModels
         [ObservableProperty]
         private bool isSpared;
 
+        /// <summary>A group opened to show its processes one by one.</summary>
+        [ObservableProperty]
+        private bool isExpanded;
+
+        /// <summary>
+        ///  The group's processes, heaviest first - each one to end or spare on its own.
+        /// </summary>
+        /// <remarks>
+        ///  Kept in step on every tick whether open or not, so opening a group shows the current
+        ///  figures at once rather than the ones from when it was last open. Rows are updated in
+        ///  place by pid for the same reason the outer list is: no flicker under the pointer.
+        /// </remarks>
+        public ObservableCollection<MemberRow> Members { get; } = new();
+
+        private void SyncMembers(ProcessUsage usage, Func<int, bool> spared)
+        {
+            IReadOnlyList<ProcessUsage> members = usage.Members;
+
+            for (int index = 0; index < members.Count; index++)
+            {
+                ProcessUsage member = members[index];
+
+                if (index >= Members.Count || Members[index].Id != member.Id)
+                {
+                    MemberRow fresh = new(member.Id, member.Name);
+
+                    if (index < Members.Count)
+                    {
+                        Members[index] = fresh;
+                    }
+                    else
+                    {
+                        Members.Add(fresh);
+                    }
+                }
+
+                Members[index].Update(member, spared(member.Id));
+            }
+
+            while (Members.Count > members.Count)
+            {
+                Members.RemoveAt(Members.Count - 1);
+            }
+
+            if (Members.Count == 0)
+            {
+                IsExpanded = false;
+            }
+        }
+
         /// <summary>Takes this tick's figures without replacing the row.</summary>
-        public void Update(ProcessUsage usage, string size, double share, double bar, double cpuPercent)
+        public void Update(
+            ProcessUsage usage, string size, double share, double bar, double cpuPercent, Func<int, bool> spared)
         {
             Id = usage.Id;
+            SyncMembers(usage, spared);
 
             // Only when the members changed: a fresh list every tick would redraw the pill and
             // the pid text twice a second for nothing.
@@ -120,6 +173,43 @@ namespace DevDeck.App.ViewModels
             OnPropertyChanged(nameof(IsIdle));
             OnPropertyChanged(nameof(IsHot));
             OnPropertyChanged(nameof(Detail));
+        }
+    }
+
+    /// <summary>One process inside an opened group: its own pid, figures, and buttons.</summary>
+    internal sealed partial class MemberRow : ObservableObject
+    {
+        public MemberRow(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public int Id { get; }
+
+        public string Name { get; }
+
+        public string Pid => Strings.Format("MemPid", Id);
+
+        [ObservableProperty]
+        private string size = "—";
+
+        [ObservableProperty]
+        private string cpu = "—";
+
+        [ObservableProperty]
+        private bool isIdle;
+
+        /// <summary>Spared for this session only - the pid is not kept across a restart.</summary>
+        [ObservableProperty]
+        private bool isSpared;
+
+        public void Update(ProcessUsage usage, bool spared)
+        {
+            Size = MemoryProbe.Describe(usage.WorkingSet);
+            Cpu = $"{usage.CpuPercent:0.0}%";
+            IsIdle = usage.CpuPercent < 0.05;
+            IsSpared = spared;
         }
     }
 
@@ -358,6 +448,8 @@ namespace DevDeck.App.ViewModels
             autoCooldownMinutes = settings.MemoryAutoCooldownMinutes;
             autoWhenIdle = settings.MemoryAutoWhenIdle;
             autoIdleSeconds = settings.MemoryAutoIdleSeconds;
+            widgetDiameter = Math.Clamp(settings.MemoryWidgetDiameter, WidgetSmallest, WidgetLargest);
+            widgetOpacity = Math.Clamp(settings.MemoryWidgetOpacity, WidgetFaintest, 1);
 
             ReadHistory();
 
@@ -705,6 +797,75 @@ namespace DevDeck.App.ViewModels
             }
 
             SaveExcluded();
+        }
+
+        /// <summary>Single processes spared from an opened group, by pid, until DevDeck closes.</summary>
+        private readonly HashSet<int> sparedIds = [];
+
+        /// <summary>
+        ///  The groups the user has opened, by row key.
+        /// </summary>
+        /// <remarks>
+        ///  Kept here rather than only on the row: when two groups swap places between ticks,
+        ///  <see cref="Fill"/> replaces the row, and the fresh one used to come back closed - so a
+        ///  click that landed just as the list reordered seemed to do nothing.
+        /// </remarks>
+        private readonly HashSet<string> openGroups = [];
+
+        /// <summary>Opens a group to show its processes, or closes it again.</summary>
+        [RelayCommand]
+        private void ToggleGroup(ProcessRow? row)
+        {
+            if (row is { IsGroup: true })
+            {
+                row.IsExpanded = !row.IsExpanded;
+
+                if (row.IsExpanded)
+                {
+                    openGroups.Add(row.Key);
+                }
+                else
+                {
+                    openGroups.Remove(row.Key);
+                }
+            }
+        }
+
+        /// <summary>Ends one process from an opened group - just that one and what it started.</summary>
+        [RelayCommand]
+        private async Task EndMember(MemberRow? member)
+        {
+            if (member is null)
+            {
+                return;
+            }
+
+            Status = await Task.Run(() => MemoryProbe.End(member.Id, member.Name));
+            holdStatusUntil = DateTime.UtcNow + TimeSpan.FromSeconds(8);
+            Refresh();
+        }
+
+        /// <summary>
+        ///  Keeps one process of a group out of the trim, or lets it back in.
+        /// </summary>
+        /// <remarks>
+        ///  By pid and for this session, unlike sparing the whole program, which is by name and
+        ///  saved: a pid belongs to one run of one process and is handed to something else later.
+        /// </remarks>
+        [RelayCommand]
+        private void SpareMember(MemberRow? member)
+        {
+            if (member is null)
+            {
+                return;
+            }
+
+            if (!sparedIds.Remove(member.Id))
+            {
+                sparedIds.Add(member.Id);
+            }
+
+            member.IsSpared = sparedIds.Contains(member.Id);
         }
 
         private bool IsSpared(string name) =>
@@ -1261,6 +1422,7 @@ namespace DevDeck.App.ViewModels
                     Steps = chosen,
                     SkipBusy = settings.MemorySkipBusy,
                     Excluded = [.. settings.MemoryExcluded],
+                    ExcludedIds = [.. sparedIds],
 
                     // The setting existed but was never passed on, so switching the prompt off
                     // did nothing.
@@ -1441,6 +1603,7 @@ namespace DevDeck.App.ViewModels
             Available = MemoryProbe.Describe(memory.Available);
             UsedPercent = memory.UsedPercent;
             UsedPercentText = $"{memory.UsedPercent:0}%";
+            Remember(memory.UsedPercent);
 
             ReadLoad();
 
@@ -1495,7 +1658,14 @@ namespace DevDeck.App.ViewModels
                     MemoryProbe.Describe(usage.WorkingSet),
                     totalMemory > 0 ? usage.WorkingSet * 100.0 / totalMemory : 0,
                     biggest > 0 ? usage.WorkingSet * 100.0 / biggest : 0,
-                    usage.CpuPercent);
+                    usage.CpuPercent,
+                    sparedIds.Contains);
+
+                // After Update, which fills the members an opened group shows.
+                if (Processes[index].IsGroup && openGroups.Contains(key))
+                {
+                    Processes[index].IsExpanded = true;
+                }
             }
 
             while (Processes.Count > top.Count)
@@ -1556,6 +1726,123 @@ namespace DevDeck.App.ViewModels
         }
 
         partial void OnIsWidgetOpenChanged(bool value) => OnPropertyChanged(nameof(WidgetLabel));
+
+        /// <summary>The four sizes the widget's menu offers, as diameters in pixels.</summary>
+        public const int WidgetSmall = 170;
+
+        public const int WidgetMedium = 230;
+
+        public const int WidgetLarge = 300;
+
+        public const int WidgetHuge = 380;
+
+        /// <summary>
+        ///  The range Ctrl+wheel can reach. Below the smallest the legend is unreadable; above the
+        ///  largest the widget is no longer something that sits in a corner.
+        /// </summary>
+        public const int WidgetSmallest = 140;
+
+        public const int WidgetLargest = 460;
+
+        /// <summary>Below about a third the widget is too faint to find, let alone click.</summary>
+        public const double WidgetFaintest = 0.35;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsWidgetSmall), nameof(IsWidgetMedium), nameof(IsWidgetLarge), nameof(IsWidgetHuge))]
+        private int widgetDiameter;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsWidgetOpaque), nameof(IsWidgetMostlyOpaque), nameof(IsWidgetHalfFaded), nameof(IsWidgetFaded))]
+        private double widgetOpacity;
+
+        public bool IsWidgetSmall => WidgetDiameter == WidgetSmall;
+
+        public bool IsWidgetMedium => WidgetDiameter == WidgetMedium;
+
+        public bool IsWidgetLarge => WidgetDiameter == WidgetLarge;
+
+        public bool IsWidgetHuge => WidgetDiameter == WidgetHuge;
+
+        public bool IsWidgetOpaque => Math.Abs(WidgetOpacity - 1) < 0.01;
+
+        public bool IsWidgetMostlyOpaque => Math.Abs(WidgetOpacity - 0.85) < 0.01;
+
+        public bool IsWidgetHalfFaded => Math.Abs(WidgetOpacity - 0.7) < 0.01;
+
+        public bool IsWidgetFaded => Math.Abs(WidgetOpacity - 0.5) < 0.01;
+
+        /// <summary>From the menu, which passes the diameter as text.</summary>
+        [RelayCommand]
+        private void SizeWidget(string diameter) => WidgetDiameter = int.Parse(diameter, System.Globalization.CultureInfo.InvariantCulture);
+
+        [RelayCommand]
+        private void FadeWidget(string opacity) => WidgetOpacity = double.Parse(opacity, System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>Ctrl+wheel over the widget: any size in range, not only the four in the menu.</summary>
+        public void ResizeWidgetBy(int pixels) =>
+            WidgetDiameter = Math.Clamp(WidgetDiameter + pixels, WidgetSmallest, WidgetLargest);
+
+        /// <summary>Shift+wheel over the widget.</summary>
+        public void FadeWidgetBy(double amount) =>
+            WidgetOpacity = Math.Round(Math.Clamp(WidgetOpacity + amount, WidgetFaintest, 1), 2);
+
+        partial void OnWidgetDiameterChanged(int value)
+        {
+            settings.MemoryWidgetDiameter = value;
+            settings.Save();
+        }
+
+        partial void OnWidgetOpacityChanged(double value)
+        {
+            settings.MemoryWidgetOpacity = value;
+            settings.Save();
+        }
+
+        /// <summary>Where the widget was left, or null if it has never been moved.</summary>
+        public PixelPoint? WidgetPlace =>
+            settings.MemoryWidgetX == int.MinValue || settings.MemoryWidgetY == int.MinValue
+                ? null
+                : new PixelPoint(settings.MemoryWidgetX, settings.MemoryWidgetY);
+
+        public bool WidgetSnaps => settings.MemoryWidgetSnap;
+
+        public void RememberWidgetPlace(PixelPoint place)
+        {
+            settings.MemoryWidgetX = place.X;
+            settings.MemoryWidgetY = place.Y;
+            settings.Save();
+        }
+
+        /// <summary>How many readings the history holds: two minutes, at one every two seconds.</summary>
+        private const int HistoryLength = 60;
+
+        private readonly List<double> memoryHistory = [];
+
+        /// <summary>
+        ///  The last two minutes of memory in use, oldest first, for the widget's graph.
+        /// </summary>
+        /// <remarks>
+        ///  Kept here rather than in the widget, so a widget opened halfway through a session shows
+        ///  the minutes before it was opened instead of starting from a single point.
+        /// </remarks>
+        public IReadOnlyList<double> MemoryHistory => memoryHistory;
+
+        /// <summary>The most memory in use since DevDeck started, marked on the widget's ring.</summary>
+        [ObservableProperty]
+        private double peakPercent;
+
+        private void Remember(double percent)
+        {
+            memoryHistory.Add(percent);
+
+            if (memoryHistory.Count > HistoryLength)
+            {
+                memoryHistory.RemoveAt(0);
+            }
+
+            PeakPercent = Math.Max(PeakPercent, percent);
+            OnPropertyChanged(nameof(MemoryHistory));
+        }
         #endregion
 
         public void Dispose()

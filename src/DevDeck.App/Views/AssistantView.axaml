@@ -100,12 +100,19 @@
     <Style Selector="TextBlock.who">
       <Setter Property="FontSize" Value="11" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
-      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Margin" Value="3,0,3,0" />
     </Style>
 
-    <Style Selector="StackPanel.head.user">
+    <Style Selector="Border.head">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="4,2" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="Border.head.user">
       <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
 
@@ -137,8 +144,8 @@
       <Setter Property="Padding" Value="4,0" />
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
-      <Setter Property="Opacity" Value="0.45" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="Opacity" Value="0.7" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -391,19 +398,22 @@
 
                 <!-- Who, and when. V2 put the time on log lines but not on turns, which meant a
                      conversation you came back to had no idea how old it was. -->
-                <StackPanel Classes="head" Classes.user="{Binding IsUser}"
-                            Orientation="Horizontal" Spacing="6">
-                  <TextBlock Classes="who" Text="{Binding Who}" />
-                  <TextBlock Classes="stamp" Text="{Binding Stamp}" />
-                  <!-- Faint until it is wanted: one on every turn, and a column of bold crosses
-                       down a conversation would read as a list of errors. -->
-                  <Button Classes="forget"
-                          ToolTip.Tip="{loc:T AssistantDeleteThisMessage}"
-                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
-                          CommandParameter="{Binding}">
-                    <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
-                  </Button>
-                </StackPanel>
+                <!-- On a surface of its own: over a background image the bare text and the cross
+                     vanished into the lighter parts of the picture. -->
+                <Border Classes="head" Classes.user="{Binding IsUser}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Classes="who" Text="{Binding Who}" />
+                    <TextBlock Classes="stamp" Text="{Binding Stamp}" />
+                    <!-- Quieter than the text until it is wanted: one on every turn, and a column
+                         of bold crosses down a conversation would read as a list of errors. -->
+                    <Button Classes="forget"
+                            ToolTip.Tip="{loc:T AssistantDeleteThisMessage}"
+                            Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).DeleteTurnCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                    </Button>
+                  </StackPanel>
+                </Border>
 
                 <Border Classes="bubble"
                         Classes.user="{Binding IsUser}"
@@ -451,7 +461,7 @@
                               <Border DockPanel.Dock="Bottom" Padding="10,7"
                                       IsVisible="{Binding ShowsActions}"
                                       BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
-                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
                                   <TextBlock Grid.Column="0" Text="{Binding Caption}" FontSize="11"
                                              VerticalAlignment="Center"
                                              Foreground="{DynamicResource TextFaint}" />
@@ -469,7 +479,7 @@
                                     </StackPanel>
                                   </Button>
                                   <Button Grid.Column="2" Classes="small go" Margin="6,0,0,0"
-                                          IsVisible="{Binding IsScript}"
+                                          IsVisible="{Binding CanRunHere}"
                                           ToolTip.ShowOnDisabled="True"
                                           ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunCodeCommand}"
@@ -494,7 +504,7 @@
                                   <!-- Runs it here, making it first if Create chain has not, with
                                        every step's output streamed into the conversation. -->
                                   <Button Grid.Column="4" Classes="small go" Margin="6,0,0,0"
-                                          IsVisible="{Binding IsChain}"
+                                          IsVisible="{Binding CanRunChainHere}"
                                           ToolTip.ShowOnDisabled="True"
                                           ToolTip.Tip="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunBlockedTip}"
                                           Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).RunChainCommand}"
@@ -502,6 +512,16 @@
                                     <StackPanel Classes="iconLabel">
                                       <Path Classes="icon" Data="{x:Static app:Icons.Run}" />
                                       <TextBlock Text="{loc:T AssistantRunChain}" />
+                                    </StackPanel>
+                                  </Button>
+                                  <!-- In place of Run while this block runs, so what started it
+                                       is also where it stops. -->
+                                  <Button Grid.Column="5" Classes="small" Margin="6,0,0,0"
+                                          IsVisible="{Binding IsRunningHere}"
+                                          Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).StopCodeCommand}">
+                                    <StackPanel Classes="iconLabel">
+                                      <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+                                      <TextBlock Text="{loc:T Stop}" />
                                     </StackPanel>
                                   </Button>
                                 </Grid>
@@ -518,6 +538,22 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                 </Border>
+
+                <!-- Under a run's output while it is still going: the same Stop as the status bar,
+                     where the output is being read. -->
+                <Button Classes="small" Margin="0,2,0,0" HorizontalAlignment="Left"
+                        Command="{Binding $parent[UserControl].((vm:AssistantViewModel)DataContext).StopCodeCommand}">
+                  <Button.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsOutput" />
+                      <Binding Path="!IsDone" />
+                    </MultiBinding>
+                  </Button.IsVisible>
+                  <StackPanel Classes="iconLabel">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Stop}" />
+                    <TextBlock Text="{loc:T AssistantStopTheScript}" />
+                  </StackPanel>
+                </Button>
 
                 <!-- Under a run's output, once it has finished: ask the model why it went the way
                      it did, or take the output out of the conversation. -->

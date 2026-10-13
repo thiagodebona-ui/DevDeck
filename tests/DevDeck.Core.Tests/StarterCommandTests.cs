@@ -1,11 +1,13 @@
-﻿using DevDeck.Core;
+﻿using System.Diagnostics;
+using DevDeck.Core;
 using Xunit;
 
 namespace DevDeck.Core.Tests
 {
     /// <summary>
     ///  The deck a new install starts with. These ship to every user without being reviewed again,
-    ///  so the safety properties are worth pinning down.
+    ///  so the safety properties are worth pinning down - and they are there to be read and copied,
+    ///  so each one is run against a real repository rather than only inspected.
     /// </summary>
     public class StarterCommandTests
     {
@@ -15,10 +17,21 @@ namespace DevDeck.Core.Tests
 
         private static readonly List<WatchRule> Watches = StarterCommands.Watches();
 
+        /// <summary>A small repository with a release tag, work since it, and a build folder.</summary>
+        private static readonly Lazy<string> Repository = new(MakeRepository);
+
+        /// <summary>Few on purpose: a deck the user has to prune before it is theirs is not a start.</summary>
         [Fact]
-        public void ThereAreFifteen()
+        public void ThereAreNine()
         {
-            Assert.Equal(15, Starters.Count);
+            Assert.Equal(9, Starters.Count);
+        }
+
+        /// <summary>One body for every platform, run by Node rather than by a per-platform shell.</summary>
+        [Fact]
+        public void EveryOneIsJavaScript()
+        {
+            Assert.All(Starters, command => Assert.Equal(CommandKind.JavaScript, command.Kind));
         }
 
         /// <summary>
@@ -27,8 +40,8 @@ namespace DevDeck.Core.Tests
         /// <remarks>
         ///  Its whole purpose is to show a value travelling, so a later step reading the previous
         ///  step's output is the one property that cannot be allowed to rot - and it is invisible
-        ///  in the chain itself, which is just three names. It lives in the command bodies, so
-        ///  that is where it is checked.
+        ///  in the chain itself, which is just names. It lives in the command bodies, so that is
+        ///  where it is checked.
         /// </remarks>
         [Fact]
         public void TheWorkedChainActuallyReadsWhatItIsHanded()
@@ -64,23 +77,27 @@ namespace DevDeck.Core.Tests
         /// </summary>
         /// <remarks>
         ///  Deliberately a blunt text search rather than anything clever. It is a tripwire for the
-        ///  next person adding a starter command, not a sandbox - the point is that adding
-        ///  `git push` or `rm -rf` to this list fails the build rather than shipping.
+        ///  next person adding a starter command, not a sandbox - the point is that adding a
+        ///  delete, a write or a push to this list fails the build rather than shipping.
         /// </remarks>
         [Theory]
-        [InlineData("rm ")]
-        [InlineData("del ")]
+        [InlineData("'rm'")]
+        [InlineData("rm -")]
+        [InlineData("execSync")]
+        [InlineData("rmSync")]
         [InlineData("rmdir")]
-        [InlineData("Remove-Item")]
-        [InlineData("git push")]
-        [InlineData("git reset")]
-        [InlineData("git clean")]
-        [InlineData("git checkout")]
-        [InlineData("npm install")]
-        [InlineData("npm publish")]
-        // With the trailing space, so it catches "format c:" and not PowerShell's Format-Table.
-        [InlineData("format ")]
-        [InlineData("shutdown")]
+        [InlineData("unlink")]
+        [InlineData("writeFile")]
+        [InlineData("appendFile")]
+        [InlineData("rename")]
+        [InlineData("process.kill")]
+        [InlineData("taskkill")]
+        [InlineData("'push'")]
+        [InlineData("'reset'")]
+        [InlineData("'clean'")]
+        [InlineData("'checkout'")]
+        [InlineData("'install'")]
+        [InlineData("'publish'")]
         public void NothingDestructiveShips(string forbidden)
         {
             CustomCommand? offender = Starters.FirstOrDefault(
@@ -91,59 +108,11 @@ namespace DevDeck.Core.Tests
                 $"starter command '{offender?.Name}' contains '{forbidden}'");
         }
 
-        /// <summary>Only the one that opens an editor should be left to run unwatched.</summary>
+        /// <summary>Each one finishes and reports, so none is left to run unwatched.</summary>
         [Fact]
-        public void OnlyTheEditorIsDetached()
+        public void NoneIsDetached()
         {
-            CustomCommand[] detached = Starters.Where(c => c.Detached).ToArray();
-
-            CustomCommand only = Assert.Single(detached);
-            Assert.Contains("code", only.Command, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        ///  A starter command whose kind has no interpreter here would fail the moment it was
-        ///  clicked, with an error about the platform rather than about the command.
-        /// </summary>
-        [Fact]
-        public void EveryKindCanActuallyRunOnThisMachine()
-        {
-            Assert.All(Starters, command =>
-            {
-                if (command.Kind == CommandKind.Batch)
-                {
-                    Assert.True(OperatingSystem.IsWindows());
-                }
-
-                if (command.Kind == CommandKind.Bash)
-                {
-                    Assert.NotNull(ScriptFile.FindBash());
-                }
-            });
-        }
-
-        /// <summary>
-        ///  Windows gets PowerShell for the scripted ones; everywhere else gets shell scripts.
-        /// </summary>
-        [Fact]
-        public void ScriptedCommandsUseThePlatformsOwnShell()
-        {
-            CommandKind scripted = OperatingSystem.IsWindows() ? CommandKind.PowerShell : CommandKind.Bash;
-
-            Assert.Contains(Starters, command => command.Kind == scripted);
-            Assert.DoesNotContain(Starters, command => command.Kind == CommandKind.Batch);
-        }
-
-        /// <summary>
-        ///  A Shell command is passed to cmd.exe inline on Windows, where a percent sign is a
-        ///  variable reference. Anything needing one has to be a script instead.
-        /// </summary>
-        [Fact]
-        public void PlainShellCommandsAvoidPercentSigns()
-        {
-            Assert.All(
-                Starters.Where(command => command.Kind == CommandKind.Shell),
-                command => Assert.DoesNotContain('%', command.Command));
+            Assert.DoesNotContain(Starters, command => command.Detached);
         }
 
         /// <summary>
@@ -197,118 +166,211 @@ namespace DevDeck.Core.Tests
             Assert.All(Watches, watch => Assert.False(watch.Enabled));
         }
 
+        /// <summary>Between them they show every feature a command can use.</summary>
         [Fact]
-        public void EveryScriptCanBeTurnedIntoSomethingLaunchable()
+        public void TheyShowEachFeatureOnce()
+        {
+            Assert.Contains(Starters, command => command.Arguments.Count > 0);
+            Assert.Contains(Starters, command => CommandParameters.Find(command.Command).Any(p => !p.IsSecret));
+            Assert.Contains(Starters, command => CommandParameters.Find(command.Command).Any(p => p.IsSecret));
+            Assert.Contains(Starters, command => command.Command.Contains(RunContext.ChangedFiles, StringComparison.Ordinal));
+        }
+
+        /// <summary>Each one run by hand, as the deck would, with its own parameter rows.</summary>
+        [Fact]
+        public void EachRunsOnItsOwn()
         {
             foreach (CustomCommand command in Starters)
             {
-                using ScriptFile script = ScriptFile.Create(command);
+                (int exit, string output, string errors) = Run(command, []);
 
-                Assert.False(string.IsNullOrWhiteSpace(script.FileName));
+                Assert.True(errors.Trim().Length == 0, $"{command.Name} wrote to stderr: {errors}");
+                Assert.True(exit == 0, $"{command.Name} exited {exit}:\n{output}");
             }
         }
 
-        /// <summary>
-        ///  The exact body that shipped as "Today's commits" and was reported as producing no
-        ///  output. Written out rather than read from anywhere, because the point of the test is
-        ///  that this literal string is recognised on a real user's disk.
-        /// </summary>
-        private const string OldToday = "git log --since=midnight --oneline --stat";
-
-        /// <summary>And the uncapped grep that froze the panel.</summary>
-        private const string OldTodos = "git grep -n -E \"TODO|FIXME|HACK|XXX\"";
-
         [Fact]
-        public void RefreshReplacesTheCommandThatPrintedNothing()
+        public void TheOverviewReadsThePackageAndGit()
         {
-            List<CustomCommand> deck =
-            [
-                new() { Name = "Today's commits", Command = OldToday, Kind = CommandKind.Batch },
-            ];
+            string output = Run(Named("Project overview"), []).Output;
 
-            List<string> mended = StarterCommands.Refresh(deck);
-
-            Assert.Equal(["Today's commits"], mended);
-            Assert.NotEqual(OldToday, deck[0].Command);
-
-            // The replacement has to say something on a day with no commits - that was the bug.
-            Assert.Contains("No commits yet today", deck[0].Command, StringComparison.Ordinal);
+            Assert.Contains("demo 1.2.3 (Node, npm)", output);
+            Assert.Contains("npm run build", output);
+            Assert.Contains("Branch   feature", output);
+            Assert.Contains("1 uncommitted file(s)", output);
         }
 
         [Fact]
-        public void RefreshReplacesTheGrepThatFroze()
+        public void TheBranchIsComparedWithMain()
         {
-            List<CustomCommand> deck =
-            [
-                new() { Name = "TODOs and FIXMEs", Command = OldTodos, Kind = CommandKind.Shell },
-            ];
+            string output = Run(Named("What changed vs main"), []).Output;
 
-            Assert.Equal(["TODOs and FIXMEs"], StarterCommands.Refresh(deck));
-            Assert.Contains("200", deck[0].Command, StringComparison.Ordinal);
+            Assert.Contains("against main", output);
+            Assert.Contains("add search", output);
+            Assert.Contains("search.js", output);
         }
 
-        /// <summary>
-        ///  The one that matters. A command the user has changed is theirs, and an upgrade that
-        ///  quietly threw their edit away would be far worse than the bug it was fixing.
-        /// </summary>
         [Fact]
-        public void RefreshLeavesAnEditedCommandAlone()
+        public void TodosAreFoundAndTheBuildFolderSkipped()
         {
-            const string mine = "git log --since=midnight --oneline --author=me";
+            string output = Run(Named("Find TODOs"), []).Output;
 
-            List<CustomCommand> deck =
-            [
-                new() { Name = "Today's commits", Command = mine, Kind = CommandKind.Shell },
-            ];
-
-            Assert.Empty(StarterCommands.Refresh(deck));
-            Assert.Equal(mine, deck[0].Command);
-            Assert.Equal(CommandKind.Shell, deck[0].Kind);
+            Assert.Contains("search.js:2", output);
+            Assert.DoesNotContain("node_modules", output);
+            Assert.Contains("1 found.", output);
         }
 
-        /// <summary>A command the user deleted stays deleted - repair is not reseeding.</summary>
         [Fact]
-        public void RefreshDoesNotBringBackADeletedCommand()
+        public void TheBuildFolderIsReported()
         {
-            List<CustomCommand> deck = [];
+            string output = Run(Named("Heavy build folders"), []).Output;
 
-            Assert.Empty(StarterCommands.Refresh(deck));
-            Assert.Empty(deck);
+            Assert.Contains("node_modules", output);
+            Assert.Contains("in 1 folders", output);
+        }
+
+        [Fact]
+        public void APortIsReportedFreeOrTaken()
+        {
+            string output = Run(Named("Who is using a port"), []).Output;
+
+            Assert.Matches(@"Port 3000 is (free|used by)", output);
         }
 
         /// <summary>
-        ///  A file that has been through JSON and two operating systems has whatever line endings
-        ///  it has. That is not a user edit.
+        ///  The chain, step by step, handing on what the real runner hands on.
         /// </summary>
         [Fact]
-        public void RefreshIgnoresLineEndingsAndPadding()
+        public void TheReleaseNotesChainPassesTheTagAlong()
         {
-            List<CustomCommand> deck =
-            [
-                new() { Name = "Today's commits", Command = "  " + OldToday + "\r\n" },
-            ];
+            CommandChain chain = Chains.Single(one => one.Name == "Release notes");
+            IReadOnlyList<CustomCommand> steps = chain.Resolve(Starters);
 
-            Assert.Equal(["Today's commits"], StarterCommands.Refresh(deck));
+            (int exit, string first, _) = Run(steps[0], []);
+
+            Assert.Equal(0, exit);
+
+            string tag = first.Split('\n').Select(line => line.Trim()).Last(line => line.Length > 0);
+
+            Assert.Equal("v1.0.0", tag);
+
+            string notes = Run(steps[1], new()
+            {
+                [RunContext.PreviousName] = steps[0].Name,
+                [RunContext.Previous] = first.TrimEnd(),
+                [RunContext.PreviousLine] = tag,
+                [RunContext.PreviousExit] = "0",
+            }).Output;
+
+            Assert.Contains("Since v1.0.0, handed on by \"Last release tag\"", notes);
+            Assert.Contains("## Features\n- add search", notes.Replace("\r\n", "\n"));
+            Assert.Contains("## Fixes\n- empty query", notes.Replace("\r\n", "\n"));
+            Assert.DoesNotContain("first release", notes);
         }
 
-        /// <summary>Running it twice is a no-op: the second pass has nothing left to match.</summary>
         [Fact]
-        public void RefreshIsIdempotent()
+        public void AWatchHandsOnWhatChanged()
         {
-            List<CustomCommand> deck =
-            [
-                new() { Name = "Today's commits", Command = OldToday, Kind = CommandKind.Batch },
-            ];
+            string output = Run(Named("What changed just now"), new()
+            {
+                [RunContext.Trigger] = "watch",
+                [RunContext.ChangedFile] = "/repo/a b.js",
+                [RunContext.ChangedFiles] = "/repo/a b.js\n/repo/c.js",
+            }).Output;
 
-            Assert.Single(StarterCommands.Refresh(deck));
-            Assert.Empty(StarterCommands.Refresh(deck));
+            Assert.Contains("  /repo/a b.js", output);
+            Assert.Contains("  /repo/c.js", output);
         }
 
-        /// <summary>A current deck is already right, so nothing is touched.</summary>
-        [Fact]
-        public void RefreshDoesNothingToAFreshDeck()
+        private static CustomCommand Named(string name) => Starters.Single(command => command.Name == name);
+
+        /// <summary>Runs a starter as the deck would: placeholders filled with their defaults.</summary>
+        private static (int Exit, string Output, string Errors) Run(
+            CustomCommand command, Dictionary<string, string> environment)
         {
-            Assert.Empty(StarterCommands.Refresh(StarterCommands.For()));
+            CustomCommand filled = new()
+            {
+                Name = command.Name,
+                Command = CommandParameters.Fill(command.Command, new Dictionary<string, string>(), _ => "hidden"),
+                Kind = command.Kind,
+                Arguments = command.Arguments,
+            };
+
+            using ScriptFile file = ScriptFile.Create(filled);
+
+            ProcessStartInfo start = new(file.FileName, file.Arguments)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = Repository.Value,
+            };
+
+            foreach (KeyValuePair<string, string> variable in ScriptFile.EnvironmentFor(filled).Concat(environment))
+            {
+                start.Environment[variable.Key] = variable.Value;
+            }
+
+            using Process process = Process.Start(start)!;
+
+            Task<string> errors = process.StandardError.ReadToEndAsync();
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            return (process.ExitCode, output, errors.Result);
+        }
+
+        private static string MakeRepository()
+        {
+            string folder = Path.Combine(Path.GetTempPath(), "DevDeck-starters-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(folder);
+
+            void Git(params string[] args)
+            {
+                ProcessStartInfo start = new("git")
+                {
+                    WorkingDirectory = folder,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                };
+
+                foreach (string arg in (string[])["-c", "user.name=Test", "-c", "user.email=test@example.com", .. args])
+                {
+                    start.ArgumentList.Add(arg);
+                }
+
+                using Process process = Process.Start(start)!;
+                process.StandardOutput.ReadToEnd();
+                process.StandardError.ReadToEnd();
+                process.WaitForExit();
+            }
+
+            void Write(string name, string text)
+            {
+                string path = Path.Combine(folder, name);
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                File.WriteAllText(path, text);
+            }
+
+            Git("init", "-q", "-b", "main");
+            Write(".gitignore", "node_modules/\n");
+            Write("package.json", """{ "name": "demo", "version": "1.2.3", "scripts": { "build": "tsc" } }""");
+            Git("add", ".");
+            Git("commit", "-q", "-m", "first release");
+            Git("tag", "v1.0.0");
+
+            Git("checkout", "-q", "-b", "feature");
+            Write("search.js", "// search\n// TODO: rank the results\n");
+            Git("add", ".");
+            Git("commit", "-q", "-m", "feat: add search");
+            Write("search.js", "// search\n// TODO: rank the results\nconst empty = '';\n");
+            Git("commit", "-q", "-am", "fix(search): empty query");
+
+            Write("node_modules/left-pad/index.js", "// TODO: inside a build folder\n");
+            Write("notes.md", "uncommitted\n");
+
+            return folder;
         }
     }
 }

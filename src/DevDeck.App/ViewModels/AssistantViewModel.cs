@@ -83,6 +83,22 @@ namespace DevDeck.App.ViewModels
 
         public string Language { get; }
 
+        /// <summary>
+        ///  Whether this block is the one running now.
+        /// </summary>
+        /// <remarks>
+        ///  It swaps the block's Run for a Stop, so a dev server started from a message can be
+        ///  stopped from that message rather than from the status bar under the composer.
+        /// </remarks>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanRunHere))]
+        [NotifyPropertyChangedFor(nameof(CanRunChainHere))]
+        private bool isRunningHere;
+
+        public bool CanRunHere => IsScript && !IsRunningHere;
+
+        public bool CanRunChainHere => IsChain && !IsRunningHere;
+
         /// <summary>The label under a code block, e.g. "powershell" or "powershell · Count files".</summary>
         public string Caption => (Language.Length > 0 ? Language : "code")
             + (Name.Length > 0 ? $" · {Name}" : string.Empty);
@@ -1774,6 +1790,7 @@ namespace DevDeck.App.ViewModels
             CustomCommand created = Build(segment);
 
             IsRunning = true;
+            segment.IsRunningHere = true;
 
             Turn output = new(ChatRole.Output, $"$ {created.Name}\n")
             {
@@ -1866,6 +1883,7 @@ namespace DevDeck.App.ViewModels
                 script?.Dispose();
 
                 output.IsDone = true;
+                segment.IsRunningHere = false;
                 IsRunning = false;
                 running?.Dispose();
                 running = null;
@@ -2054,6 +2072,7 @@ namespace DevDeck.App.ViewModels
             }
 
             IsRunning = true;
+            segment.IsRunningHere = true;
             runningChain = chain;
 
             Turn output = new(ChatRole.Output, Strings.Format("AiChainHeader", chain.Name) + "\n")
@@ -2131,6 +2150,7 @@ namespace DevDeck.App.ViewModels
             {
                 chain.Output.CollectionChanged -= Copy;
                 output.IsDone = true;
+                segment.IsRunningHere = false;
                 runningChain = null;
                 IsRunning = false;
 

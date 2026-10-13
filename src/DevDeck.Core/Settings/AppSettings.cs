@@ -27,6 +27,13 @@ namespace DevDeck.Core
 
         public string SelectedCommand { get; set; } = string.Empty;
 
+        /// <summary>
+        ///  The Commands page's scratch pad: what was last typed into Quick run, and its Run with.
+        ///  Missing until first used; kept apart from <see cref="CustomCommands"/> so it is never a
+        ///  command in a chain, a link or the palette.
+        /// </summary>
+        public CustomCommand? QuickRun { get; set; }
+
         public int WindowWidth { get; set; }
 
         public int WindowHeight { get; set; }
@@ -141,8 +148,15 @@ namespace DevDeck.Core
 
         public int MemoryWidgetY { get; set; } = int.MinValue;
 
-        /// <summary>Widget diameter in pixels. 150 is the middle of the three sizes offered.</summary>
-        public int MemoryWidgetSize { get; set; } = 150;
+        /// <summary>
+        ///  Widget diameter in pixels. 230 is the Medium the menu offers.
+        /// </summary>
+        /// <remarks>
+        ///  A new name rather than the MemoryWidgetSize this replaces: that one was never read, so
+        ///  every existing file holds its unused default of 150, which would have shrunk everyone's
+        ///  widget the day the setting started to count.
+        /// </remarks>
+        public int MemoryWidgetDiameter { get; set; } = 230;
 
         /// <summary>Widget opacity, 0.35 to 1. Anything below about a third is unclickable.</summary>
         public double MemoryWidgetOpacity { get; set; } = 1.0;
@@ -589,22 +603,17 @@ namespace DevDeck.Core
         }
 
         /// <summary>
-        ///  Repairs shipped commands that were fixed after this file was written.
+        ///  Gives an install that predates them the example secret and variables.
         /// </summary>
         /// <remarks>
-        ///  A settings file is written once and read forever, so a bug in a starter command outlives
-        ///  the fix for it: <see cref="Fresh"/> only runs when there is no file at all. Two of the
-        ///  starters were in that position - one printed nothing, one froze the app - and no amount
-        ///  of correcting the source was ever going to reach an install that already had them.
-        ///
-        ///  Saved straight away rather than at shutdown, so a run that crashes still leaves the
-        ///  repair behind, and logged by name because a command changing under the user is
-        ///  something they are entitled to find an explanation for.
+        ///  A settings file is written once and read forever, and <see cref="Fresh"/> only runs
+        ///  when there is no file at all, so anything seeded later has to be offered here, once.
+        ///  The starter commands themselves are not: an existing deck is the user's, and a new
+        ///  build rewriting or pruning it would be far worse than missing a few examples. Add the
+        ///  starter commands on the Commands page is the way in for them.
         /// </remarks>
         private void Mend()
         {
-            List<string> mended = StarterCommands.Refresh(CustomCommands);
-
             bool firstTime = !SeededExtras.Contains(StarterCommands.SecretExampleName, StringComparer.Ordinal);
 
             StarterCommands.SeedSecret(firstTime);
@@ -619,48 +628,12 @@ namespace DevDeck.Core
                 if (!CustomCommands.Any(command => command.Name == StarterCommands.SecretExampleCommand))
                 {
                     CustomCommands.Add(StarterCommands.SecretExample());
-                    mended.Add(StarterCommands.SecretExampleCommand);
+                    AppLog.Instance.Info("settings", $"Added {StarterCommands.SecretExampleCommand}.");
                 }
 
                 SeededExtras = [.. SeededExtras, StarterCommands.SecretExampleName];
 
                 TrySave();
-            }
-
-            // The parameter and chain examples, offered once to an install that predates them.
-            // By name, so nothing already there is replaced and a deleted one is not brought back.
-            if (!SeededExtras.Contains(StarterExamples.SeedKey, StringComparer.Ordinal))
-            {
-                CustomCommands.AddRange(StarterExamples.Commands()
-                    .Where(example => !CustomCommands.Any(command => command.Name == example.Name)));
-
-                Chains.AddRange(StarterExamples.Chains()
-                    .Where(example => !Chains.Any(chain => chain.Name == example.Name)));
-
-                SeededExtras = [.. SeededExtras, StarterExamples.SeedKey];
-
-                AppLog.Instance.Info("settings", "Added the Example: commands and chains.");
-
-                TrySave();
-            }
-
-            if (mended.Count == 0)
-            {
-                return;
-            }
-
-            AppLog.Instance.Info("settings",
-                $"Updated {string.Join(", ", mended)} to the version this build ships - "
-                + "the copy on file was one that did not work.");
-
-            try
-            {
-                Save();
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                // The repair is in memory and works for this run; it will be tried again next time.
-                AppLog.Instance.Failure("settings", "Could not save the repaired commands", exception);
             }
         }
 
@@ -720,11 +693,11 @@ namespace DevDeck.Core
             return new()
             {
                 CommandVariables = variables,
-                CustomCommands = [.. StarterCommands.For(), .. StarterExamples.Commands()],
-                Chains = [.. StarterCommands.Chains(), .. StarterExamples.Chains()],
+                CustomCommands = StarterCommands.For(),
+                Chains = StarterCommands.Chains(),
                 Watches = StarterCommands.Watches(),
                 Environments = StarterCommands.Environments(),
-                SeededExtras = [StarterCommands.SecretExampleName, StarterExamples.SeedKey],
+                SeededExtras = [StarterCommands.SecretExampleName],
             };
         }
 

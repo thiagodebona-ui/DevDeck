@@ -7,7 +7,7 @@
         x:Class="DevDeck.App.Views.MemoryWidget"
         x:DataType="vm:MemoryViewModel"
         Title="{loc:T MemoryWidgetDevDeckMemory}"
-        Width="200" Height="200"
+        Width="230" Height="230"
         WindowDecorations="None"
         Topmost="True"
         ShowInTaskbar="False"
@@ -15,12 +15,18 @@
         Background="Transparent"
         TransparencyLevelHint="Transparent">
 
-  <!-- A round dial, as V2's was. The rectangular card this replaced was a panel that happened to
-       float; a dial reads as an instrument sitting on the desktop, which is what it is.
+  <!-- A round dial, as V2's was: a dial reads as an instrument sitting on the desktop, which is
+       what it is, where a rectangular card reads as a panel that happens to float.
 
-       Two concentric gauges: memory outside where it is easiest to read, processor inside. The
-       whole face is the button - there is no separate control to aim at - and it turns into a
-       spinner while a clean runs, then shows what was freed. -->
+       Built like one. A bezel of tick marks; memory as the wide outer ring, lit from behind;
+       processor, graphics and disk as three hairlines inside it, each in its own colour, with a
+       legend in the same colours under the reading, so the rings can be told apart without
+       labels on them. The whole face is the button - there is no separate control to aim at -
+       and it turns into a spinner while a clean runs, then shows what was freed.
+
+       Everything is drawn from theme brushes. Themes define brushes, not colours, which rules
+       out a box shadow or a gradient stop; glow comes from a blurred copy of the thing that
+       glows instead, so it is always the right colour in every theme. -->
 
   <Window.Styles>
 
@@ -36,39 +42,188 @@
       <Setter Property="Fill" Value="{DynamicResource Bad}" />
     </Style>
 
-    <!-- The processor ring is quieter on purpose: two equally loud readings on something this
-         small read as neither. -->
+    <!-- The halo behind the memory ring: the same reading, wider and blurred, with no track. -->
+    <Style Selector="views|Gauge.halo">
+      <Setter Property="TrackOpacity" Value="0" />
+      <Setter Property="Opacity" Value="0.55" />
+      <Setter Property="Effect" Value="blur(9)" />
+    </Style>
+
+    <!-- Past ninety per cent the halo pulses, so a machine about to start swapping is noticed from
+         across the desk rather than only when someone reads the number. -->
+    <Style Selector="views|Gauge.halo.critical">
+      <Style.Animations>
+        <Animation Duration="0:0:0.9" IterationCount="INFINITE" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.25" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The last two minutes of memory, as a faint area behind the reading: enough to see whether
+         the number is climbing or settling, without competing with it. -->
+    <Style Selector="Path.historyArea">
+      <Setter Property="Fill" Value="{DynamicResource Accent}" />
+      <Setter Property="Opacity" Value="0.13" />
+    </Style>
+
+    <Style Selector="Path.historyLine">
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="StrokeThickness" Value="1.2" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <!-- The session's peak, a notch across the memory ring. -->
+    <Style Selector="Rectangle.peak">
+      <Setter Property="Fill" Value="{DynamicResource Text}" />
+      <Setter Property="Width" Value="2.5" />
+      <Setter Property="Height" Value="17" />
+      <Setter Property="RadiusX" Value="1" />
+      <Setter Property="RadiusY" Value="1" />
+      <Setter Property="Opacity" Value="0.85" />
+      <Setter Property="Margin" Value="0,-3,0,0" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <!-- The inner rings, one colour each, so the legend can name them. -->
     <Style Selector="views|Gauge.cpu">
-      <Setter Property="Fill" Value="{DynamicResource TextMuted}" />
-      <Setter Property="TrackOpacity" Value="0.55" />
-    </Style>
-
-    <Style Selector="views|Gauge.cpu.high">
-      <Setter Property="Fill" Value="{DynamicResource Warn}" />
-    </Style>
-
-    <Style Selector="views|Gauge.cpu.critical">
-      <Setter Property="Fill" Value="{DynamicResource Bad}" />
-    </Style>
-
-    <!-- Disk and GPU: two more hairline rings inside the processor's, quieter still, so the dial
-         keeps memory as the reading and the rest as context. -->
-    <Style Selector="views|Gauge.disk">
       <Setter Property="Fill" Value="{DynamicResource SynKeyword}" />
-      <Setter Property="TrackOpacity" Value="0.4" />
+      <Setter Property="TrackOpacity" Value="0.45" />
     </Style>
 
     <Style Selector="views|Gauge.gpu">
       <Setter Property="Fill" Value="{DynamicResource SynString}" />
-      <Setter Property="TrackOpacity" Value="0.4" />
+      <Setter Property="TrackOpacity" Value="0.45" />
     </Style>
 
-    <Style Selector="views|Gauge.disk.high, views|Gauge.gpu.high">
+    <Style Selector="views|Gauge.disk">
+      <Setter Property="Fill" Value="{DynamicResource SynVariable}" />
+      <Setter Property="TrackOpacity" Value="0.45" />
+    </Style>
+
+    <Style Selector="views|Gauge.cpu.high, views|Gauge.gpu.high, views|Gauge.disk.high">
       <Setter Property="Fill" Value="{DynamicResource Warn}" />
     </Style>
 
-    <Style Selector="views|Gauge.disk.critical, views|Gauge.gpu.critical">
+    <Style Selector="views|Gauge.cpu.critical, views|Gauge.gpu.critical, views|Gauge.disk.critical">
       <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <!-- The legend's dots and figures follow their ring, including into amber and red. -->
+    <Style Selector="Ellipse.dot">
+      <Setter Property="Width" Value="5" />
+      <Setter Property="Height" Value="5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Ellipse.dot.cpu">
+      <Setter Property="Fill" Value="{DynamicResource SynKeyword}" />
+    </Style>
+
+    <Style Selector="Ellipse.dot.gpu">
+      <Setter Property="Fill" Value="{DynamicResource SynString}" />
+    </Style>
+
+    <Style Selector="Ellipse.dot.disk">
+      <Setter Property="Fill" Value="{DynamicResource SynVariable}" />
+    </Style>
+
+    <Style Selector="Ellipse.dot.high">
+      <Setter Property="Fill" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="Ellipse.dot.critical">
+      <Setter Property="Fill" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="TextBlock.figure">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    </Style>
+
+    <Style Selector="TextBlock.caption">
+      <Setter Property="FontSize" Value="8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <!-- The bezel. Two dashed circles make the ticks: sixty short ones and twelve long ones. A
+         dash is measured in stroke widths, so each array is the circumference over the stroke
+         width, shared out between the ticks - worked out for a 216 pixel circle below. -->
+    <Style Selector="Ellipse.ticks">
+      <Setter Property="Stroke" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Width" Value="216" />
+      <Setter Property="Height" Value="216" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="StrokeLineCap" Value="Flat" />
+    </Style>
+
+    <Style Selector="Ellipse.ticks.minor">
+      <Setter Property="StrokeThickness" Value="4" />
+      <Setter Property="StrokeDashArray" Value="0.25,2.5251" />
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <Style Selector="Ellipse.ticks.major">
+      <Setter Property="StrokeThickness" Value="7" />
+      <Setter Property="StrokeDashArray" Value="0.2,7.6166" />
+      <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
+    <!-- The rim lights up in the accent under the pointer: the face is a button, and this is
+         where it says so. -->
+    <Style Selector="Border.dial">
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.dial:pointerover">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- A soft wash of the accent in the middle of the face, which brightens on hover and breathes
+         while a clean runs. -->
+    <Style Selector="Ellipse.glow">
+      <Setter Property="Fill" Value="{DynamicResource Accent}" />
+      <Setter Property="Opacity" Value="0.07" />
+      <Setter Property="Effect" Value="blur(38)" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.dial:pointerover Ellipse.glow">
+      <Setter Property="Opacity" Value="0.14" />
+    </Style>
+
+    <Style Selector="Ellipse.glow.breathing">
+      <Style.Animations>
+        <Animation Duration="0:0:1.6" IterationCount="INFINITE" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.06" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0.24" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
     </Style>
 
     <!-- The working state: a ring with gaps in it, turning, because a clean has no progress to
@@ -78,7 +233,7 @@
          when it is taken away. There is nothing to start or stop by hand. -->
     <Style Selector="Ellipse.spinner">
       <Setter Property="Stroke" Value="{DynamicResource Accent}" />
-      <Setter Property="StrokeThickness" Value="11" />
+      <Setter Property="StrokeThickness" Value="12" />
       <Setter Property="StrokeDashArray" Value="2.4,2.4" />
       <Setter Property="StrokeLineCap" Value="Round" />
       <Setter Property="RenderTransform" Value="rotate(0deg)" />
@@ -115,7 +270,7 @@
     </Style>
 
     <Style Selector="TextBlock.sub">
-      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
       <Setter Property="FontSize" Value="10.5" />
       <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
@@ -130,16 +285,41 @@
       <Setter Property="Foreground" Value="{DynamicResource Good}" />
     </Style>
 
+    <!-- Under the reading, the amount in use at rest and the invitation to click on hover, in the
+         same place: hover is the only moment the hint is wanted, and at rest the widget is a
+         readout. -->
+    <Style Selector="TextBlock.atRest, TextBlock.hint">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="TextBlock.hint">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Border.dial:pointerover TextBlock.hint">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Border.dial:pointerover TextBlock.atRest">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
     <!-- The close button stays out of the way until the pointer is on the widget. A dial with a
          permanent cross on it is a dialog, not an instrument. -->
     <Style Selector="Button.close">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
       <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Padding" Value="0" />
-      <Setter Property="Width" Value="18" />
-      <Setter Property="Height" Value="18" />
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
       <Setter Property="FontSize" Value="11" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -156,43 +336,41 @@
     </Style>
 
     <Style Selector="Button.close:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource SteelHover}" />
-      <Setter Property="TextElement.Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="Background" Value="{DynamicResource Bad}" />
     </Style>
 
     <!-- The cross is a Path stroked from the button's Foreground, which the rule above does not
          change, so it is brightened here with the background. -->
+    <Style Selector="Button.close Path.icon">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+    </Style>
+
     <Style Selector="Button.close:pointerover Path.icon">
-      <Setter Property="Stroke" Value="{DynamicResource Text}" />
-    </Style>
-
-    <!-- The hint under the reading, shown on hover, which is the only thing that says the face is
-         clickable. Hover is the right moment for it: at rest the widget is a readout. -->
-    <Style Selector="TextBlock.hint">
-      <Setter Property="Opacity" Value="0" />
-      <Setter Property="Transitions">
-        <Transitions>
-          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-        </Transitions>
-      </Setter>
-    </Style>
-
-    <Style Selector="Border.dial:pointerover TextBlock.hint">
-      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Stroke" Value="{DynamicResource OnAccent}" />
     </Style>
 
   </Window.Styles>
+
+  <!-- Drawn once, at Medium's 230 pixels, and scaled to whatever size is chosen. One layout
+       scaled is the only way four sizes and everything Ctrl+wheel reaches between them can all
+       look the same: a dial laid out per size would be four dials to keep in step. -->
+  <Viewbox Stretch="Uniform">
+  <Panel Width="230" Height="230">
 
   <!-- The whole surface drags the window: a borderless widget has no title bar to grab, and
        PointerPressed here is the only handle it gets. A press that turns out to be a click, rather
        than a drag, runs the clean - which is decided in the code-behind by whether it moved. -->
   <Border Name="Face" Classes="dial"
           Background="{DynamicResource WidgetBg}"
-          BorderBrush="{DynamicResource Line}" BorderThickness="1"
-          CornerRadius="100" Margin="4"
+          BorderThickness="1.5"
+          CornerRadius="111" Margin="4"
           PointerPressed="DragStart"
           PointerMoved="DragMove"
           PointerReleased="FaceReleased"
+          PointerWheelChanged="Wheel"
+          ToolTip.Tip="{loc:T MemoryWidgetTip}"
+          ToolTip.ShowDelay="1200"
           Cursor="Hand">
 
     <!-- The widget is not in the taskbar, so with the main window closed this menu is the only
@@ -206,6 +384,37 @@
           <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" /></MenuItem.Icon>
         </MenuItem>
         <Separator />
+        <MenuItem Header="{loc:T MemoryWidgetSizeMenu}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Gauge}" /></MenuItem.Icon>
+          <MenuItem Header="{loc:T MemoryWidgetSmall}" ToggleType="Radio" GroupName="size"
+                    IsChecked="{Binding IsWidgetSmall, Mode=OneWay}"
+                    Command="{Binding SizeWidgetCommand}" CommandParameter="170" />
+          <MenuItem Header="{loc:T MemoryWidgetMedium}" ToggleType="Radio" GroupName="size"
+                    IsChecked="{Binding IsWidgetMedium, Mode=OneWay}"
+                    Command="{Binding SizeWidgetCommand}" CommandParameter="230" />
+          <MenuItem Header="{loc:T MemoryWidgetLarge}" ToggleType="Radio" GroupName="size"
+                    IsChecked="{Binding IsWidgetLarge, Mode=OneWay}"
+                    Command="{Binding SizeWidgetCommand}" CommandParameter="300" />
+          <MenuItem Header="{loc:T MemoryWidgetHuge}" ToggleType="Radio" GroupName="size"
+                    IsChecked="{Binding IsWidgetHuge, Mode=OneWay}"
+                    Command="{Binding SizeWidgetCommand}" CommandParameter="380" />
+        </MenuItem>
+        <MenuItem Header="{loc:T MemoryWidgetOpacityMenu}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Eye}" /></MenuItem.Icon>
+          <MenuItem Header="100%" ToggleType="Radio" GroupName="opacity"
+                    IsChecked="{Binding IsWidgetOpaque, Mode=OneWay}"
+                    Command="{Binding FadeWidgetCommand}" CommandParameter="1" />
+          <MenuItem Header="85%" ToggleType="Radio" GroupName="opacity"
+                    IsChecked="{Binding IsWidgetMostlyOpaque, Mode=OneWay}"
+                    Command="{Binding FadeWidgetCommand}" CommandParameter="0.85" />
+          <MenuItem Header="70%" ToggleType="Radio" GroupName="opacity"
+                    IsChecked="{Binding IsWidgetHalfFaded, Mode=OneWay}"
+                    Command="{Binding FadeWidgetCommand}" CommandParameter="0.7" />
+          <MenuItem Header="50%" ToggleType="Radio" GroupName="opacity"
+                    IsChecked="{Binding IsWidgetFaded, Mode=OneWay}"
+                    Command="{Binding FadeWidgetCommand}" CommandParameter="0.5" />
+        </MenuItem>
+        <Separator />
         <MenuItem Header="{loc:T MemoryWidgetHideWidget}" Command="{Binding HideWidgetCommand}">
           <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
         </MenuItem>
@@ -217,70 +426,146 @@
 
     <Panel>
 
+      <Ellipse Classes="glow" Classes.breathing="{Binding IsBusy}"
+               Width="130" Height="130"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               IsHitTestVisible="False" />
+
+      <Ellipse Classes="ticks minor" IsHitTestVisible="False" />
+      <Ellipse Classes="ticks major" IsHitTestVisible="False" />
+
+      <!-- Behind the reading; the geometry is built in code from the view model's history. -->
+      <Panel Width="124" Height="46" Margin="0,0,0,8"
+             HorizontalAlignment="Center" VerticalAlignment="Center"
+             IsHitTestVisible="False" IsVisible="{Binding !IsBusy}">
+        <!-- Faded out towards every edge, so the graph has no box round it. A mask reads only
+             alpha, which is why these are plain black rather than theme brushes. -->
+        <Panel.OpacityMask>
+          <RadialGradientBrush RadiusX="50%" RadiusY="50%">
+            <GradientStop Offset="0.45" Color="#FF000000" />
+            <GradientStop Offset="1" Color="#00000000" />
+          </RadialGradientBrush>
+        </Panel.OpacityMask>
+        <Path Name="HistoryArea" Classes="historyArea" />
+        <Path Name="HistoryLine" Classes="historyLine" />
+      </Panel>
+
+      <views:Gauge Classes="memory halo"
+                   Classes.high="{Binding IsHigh}"
+                   Classes.critical="{Binding IsCritical}"
+                   Percent="{Binding UsedPercent}"
+                   RingSize="196" Thickness="14"
+                   IsHitTestVisible="False"
+                   IsVisible="{Binding !IsBusy}" />
+
       <views:Gauge Classes="memory"
                    Classes.high="{Binding IsHigh}"
                    Classes.critical="{Binding IsCritical}"
                    Percent="{Binding UsedPercent}"
-                   RingSize="170" Thickness="11"
+                   RingSize="196" Thickness="11"
                    IsVisible="{Binding !IsBusy}" />
+
+      <!-- Turned to the peak from code: a notch at twelve, on a panel the size of the ring. -->
+      <Panel Name="PeakMarker" Width="196" Height="196"
+             HorizontalAlignment="Center" VerticalAlignment="Center"
+             IsHitTestVisible="False">
+        <Rectangle Classes="peak" />
+      </Panel>
 
       <views:Gauge Classes="cpu"
                    Classes.high="{Binding IsCpuHigh}"
                    Classes.critical="{Binding IsCpuCritical}"
                    Percent="{Binding CpuPercent}"
-                   RingSize="143" Thickness="5"
-                   IsVisible="{Binding !IsBusy}" />
-
-      <views:Gauge Classes="disk"
-                   Classes.high="{Binding IsDiskHigh}"
-                   Classes.critical="{Binding IsDiskCritical}"
-                   Percent="{Binding DiskPercent}"
-                   RingSize="131" Thickness="3.5"
+                   RingSize="166" Thickness="4"
                    IsVisible="{Binding !IsBusy}" />
 
       <views:Gauge Classes="gpu"
                    Classes.high="{Binding IsGpuHigh}"
                    Classes.critical="{Binding IsGpuCritical}"
                    Percent="{Binding GpuPercent}"
-                   RingSize="121" Thickness="3.5"
+                   RingSize="154" Thickness="4"
+                   IsVisible="{Binding !IsBusy}" />
+
+      <views:Gauge Classes="disk"
+                   Classes.high="{Binding IsDiskHigh}"
+                   Classes.critical="{Binding IsDiskCritical}"
+                   Percent="{Binding DiskPercent}"
+                   RingSize="142" Thickness="4"
                    IsVisible="{Binding !IsBusy}" />
 
       <Ellipse Classes="spinner" Classes.turning="{Binding IsBusy}"
                IsVisible="{Binding IsBusy}"
-               Width="170" Height="170"
+               Width="196" Height="196"
                HorizontalAlignment="Center" VerticalAlignment="Center" />
 
       <!-- The reading. -->
       <StackPanel Classes="face" Classes.shown="{Binding !IsFlashing}"
                   VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
-        <TextBlock Text="{Binding UsedPercentText}" FontSize="30" FontWeight="SemiBold"
+        <TextBlock Classes="caption" Text="{loc:T MemoryWidgetMemory}" />
+        <TextBlock Text="{Binding UsedPercentText}" FontSize="34" FontWeight="SemiBold"
+                   Margin="0,-3,0,-3"
                    HorizontalAlignment="Center" Foreground="{DynamicResource Text}" />
-        <TextBlock Classes="sub" Margin="0,-2,0,0"
-                   Text="{Binding Used, StringFormat='{}{0} used'}" />
-        <TextBlock Classes="sub" Margin="0,5,0,0"
-                   Text="{Binding CpuPercentText, StringFormat='CPU {0}'}" />
-        <TextBlock Classes="sub" Margin="0,1,0,0"
-                   Text="{Binding GpuDiskText}" />
-        <TextBlock Classes="sub hint" Margin="0,4,0,0"
-                   Foreground="{DynamicResource Accent}"
-                   Text="{loc:T MemoryWidgetClickToClean}" />
+
+        <Panel>
+          <TextBlock Classes="sub atRest">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}{0} / {1}">
+                <Binding Path="Used" />
+                <Binding Path="Total" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock Classes="sub hint" Text="{loc:T MemoryWidgetClickToClean}" />
+        </Panel>
+
+        <!-- The legend: one column per inner ring, outermost first, in that ring's colour. -->
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,7,0,0"
+                    HorizontalAlignment="Center">
+          <StackPanel Spacing="1">
+            <StackPanel Orientation="Horizontal" Spacing="3" HorizontalAlignment="Center">
+              <Ellipse Classes="dot cpu"
+                       Classes.high="{Binding IsCpuHigh}" Classes.critical="{Binding IsCpuCritical}" />
+              <TextBlock Classes="figure" Text="{Binding CpuPercentText}" />
+            </StackPanel>
+            <TextBlock Classes="caption" Text="{loc:T MemoryWidgetCpu}" />
+          </StackPanel>
+          <StackPanel Spacing="1">
+            <StackPanel Orientation="Horizontal" Spacing="3" HorizontalAlignment="Center">
+              <Ellipse Classes="dot gpu"
+                       Classes.high="{Binding IsGpuHigh}" Classes.critical="{Binding IsGpuCritical}" />
+              <TextBlock Classes="figure" Text="{Binding GpuPercentText}" />
+            </StackPanel>
+            <TextBlock Classes="caption" Text="{loc:T MemoryWidgetGpu}" />
+          </StackPanel>
+          <StackPanel Spacing="1">
+            <StackPanel Orientation="Horizontal" Spacing="3" HorizontalAlignment="Center">
+              <Ellipse Classes="dot disk"
+                       Classes.high="{Binding IsDiskHigh}" Classes.critical="{Binding IsDiskCritical}" />
+              <TextBlock Classes="figure" Text="{Binding DiskPercentText}" />
+            </StackPanel>
+            <TextBlock Classes="caption" Text="{loc:T MemoryWidgetDisk}" />
+          </StackPanel>
+        </StackPanel>
       </StackPanel>
 
       <!-- The result, for a few seconds after a clean. -->
       <StackPanel Classes="face" Classes.shown="{Binding IsFlashing}"
                   VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="1">
         <TextBlock Classes="flashFigure" Classes.good="{Binding FlashGood}"
-                   Text="{Binding FlashText}" FontSize="26" FontWeight="SemiBold"
+                   Text="{Binding FlashText}" FontSize="28" FontWeight="SemiBold"
                    HorizontalAlignment="Center" />
-        <TextBlock Classes="sub" Text="{loc:T MemoryWidgetFreed}" IsVisible="{Binding FlashGood}" />
+        <TextBlock Classes="caption" Text="{loc:T MemoryWidgetFreed}" IsVisible="{Binding FlashGood}" />
       </StackPanel>
 
       <Button Classes="close" Click="CloseClick"
               VerticalAlignment="Top" HorizontalAlignment="Right"
-              Margin="0,16,16,0">
+              Margin="0,26,26,0">
         <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
       </Button>
 
     </Panel>
   </Border>
+
+  </Panel>
+  </Viewbox>
 </Window>

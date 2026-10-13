@@ -1,97 +1,62 @@
 ﻿namespace DevDeck.Core
 {
     /// <summary>
-    ///  The ten commands a brand new install starts with.
+    ///  The commands, chains and watch a brand new install starts with.
     /// </summary>
     /// <remarks>
     ///  A first run used to open on an empty deck and the words "No commands yet", which tells you
-    ///  nothing about what a command is for. These are the answer.
+    ///  nothing about what a command is for. These are the answer - and there are few of them on
+    ///  purpose. An earlier deck shipped two dozen, half of them toy examples, and a new user had
+    ///  to delete most of it before the deck was theirs.
     ///
     ///  The bar each one had to clear: it answers a question a developer actually asks, it is worth
     ///  a button rather than being quicker to type, and it means something when run against a
-    ///  project folder. That rules out `git status` on its own - anyone who wants it has already
-    ///  typed it - in favour of the things nobody remembers the flags for: the triple-dot diff
-    ///  against the base branch, which build folders are eating the disk, what is holding port 3000.
+    ///  project folder. Between them they also show every feature a command can use - a parameter
+    ///  row, a value asked for at run time, a secret, a chain handing on a value, a file watch - so
+    ///  there is a working example of each without a single command that exists only to be one.
+    ///
+    ///  All JavaScript, run by Node.js, so one body runs the same on all three platforms. The deck
+    ///  used to carry a PowerShell and a shell copy of every script, and the two drifted. Only
+    ///  Node's built-in modules are used, so there is nothing to install.
     ///
     ///  Nothing here writes, deletes, installs or pushes. A command that shipped with the app and
-    ///  changed a repository the first time it was clicked would be indefensible, so the two that
-    ///  people actually want for cleanup - build folders and outdated packages - report rather than
-    ///  act, and leave the decision where it belongs.
-    ///
-    ///  Most are per-platform scripts rather than one-liners. A Shell command runs through
-    ///  `cmd /c` on Windows and `/bin/sh -c` elsewhere, so anything with a percent sign, a pipeline
-    ///  or a conditional in it behaves differently on the two - and a starter command that works on
-    ///  one machine and not the next is worse than none.
+    ///  changed a repository the first time it was clicked would be indefensible, so the ones about
+    ///  cleanup report rather than act, and leave the decision where it belongs.
     /// </remarks>
     internal static class StarterCommands
     {
-        /// <summary>The starter deck for this machine, in the order it should appear.</summary>
-        public static List<CustomCommand> For()
-        {
-            bool windows = OperatingSystem.IsWindows();
+        /// <summary>The starter deck, in the order it should appear.</summary>
+        public static List<CustomCommand> For() =>
+        [
+            // The orientation question: what this folder is, how to run it, where git says you are.
+            Make("Project overview", OverviewJs),
 
-            return
-            [
-                // 1. The orientation question, and the only one simple enough to be portable as
-                //    typed: branch, upstream, what is dirty, and the commit you are sitting on.
-                Make("Where am I",
-                    "git status -sb && git log -1 --oneline --decorate",
-                    CommandKind.Shell),
+            // Nobody remembers that two dots is commits and three dots is the diff, which is
+            // exactly why this is worth a button. Finds the base branch rather than assuming.
+            Make("What changed vs main", ChangedVsMainJs),
 
-                // 2. Nobody remembers that two dots is commits and three dots is the diff, which is
-                //    exactly why this is worth a button. Finds the base branch rather than assuming.
-                Script("What changed vs main", windows ? ChangedVsMainPs : ChangedVsMainSh, windows),
+            // The parameter-row example: the words to look for are a row under the body.
+            Make("Find TODOs", TodosJs, ("Words", "TODO|FIXME|HACK")),
 
-                // 3. "What did I do today" - for standups, and for picking up where you left off.
-                Script("Today's commits", windows ? TodayPs : TodaySh, windows),
+            // The asked-at-run-time example: "port already in use" is a daily occurrence, and the
+            // answer is buried in a different tool on every platform.
+            Make("Who is using a port", PortJs),
 
-                // 4. git grep rather than a plain search: it skips .git, build output and anything
-                //    ignored, which is the difference between twenty hits and twenty thousand.
-                Script("TODOs and FIXMEs", windows ? TodosPs : TodosSh, windows),
+            // The folders that are safe to delete and expensive to keep. Reports only.
+            Make("Heavy build folders", BuildFoldersJs),
 
-                // 5. Where the disk went, one level down. The usual answer to "why is this checkout
-                //    four gigabytes".
-                Script("What is taking up space", windows ? FolderSizesPs : FolderSizesSh, windows),
+            // The chain example, and a real pipeline: step one finds the last release tag and
+            // hands it on, step two turns everything since it into release notes.
+            Make("Last release tag", LastTagJs),
+            Make("Release notes since the tag", ReleaseNotesJs),
 
-                // 6. The same question aimed at the folders that are safe to delete and expensive
-                //    to keep. Reports only - deleting them is the user's call, not the app's.
-                Script("Heavy build folders", windows ? BuildFoldersPs : BuildFoldersSh, windows),
+            // The file watch example. Run by hand it says what a watch would hand it.
+            Make("What changed just now", ChangedNowJs),
 
-                // 7. Whichever ecosystem this folder actually is, rather than guessing one.
-                Script("Outdated packages", windows ? OutdatedPs : OutdatedSh, windows),
-
-                // 8. "Port already in use" is a daily occurrence and the answer is always buried in
-                //    a different tool on every platform.
-                Script("What is on my dev ports", windows ? PortsPs : PortsSh, windows),
-
-                // 9. The "works on my machine" check. Each tool is asked separately so a missing one
-                //    reports as missing instead of killing the whole run.
-                Script("Tool versions", windows ? VersionsPs : VersionsSh, windows),
-
-                // 10. Detached, because it opens something rather than finishing something -
-                //     watching it would hold the pipes of an editor nobody is going to close.
-                Make("Open in VS Code", "code .", CommandKind.Shell, detached: true),
-
-                // 11. The worked example for file watches. Runs on its own too, where it reports
-                //     that nothing triggered it - which is itself the answer to "what would a
-                //     watch pass me".
-                Script("What changed just now", windows ? ChangedNowPs : ChangedNowSh, windows),
-
-                // 12-14. The worked example for chains, and the reason there are three of them:
-                //        passing a value is only visible once it has been passed twice. Step one
-                //        produces a path, step two turns that path into a number, step three
-                //        reports what it was handed - and step three can see step two but not
-                //        step one, which is the rule the three of them exist to demonstrate.
-                Script("Chain: find the newest file", windows ? HandOnePs : HandOneSh, windows),
-                Script("Chain: measure what I was given", windows ? HandTwoPs : HandTwoSh, windows),
-                Script("Chain: show what I was given", windows ? HandThreePs : HandThreeSh, windows),
-
-                // 15. The worked example for secrets: the vault is seeded with one, and this
-                //     prints it, so {{secret:NAME}} can be seen working before anyone trusts it
-                //     with a real token.
-                SecretExample(),
-            ];
-        }
+            // The secrets example: the vault is seeded with one, and this prints it, so
+            // {{secret:NAME}} can be seen working before anyone trusts it with a real token.
+            SecretExample(),
+        ];
 
         /// <summary>The name of the secret the vault is seeded with.</summary>
         public const string SecretExampleName = "secretExample";
@@ -102,12 +67,7 @@
         /// <summary>What the example secret holds: the app's name and version.</summary>
         public static string SecretExampleValue => $"DevDeck {AppVersion.Number}";
 
-        public static CustomCommand SecretExample()
-        {
-            bool windows = OperatingSystem.IsWindows();
-
-            return Script(SecretExampleCommand, windows ? SecretExamplePs : SecretExampleSh, windows);
-        }
+        public static CustomCommand SecretExample() => Make(SecretExampleCommand, SecretExampleJs);
 
         /// <summary>
         ///  Puts the example secret in the vault, or brings it up to this version.
@@ -169,74 +129,31 @@
             return changed;
         }
 
-        private const string SecretExamplePs = """
-            # The worked example for secrets and environment variables.
-            #
-            # {{secret:secretExample}} is filled in from the vault when this runs, so the value is
-            # never stored in the command or in settings.json. appName and appVersion are ordinary
-            # environment variables, set on every command from Settings > Environment variables.
-            Write-Output "Secret name  : secretExample"
-            Write-Output "Secret value : {{secret:secretExample}}"
-            Write-Output "appName      : $env:appName"
-            Write-Output "appVersion   : $env:appVersion"
-            """;
-
-        private const string SecretExampleSh = """
-            # The worked example for secrets and environment variables.
-            #
-            # {{secret:secretExample}} is filled in from the vault when this runs, so the value is
-            # never stored in the command or in settings.json. appName and appVersion are ordinary
-            # environment variables, set on every command from Settings > Environment variables.
-            echo "Secret name  : secretExample"
-            echo "Secret value : {{secret:secretExample}}"
-            echo "appName      : $appName"
-            echo "appVersion   : $appVersion"
-            """;
-
         /// <summary>
         ///  The chains a fresh install starts with.
         /// </summary>
         /// <remarks>
-        ///  Two, for the same reason the deck ships ten commands rather than none: "No chains yet"
-        ///  explains neither what a chain is nor why anyone would want one. Both are built only
-        ///  from starter commands, so neither is broken on the first run.
+        ///  Two, built only from starter commands so neither is broken on the first run, and
+        ///  chosen to show the two things a chain is for: running several questions in one go, and
+        ///  passing a value from one step to the next.
         /// </remarks>
         public static List<CommandChain> Chains() =>
         [
-            // The morning routine. Ordered so the cheap orientation question comes first and the
-            // slow one last, which is the order you would run them by hand.
+            // Three independent questions, cheapest first. Off: a folder with no main branch
+            // should not stop the other two from answering.
             new()
             {
                 Name = "Morning check",
-                Steps = ["Where am I", "Today's commits", "What changed vs main"],
-
-                // Off: these are three independent questions rather than a pipeline, and a folder
-                // with no upstream branch should not stop the other two from answering.
+                Steps = ["Project overview", "What changed vs main", "Find TODOs"],
                 StopOnFailure = false,
             },
 
-            // The other half of what a deck is for: the housekeeping questions nobody runs until
-            // the disk is full.
+            // A genuine pipeline, which is why it stops on failure: step two handed no tag would
+            // write release notes for the whole history, rather than say that step one failed.
             new()
             {
-                Name = "Health check",
-                Steps = ["Tool versions", "Heavy build folders", "Outdated packages"],
-                StopOnFailure = false,
-            },
-
-            // The worked example. Unlike the other two this one is a genuine pipeline: each step
-            // is fed by the one before it, which is also why it is the only shipped chain that
-            // stops on failure - step two given no path has nothing to measure, and running it
-            // anyway would produce an error about an empty filename rather than about step one.
-            new()
-            {
-                Name = "Pass values between steps",
-                Steps =
-                [
-                    "Chain: find the newest file",
-                    "Chain: measure what I was given",
-                    "Chain: show what I was given",
-                ],
+                Name = "Release notes",
+                Steps = ["Last release tag", "Release notes since the tag"],
                 StopOnFailure = true,
             },
         ];
@@ -314,578 +231,433 @@
         };
 
         #region Scripts
-        private const string ChangedVsMainPs = """
-            $base = $null
-            foreach ($name in 'main', 'master', 'develop') {
-                if (git rev-parse --verify --quiet $name) { $base = $name; break }
+        // Each script is whole on its own, small git helper included, because each one is also
+        // there to be read and copied - and one that leans on a shared file cannot be.
+
+        private const string OverviewJs = """
+            // What this folder is, how to run it, and where git says you are - the questions
+            // to answer before touching a project you have not opened in a while.
+            const fs = require('fs');
+            const path = require('path');
+            const { execFileSync } = require('child_process');
+
+            function git(...args) {
+              try {
+                return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+              } catch {
+                return null;
+              }
             }
 
-            if (-not $base) { 'No main, master or develop branch here.'; return }
+            const here = process.cwd();
+            console.log(`Folder   ${here}`);
 
-            "Comparing against $base."
-            ''
-            'Commits on this branch:'
-            git log --oneline "$base..HEAD"
-            ''
-            'Files changed:'
-            git diff --stat "$base...HEAD"
-            """;
+            if (fs.existsSync('package.json')) {
+              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+              const manager = fs.existsSync('pnpm-lock.yaml') ? 'pnpm' : fs.existsSync('yarn.lock') ? 'yarn' : 'npm';
 
-        private const string ChangedVsMainSh = """
-            base=""
-            for name in main master develop; do
-              if git rev-parse --verify --quiet "$name" >/dev/null 2>&1; then base="$name"; break; fi
-            done
+              console.log(`Project  ${pkg.name ?? path.basename(here)} ${pkg.version ?? ''} (Node, ${manager})`);
 
-            if [ -z "$base" ]; then echo "No main, master or develop branch here."; exit 0; fi
+              const scripts = Object.entries(pkg.scripts ?? {});
 
-            echo "Comparing against $base."
-            echo
-            echo "Commits on this branch:"
-            git log --oneline "$base..HEAD"
-            echo
-            echo "Files changed:"
-            git diff --stat "$base...HEAD"
-            """;
+              if (scripts.length > 0) {
+                console.log('Scripts');
 
-        /// <remarks>
-        ///  A one-liner until it was reported as broken. `git log --since=midnight` prints nothing
-        ///  and exits zero on a day you have not committed yet, so the command looked like it had
-        ///  failed when it had in fact answered: nothing. It now says so, and says the same thing
-        ///  when the folder is not a repository at all - which was the other way to get silence.
-        /// </remarks>
-        private const string TodayPs = """
-            if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
-                'Not a git repository. Choose a workspace that is one.'; return
-            }
-
-            $log = git log --since=midnight --oneline --stat
-
-            if (-not $log) { 'No commits yet today.'; return }
-
-            $log
-            """;
-
-        private const string TodaySh = """
-            if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-              echo "Not a git repository. Choose a workspace that is one."; exit 0
-            fi
-
-            log=$(git log --since=midnight --oneline --stat)
-
-            if [ -z "$log" ]; then echo "No commits yet today."; exit 0; fi
-
-            echo "$log"
-            """;
-
-        /// <remarks>
-        ///  Capped, and deliberately. A bare `git grep` across a large checkout returns tens of
-        ///  thousands of hits, and the panel has to keep every one of them - so the freeze people
-        ///  reported was the app being handed more output than any human was going to read. The
-        ///  head of the list answers the question; the count at the end says what was left.
-        ///
-        ///  The two runs are not one pipeline because the total has to be known before the list is
-        ///  cut, and a count taken after `head` would only ever report the cap back.
-        /// </remarks>
-        private const string TodosPs = """
-            if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
-                'Not a git repository. Choose a workspace that is one.'; return
-            }
-
-            $hits = git grep -n -E 'TODO|FIXME|HACK|XXX'
-
-            if (-not $hits) { 'None found. '; return }
-
-            $hits | Select-Object -First 200
-
-            if ($hits.Count -gt 200) {
-                ''
-                "Showing the first 200 of $($hits.Count). Narrow it with a folder to see the rest."
-            }
-            """;
-
-        private const string TodosSh = """
-            if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-              echo "Not a git repository. Choose a workspace that is one."; exit 0
-            fi
-
-            hits=$(git grep -n -E 'TODO|FIXME|HACK|XXX')
-
-            if [ -z "$hits" ]; then echo "None found."; exit 0; fi
-
-            total=$(echo "$hits" | wc -l | tr -d ' ')
-
-            echo "$hits" | head -200
-
-            if [ "$total" -gt 200 ]; then
-              echo
-              echo "Showing the first 200 of $total. Narrow it with a folder to see the rest."
-            fi
-            """;
-
-        private const string FolderSizesPs = """
-            Get-ChildItem -Directory -Force -ErrorAction SilentlyContinue | ForEach-Object {
-                $bytes = (Get-ChildItem $_.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
-                    Measure-Object Length -Sum).Sum
-                [PSCustomObject]@{
-                    SizeMB = [math]::Round((($bytes, 0 -ne $null)[0] / 1MB), 1)
-                    Folder = $_.Name
+                for (const [name, line] of scripts) {
+                  console.log(`  ${manager} run ${name.padEnd(14)} ${line}`);
                 }
-            } | Sort-Object SizeMB -Descending | Format-Table -AutoSize
-            """;
+              }
+            } else {
+              const projects = fs.readdirSync(here).filter(file =>
+                /\.(sln|slnx|csproj|fsproj)$|^(Cargo\.toml|go\.mod|pyproject\.toml|requirements\.txt|pom\.xml|build\.gradle(\.kts)?|Makefile)$/.test(file));
 
-        private const string FolderSizesSh = """
-            du -sh ./*/ 2>/dev/null | sort -rh | head -25
-            """;
-
-        private const string BuildFoldersPs = """
-            $names = 'node_modules', 'bin', 'obj', 'dist', 'build', 'target', '.venv', '__pycache__', '.next'
-
-            Get-ChildItem -Recurse -Directory -Depth 4 -Force -ErrorAction SilentlyContinue |
-                Where-Object { $names -contains $_.Name } |
-                ForEach-Object {
-                    $bytes = (Get-ChildItem $_.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
-                        Measure-Object Length -Sum).Sum
-                    [PSCustomObject]@{
-                        SizeMB = [math]::Round((($bytes, 0 -ne $null)[0] / 1MB), 1)
-                        Path   = Resolve-Path -Relative $_.FullName
-                    }
-                } | Sort-Object SizeMB -Descending | Select-Object -First 25 | Format-Table -AutoSize
-            """;
-
-        // -prune, so it reports node_modules without walking the hundred thousand files inside it.
-        private const string BuildFoldersSh = """
-            find . -maxdepth 5 -type d \( -name node_modules -o -name bin -o -name obj \
-                -o -name dist -o -name build -o -name target -o -name .venv \
-                -o -name __pycache__ -o -name .next \) -prune -print0 2>/dev/null |
-              xargs -0 du -sh 2>/dev/null | sort -rh | head -25
-            """;
-
-        private const string OutdatedPs = """
-            $found = $false
-
-            if (Test-Path package.json) {
-                $found = $true
-                '== npm =='
-                npm outdated
+              console.log(`Project  ${projects.length > 0 ? projects.join(', ') : 'no project file in this folder'}`);
             }
 
-            if (Get-ChildItem -Path . -Recurse -Depth 2 -Include *.sln, *.csproj, *.fsproj -File -ErrorAction SilentlyContinue | Select-Object -First 1) {
-                $found = $true
-                ''
-                '== dotnet =='
-                dotnet list package --outdated
+            const branch = git('branch', '--show-current');
+
+            if (branch === null) {
+              console.log('Git      not a repository');
+              process.exit(0);
             }
 
-            if (Test-Path requirements.txt) {
-                $found = $true
-                ''
-                '== pip =='
-                pip list --outdated
+            const counts = git('rev-list', '--left-right', '--count', '@{upstream}...HEAD');
+            const [behind, ahead] = counts ? counts.split(/\s+/) : [];
+            const dirty = (git('status', '--porcelain') ?? '').split('\n').filter(Boolean).length;
+
+            console.log(`Branch   ${branch || '(detached)'} - ${counts ? `${ahead} ahead, ${behind} behind upstream` : 'no upstream'}`);
+            console.log(`Changes  ${dirty > 0 ? `${dirty} uncommitted file(s)` : 'working tree clean'}`);
+            console.log(`Last     ${git('log', '-1', '--format=%h %s (%cr, %an)') ?? 'no commits yet'}`);
+            """;
+
+        private const string ChangedVsMainJs = """
+            // Your branch against its base: the commits only it has, and the files they change.
+            const { execFileSync } = require('child_process');
+
+            function git(...args) {
+              try {
+                return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+              } catch {
+                return null;
+              }
             }
 
-            if (-not $found) { 'No package.json, project file or requirements.txt in this folder.' }
+            if (git('rev-parse', '--is-inside-work-tree') === null) {
+              console.log('Not a git repository. Choose a workspace that is one.');
+              process.exit(0);
+            }
+
+            const base = ['main', 'master', 'develop', 'origin/main', 'origin/master']
+              .find(name => git('rev-parse', '--verify', '--quiet', name) !== null);
+
+            if (!base) {
+              console.log('No main, master or develop branch here.');
+              process.exit(0);
+            }
+
+            console.log(`Comparing ${git('branch', '--show-current') || 'HEAD'} against ${base}.`);
+            console.log('');
+            console.log('Commits on this branch:');
+            console.log(git('log', '--oneline', `${base}..HEAD`) || '  none');
+            console.log('');
+            console.log('Files changed:');
+            console.log(git('diff', '--stat', `${base}...HEAD`) || '  none');
             """;
 
-        private const string OutdatedSh = """
-            found=0
+        /// <remarks>
+        ///  Capped, and deliberately: a large checkout can have thousands of hits, and the output
+        ///  panel has to keep every line it is given. The head of the list answers the question;
+        ///  the count at the end says what was left out.
+        /// </remarks>
+        private const string TodosJs = """
+            // The words to look for are the Words parameter under this script, which arrives
+            // as process.argv[2]. Change it to look for anything else - it is a regular expression.
+            const fs = require('fs');
+            const path = require('path');
 
-            if [ -f package.json ]; then found=1; echo "== npm =="; npm outdated; fi
+            const words = new RegExp(`\\b(${process.argv[2] || 'TODO|FIXME|HACK'})\\b`);
+            const skip = new Set(['.git', 'node_modules', 'bin', 'obj', 'dist', 'build', 'target', '.next', '.venv', 'coverage']);
+            const most = 200;
+            const hits = [];
 
-            if ls ./*.sln ./*.csproj ./*.fsproj >/dev/null 2>&1; then
-              found=1; echo; echo "== dotnet =="; dotnet list package --outdated
-            fi
+            function search(folder) {
+              let entries;
 
-            if [ -f requirements.txt ]; then found=1; echo; echo "== pip =="; pip list --outdated; fi
+              try {
+                entries = fs.readdirSync(folder, { withFileTypes: true });
+              } catch {
+                return;
+              }
 
-            if [ "$found" -eq 0 ]; then echo "No package.json, project file or requirements.txt in this folder."; fi
+              for (const entry of entries) {
+                const full = path.join(folder, entry.name);
+
+                if (entry.isDirectory()) {
+                  if (!skip.has(entry.name)) search(full);
+                  continue;
+                }
+
+                // Text files only: anything over a megabyte, or with a NUL in it, is not source.
+                if (!entry.isFile() || fs.statSync(full).size > 1024 * 1024) continue;
+
+                const text = fs.readFileSync(full, 'utf8');
+                if (text.includes('\0')) continue;
+
+                text.split('\n').forEach((line, index) => {
+                  if (words.test(line)) {
+                    hits.push(`${path.relative('.', full)}:${index + 1}  ${line.trim().slice(0, 160)}`);
+                  }
+                });
+              }
+            }
+
+            search('.');
+
+            for (const hit of hits.slice(0, most)) console.log(hit);
+
+            if (hits.length === 0) {
+              console.log('None found.');
+            } else if (hits.length > most) {
+              console.log(`\nShowing ${most} of ${hits.length}. Narrow the Words, or run it in a subfolder.`);
+            } else {
+              console.log(`\n${hits.length} found.`);
+            }
             """;
 
-        private const string PortsPs = """
-            $ports = 3000, 3001, 4200, 5000, 5173, 5432, 6379, 8000, 8080, 8081, 9229, 27017
+        /// <remarks>
+        ///  Reports and stops there: ending the process is one click on the Running page, which
+        ///  shows what it is first. Listening sockets are recognised by their foreign address of
+        ///  port 0 rather than by netstat's "LISTENING", which Windows translates.
+        /// </remarks>
+        private const string PortJs = """
+            // The port is asked for each time you press Run, because it is a different one
+            // every time. To end whatever holds it, use the Stop on the Running page.
+            const { execFileSync } = require('child_process');
 
-            $listening = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-                Where-Object { $ports -contains $_.LocalPort } |
-                Select-Object LocalAddress, LocalPort,
-                    @{ Name = 'Process'; Expression = { (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName } },
-                    @{ Name = 'PID'; Expression = { $_.OwningProcess } } |
-                Sort-Object LocalPort
+            const port = '{{Port:3000}}'.trim();
 
-            if ($listening) { $listening | Format-Table -AutoSize }
-            else { 'Nothing is listening on the usual dev ports.' }
+            if (!/^\d+$/.test(port)) {
+              console.log(`"${port}" is not a port number.`);
+              process.exit(1);
+            }
+
+            function run(file, args) {
+              try {
+                return execFileSync(file, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+              } catch {
+                return '';
+              }
+            }
+
+            const owners = new Map();
+
+            if (process.platform === 'win32') {
+              for (const line of run('netstat', ['-ano']).split('\n')) {
+                const [protocol, local, remote, , pid] = line.trim().split(/\s+/);
+
+                if (protocol === 'TCP' && local?.endsWith(`:${port}`) && remote?.endsWith(':0') && !owners.has(pid)) {
+                  const task = run('tasklist', ['/FI', `PID eq ${pid}`, '/FO', 'CSV', '/NH']);
+                  owners.set(pid, { name: task.split(',')[0].replace(/"/g, '').trim() || 'unknown', address: local });
+                }
+              }
+            } else {
+              let pid = null;
+
+              for (const line of run('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-Fpcn']).split('\n')) {
+                if (line.startsWith('p')) pid = line.slice(1);
+                if (line.startsWith('c') && pid) owners.set(pid, { name: line.slice(1), address: '' });
+                if (line.startsWith('n') && owners.has(pid)) owners.get(pid).address ||= line.slice(1);
+              }
+            }
+
+            if (owners.size === 0) {
+              console.log(`Port ${port} is free.`);
+            }
+
+            for (const [pid, owner] of owners) {
+              console.log(`Port ${port} is used by ${owner.name} (pid ${pid}), listening on ${owner.address}`);
+            }
             """;
 
-        private const string PortsSh = """
-            ports="3000|3001|4200|5000|5173|5432|6379|8000|8080|8081|9229|27017"
+        private const string BuildFoldersJs = """
+            // The folders that are safe to delete and expensive to keep, biggest first, looking
+            // four levels down. It only reports: what to delete is your call.
+            const fs = require('fs');
+            const path = require('path');
 
-            if command -v lsof >/dev/null 2>&1; then
-              lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null | awk -v p="$ports" 'NR == 1 || $9 ~ ":(" p ")$"'
-            elif command -v ss >/dev/null 2>&1; then
-              ss -tlnp 2>/dev/null | grep -E ":($ports)[[:space:]]"
-            else
-              echo "Neither lsof nor ss is installed."
-            fi
+            const names = new Set(['node_modules', 'bin', 'obj', 'dist', 'build', 'target', '.next', '.venv', '__pycache__', 'coverage']);
+            const found = [];
+
+            function size(folder) {
+              let total = 0;
+
+              try {
+                for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+                  const full = path.join(folder, entry.name);
+
+                  if (entry.isDirectory()) total += size(full);
+                  else if (entry.isFile()) total += fs.statSync(full).size;
+                }
+              } catch {
+                // A folder we may not read, or a link to nowhere: count what we could.
+              }
+
+              return total;
+            }
+
+            function look(folder, depth) {
+              let entries;
+
+              try {
+                entries = fs.readdirSync(folder, { withFileTypes: true });
+              } catch {
+                return;
+              }
+
+              for (const entry of entries) {
+                if (!entry.isDirectory() || entry.name === '.git') continue;
+
+                const full = path.join(folder, entry.name);
+
+                if (names.has(entry.name)) found.push({ path: path.relative('.', full), bytes: size(full) });
+                else if (depth < 4) look(full, depth + 1);
+              }
+            }
+
+            look('.', 1);
+
+            const megabytes = bytes => `${(bytes / 1024 / 1024).toFixed(1).padStart(9)} MB`;
+
+            found.sort((a, b) => b.bytes - a.bytes);
+
+            for (const folder of found.slice(0, 20)) console.log(`${megabytes(folder.bytes)}  ${folder.path}`);
+
+            if (found.length === 0) {
+              console.log('No build folders here.');
+            } else {
+              console.log(`\n${megabytes(found.reduce((sum, folder) => sum + folder.bytes, 0))}  in ${found.length} folders`);
+            }
+            """;
+
+        /// <summary>
+        ///  Step one of the release notes chain: produces the one value the next step needs.
+        /// </summary>
+        /// <remarks>
+        ///  The tag goes on its own final line deliberately. A step is read by the next one through
+        ///  DEVDECK_PREVIOUS_LINE - the last line with anything on it - so a script meant to feed
+        ///  another ends by printing one value and nothing else, and everything it wants to say to
+        ///  the human goes above that.
+        /// </remarks>
+        private const string LastTagJs = """
+            // Step one of the "Release notes" chain. It finds the last release tag and prints
+            // it alone on its last line, which is the line the next step is handed.
+            const { execFileSync } = require('child_process');
+
+            function git(...args) {
+              try {
+                return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+              } catch {
+                return null;
+              }
+            }
+
+            if (git('rev-parse', '--is-inside-work-tree') === null) {
+              console.log('Not a git repository. Choose a workspace that is one.');
+              process.exit(1);
+            }
+
+            const tag = git('describe', '--tags', '--abbrev=0');
+
+            if (tag) {
+              console.log(`The last release is ${tag}, tagged ${git('log', '-1', '--format=%cr', tag)}.`);
+              console.log(tag);
+            } else {
+              const first = git('rev-list', '--max-parents=0', 'HEAD')?.split('\n')[0];
+
+              if (!first) {
+                console.log('No commits yet, so there is nothing to release.');
+                process.exit(1);
+              }
+
+              console.log('No tags yet, so everything since the first commit counts.');
+              console.log(first);
+            }
+            """;
+
+        /// <summary>
+        ///  Step two: consumes step one's value.
+        /// </summary>
+        /// <remarks>
+        ///  Written so it still does its job when run on its own from the deck, which is how anyone
+        ///  will first meet it. A step that only works inside its chain teaches nothing about what
+        ///  the chain is doing.
+        /// </remarks>
+        private const string ReleaseNotesJs = """
+            // Step two of the "Release notes" chain. In the chain, the tag arrives from step one
+            // in DEVDECK_PREVIOUS_LINE; run on its own, it finds the tag itself. The commits are
+            // grouped by their conventional prefix (feat:, fix:), ready to paste into a changelog.
+            const { execFileSync } = require('child_process');
+
+            function git(...args) {
+              try {
+                return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+              } catch {
+                return null;
+              }
+            }
+
+            const from = process.env.DEVDECK_PREVIOUS_NAME;
+            const since = from ? process.env.DEVDECK_PREVIOUS_LINE : git('describe', '--tags', '--abbrev=0');
+            const log = git('log', '--no-merges', '--format=%s', since ? `${since}..HEAD` : 'HEAD');
+
+            if (log === null) {
+              console.log(`Could not read the history since ${since ?? 'the first commit'}.`);
+              process.exit(1);
+            }
+
+            const groups = { Features: [], Fixes: [], Other: [] };
+
+            for (const subject of log.split('\n').filter(Boolean)) {
+              const match = subject.match(/^(\w+)(\([^)]*\))?!?:\s*(.+)$/);
+              const type = match?.[1].toLowerCase();
+
+              if (type === 'feat') groups.Features.push(match[3]);
+              else if (type === 'fix') groups.Fixes.push(match[3]);
+              else groups.Other.push(subject);
+            }
+
+            console.log(`Since ${since ?? 'the first commit'}${from ? `, handed on by "${from}"` : ''}:`);
+            console.log('');
+
+            let any = false;
+
+            for (const [title, items] of Object.entries(groups)) {
+              if (items.length === 0) continue;
+
+              any = true;
+              console.log(`## ${title}`);
+              for (const item of items) console.log(`- ${item}`);
+              console.log('');
+            }
+
+            if (!any) console.log('Nothing new since then.');
             """;
 
         // Prints the run context rather than doing anything with it - which is the point. Someone
         // writing their own watch command needs to know what they are given and what it looks
         // like, and the fastest way to learn that is to run this once and read the output.
-        private const string ChangedNowPs = """
-            if (-not $env:DEVDECK_TRIGGER) { 'No trigger set. Run this from a file watch.'; return }
+        private const string ChangedNowJs = """
+            // What a file watch hands its command, printed so you can see what to read when
+            // you write your own. Turn on "Show me what changed" on the Automation page and
+            // save a file to see it.
+            const env = process.env;
 
-            "Trigger : $env:DEVDECK_TRIGGER"
-
-            if ($env:DEVDECK_TRIGGER -ne 'watch') {
-                ''
-                'Started by hand, so there is nothing that changed to report.'
-                'Turn on the "Show me what changed" watch and save a file to see the rest.'
-                return
+            if (env.DEVDECK_TRIGGER !== 'watch') {
+              console.log('Started by hand, so there is nothing that changed to report.');
+              console.log('Turn on the "Show me what changed" watch and save a file to see the rest.');
+              process.exit(0);
             }
 
-            "Watch   : $env:DEVDECK_WATCH_NAME"
-            "Folder  : $env:DEVDECK_WATCH_FOLDER"
-            "What    : $env:DEVDECK_CHANGED_KIND"
-            "When    : $env:DEVDECK_CHANGED_AT"
-            "File    : $env:DEVDECK_CHANGED_NAME"
-            "Path    : $env:DEVDECK_CHANGED_FILE"
-            "Count   : $env:DEVDECK_CHANGED_COUNT"
-            ''
-            'All of them:'
+            const fields = [
+              ['Watch', 'DEVDECK_WATCH_NAME'],
+              ['Folder', 'DEVDECK_WATCH_FOLDER'],
+              ['What', 'DEVDECK_CHANGED_KIND'],
+              ['When', 'DEVDECK_CHANGED_AT'],
+              ['File', 'DEVDECK_CHANGED_FILE'],
+              ['Count', 'DEVDECK_CHANGED_COUNT'],
+            ];
 
-            # One path per line, which is why the list is newline-separated: a path may contain a
-            # space or a semicolon, and may not contain a newline.
-            $env:DEVDECK_CHANGED_FILES -split "`n" | ForEach-Object { "  $_" }
-            """;
+            for (const [label, name] of fields) console.log(`${label.padEnd(7)} ${env[name] ?? ''}`);
 
-        private const string ChangedNowSh = """
-            if [ -z "$DEVDECK_TRIGGER" ]; then
-              echo "No trigger set. Run this from a file watch."
-              exit 0
-            fi
+            // One path per line: a path may hold a space or a semicolon, but never a newline.
+            console.log('');
+            console.log('All of them:');
 
-            echo "Trigger : $DEVDECK_TRIGGER"
-
-            if [ "$DEVDECK_TRIGGER" != "watch" ]; then
-              echo
-              echo "Started by hand, so there is nothing that changed to report."
-              echo 'Turn on the "Show me what changed" watch and save a file to see the rest.'
-              exit 0
-            fi
-
-            echo "Watch   : $DEVDECK_WATCH_NAME"
-            echo "Folder  : $DEVDECK_WATCH_FOLDER"
-            echo "What    : $DEVDECK_CHANGED_KIND"
-            echo "When    : $DEVDECK_CHANGED_AT"
-            echo "File    : $DEVDECK_CHANGED_NAME"
-            echo "Path    : $DEVDECK_CHANGED_FILE"
-            echo "Count   : $DEVDECK_CHANGED_COUNT"
-            echo
-            echo "All of them:"
-
-            # Quoted, so a path with a space stays one line rather than becoming two.
-            echo "$DEVDECK_CHANGED_FILES" | while IFS= read -r path; do
-              [ -n "$path" ] && echo "  $path"
-            done
-            """;
-
-        /// <summary>
-        ///  Step one: produces a value, and puts it where the next step will look.
-        /// </summary>
-        /// <remarks>
-        ///  The path goes on its own final line deliberately. A step is read by the next one
-        ///  through DEVDECK_PREVIOUS_LINE - the last line with anything on it - so a script meant
-        ///  to feed another ends by echoing one value and nothing else, and everything it wants to
-        ///  say to the human goes above that.
-        /// </remarks>
-        private const string HandOnePs = """
-            $skip = '\\(\.git|node_modules|bin|obj|dist|target|publish)\\'
-
-            $newest = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue -Include `
-                    *.cs, *.ts, *.tsx, *.js, *.py, *.go, *.rs, *.java, *.md |
-                Where-Object { $_.FullName -notmatch $skip } |
-                Sort-Object LastWriteTime -Descending |
-                Select-Object -First 1
-
-            if (-not $newest) {
-                'No source files under this folder, so there is nothing to hand on.'
-                'Point the deck at a project folder and run the chain again.'
-                exit 1
-            }
-
-            "The newest source file here, changed $($newest.LastWriteTime.ToString('yyyy-MM-dd HH:mm')):"
-            ''
-            'The next step reads my last line, so the path goes last and on its own:'
-            $newest.FullName
-            """;
-
-        private const string HandOneSh = """
-            newest=$(find . -type f \( -name '*.cs' -o -name '*.ts' -o -name '*.tsx' \
-                -o -name '*.js' -o -name '*.py' -o -name '*.go' -o -name '*.rs' \
-                -o -name '*.java' -o -name '*.md' \) \
-              -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/bin/*' \
-              -not -path '*/obj/*' -not -path '*/dist/*' -not -path '*/target/*' \
-              -not -path '*/publish/*' -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1)
-
-            if [ -z "$newest" ]; then
-              echo "No source files under this folder, so there is nothing to hand on."
-              echo "Point the deck at a project folder and run the chain again."
-              exit 1
-            fi
-
-            echo "The newest source file here:"
-            echo
-            echo "The next step reads my last line, so the path goes last and on its own:"
-            echo "$newest"
-            """;
-
-        /// <summary>
-        ///  Step two: consumes step one's value and produces one of its own.
-        /// </summary>
-        /// <remarks>
-        ///  Written so it still says something sensible when run on its own from the deck, which
-        ///  is how anyone will first meet it. A step that only works inside its chain teaches
-        ///  nothing about what the chain is doing.
-        /// </remarks>
-        private const string HandTwoPs = """
-            $path = $env:DEVDECK_PREVIOUS_LINE
-
-            if (-not $env:DEVDECK_PREVIOUS_NAME) {
-                'Nobody handed me anything - I was started by hand rather than by a chain.'
-                'Run the "Pass values between steps" chain to see what I do with what I am given.'
-                exit 0
-            }
-
-            "Step $env:DEVDECK_STEP of $env:DEVDECK_STEPS in the chain $env:DEVDECK_CHAIN"
-            "Handed to me by : $env:DEVDECK_PREVIOUS_NAME (which exited $env:DEVDECK_PREVIOUS_EXIT)"
-            "The value       : $path"
-            ''
-
-            if (-not (Test-Path -LiteralPath $path)) {
-                "That is not a path I can find, so I have nothing to measure."
-                exit 1
-            }
-
-            $lines = @(Get-Content -LiteralPath $path -ErrorAction SilentlyContinue).Count
-            $bytes = (Get-Item -LiteralPath $path).Length
-
-            "Lines           : $lines"
-            "Bytes           : $bytes"
-            ''
-            'And the one number I hand to the step after me:'
-            $lines
-            """;
-
-        private const string HandTwoSh = """
-            path="$DEVDECK_PREVIOUS_LINE"
-
-            if [ -z "$DEVDECK_PREVIOUS_NAME" ]; then
-              echo "Nobody handed me anything - I was started by hand rather than by a chain."
-              echo 'Run the "Pass values between steps" chain to see what I do with what I am given.'
-              exit 0
-            fi
-
-            echo "Step $DEVDECK_STEP of $DEVDECK_STEPS in the chain $DEVDECK_CHAIN"
-            echo "Handed to me by : $DEVDECK_PREVIOUS_NAME (which exited $DEVDECK_PREVIOUS_EXIT)"
-            echo "The value       : $path"
-            echo
-
-            if [ ! -f "$path" ]; then
-              echo "That is not a path I can find, so I have nothing to measure."
-              exit 1
-            fi
-
-            lines=$(wc -l < "$path" | tr -d ' ')
-            bytes=$(wc -c < "$path" | tr -d ' ')
-
-            echo "Lines           : $lines"
-            echo "Bytes           : $bytes"
-            echo
-            echo "And the one number I hand to the step after me:"
-            echo "$lines"
-            """;
-
-        /// <summary>
-        ///  Step three: shows everything a step is given, including what it is not given.
-        /// </summary>
-        /// <remarks>
-        ///  The one that answers "what can a step actually see". It prints the whole of the
-        ///  previous step's output as well as its last line, so the difference between
-        ///  DEVDECK_PREVIOUS and DEVDECK_PREVIOUS_LINE is visible rather than described - and it
-        ///  says out loud that step one is not among what it was handed.
-        /// </remarks>
-        private const string HandThreePs = """
-            if (-not $env:DEVDECK_PREVIOUS_NAME) {
-                'Nobody handed me anything - I was started by hand rather than by a chain.'
-                'Run the "Pass values between steps" chain to see the rest.'
-                exit 0
-            }
-
-            "Step $env:DEVDECK_STEP of $env:DEVDECK_STEPS in the chain $env:DEVDECK_CHAIN"
-            ''
-            "The step before me was '$env:DEVDECK_PREVIOUS_NAME', and it exited $env:DEVDECK_PREVIOUS_EXIT."
-            "Its last line - the value meant for me - was: $env:DEVDECK_PREVIOUS_LINE"
-            ''
-            'Everything it printed, which I also get:'
-
-            $env:DEVDECK_PREVIOUS -split "`n" | ForEach-Object { "  | $_" }
-
-            ''
-            'Only the step immediately before me is handed on, which is why I can see step two'
-            'and not step one. Anything that has to travel further than one step, re-print.'
-            """;
-
-        private const string HandThreeSh = """
-            if [ -z "$DEVDECK_PREVIOUS_NAME" ]; then
-              echo "Nobody handed me anything - I was started by hand rather than by a chain."
-              echo 'Run the "Pass values between steps" chain to see the rest.'
-              exit 0
-            fi
-
-            echo "Step $DEVDECK_STEP of $DEVDECK_STEPS in the chain $DEVDECK_CHAIN"
-            echo
-            echo "The step before me was '$DEVDECK_PREVIOUS_NAME', and it exited $DEVDECK_PREVIOUS_EXIT."
-            echo "Its last line - the value meant for me - was: $DEVDECK_PREVIOUS_LINE"
-            echo
-            echo "Everything it printed, which I also get:"
-
-            echo "$DEVDECK_PREVIOUS" | while IFS= read -r line; do
-              echo "  | $line"
-            done
-
-            echo
-            echo "Only the step immediately before me is handed on, which is why I can see step two"
-            echo "and not step one. Anything that has to travel further than one step, re-print."
-            """;
-
-        private const string VersionsPs = """
-            foreach ($tool in 'git', 'node', 'npm', 'dotnet', 'python', 'docker') {
-                if (Get-Command $tool -ErrorAction SilentlyContinue) {
-                    $version = (& $tool --version 2>&1 | Select-Object -First 1)
-                    '{0,-8} {1}' -f $tool, $version
-                }
-                else { '{0,-8} not installed' -f $tool }
+            for (const file of (env.DEVDECK_CHANGED_FILES ?? '').split('\n').filter(Boolean)) {
+              console.log(`  ${file}`);
             }
             """;
 
-        private const string VersionsSh = """
-            for tool in git node npm dotnet python3 docker; do
-              if command -v "$tool" >/dev/null 2>&1; then
-                printf '%-8s %s\n' "$tool" "$("$tool" --version 2>&1 | head -1)"
-              else
-                printf '%-8s not installed\n' "$tool"
-              fi
-            done
+        private const string SecretExampleJs = """
+            // The worked example for secrets and environment variables.
+            //
+            // {{secret:secretExample}} is filled in from the vault when this runs, so the value is
+            // never stored in the command or in settings.json. appName and appVersion are ordinary
+            // environment variables, set on every command from Settings > Environment variables.
+            console.log('Secret name  : secretExample');
+            console.log('Secret value : {{secret:secretExample}}');
+            console.log(`appName      : ${process.env.appName}`);
+            console.log(`appVersion   : ${process.env.appVersion}`);
             """;
         #endregion
 
-        /// <summary>A script, as PowerShell on Windows and as a shell script everywhere else.</summary>
-        /// <summary>
-        ///  Brings starter commands in <paramref name="deck"/> up to the version this build ships,
-        ///  and returns the names that were replaced.
-        /// </summary>
-        /// <remarks>
-        ///  Two of the starters shipped broken and were fixed in the source, which did nothing for
-        ///  anyone who already had them: <see cref="For"/> seeds on a genuinely fresh start only, so
-        ///  every existing install kept the old body. "Today's commits" stayed a bare
-        ///  `git log --since=midnight`, which prints nothing and exits zero on a day with no commits
-        ///  - the reported symptom was "it produces no output", and that was literally true. "TODOs
-        ///  and FIXMEs" stayed an uncapped `git grep` that hands the panel tens of thousands of
-        ///  lines and freezes it.
-        ///
-        ///  A shipped command is only replaced when the stored body still matches one this app is
-        ///  known to have shipped. That is the whole safety argument: an edited command does not
-        ///  match, so a user's own work is never overwritten by an upgrade, and a command they
-        ///  deleted is not resurrected - only what is still there and still untouched is repaired.
-        ///  Matching on the name alone would fail both of those tests.
-        ///
-        ///  Kind is set too, because the broken Today's commits was stored as a Batch file while its
-        ///  replacement is a PowerShell script, and a body without its interpreter is worse than the
-        ///  bug it replaces.
-        /// </remarks>
-        public static List<string> Refresh(List<CustomCommand> deck)
-        {
-            bool windows = OperatingSystem.IsWindows();
-            List<string> mended = [];
-
-            foreach (CustomCommand shipped in For())
-            {
-                CustomCommand? held = deck.Find(
-                    command => command.Name.Equals(shipped.Name, StringComparison.Ordinal));
-
-                if (held is null || held.Command == shipped.Command)
-                {
-                    continue;
-                }
-
-                if (!WasShipped(shipped.Name, held.Command, windows))
-                {
-                    continue;
-                }
-
-                held.Command = shipped.Command;
-                held.Kind = shipped.Kind;
-                mended.Add(shipped.Name);
-            }
-
-            return mended;
-        }
-
-        /// <summary>Whether <paramref name="body"/> is a version of this command the app once shipped.</summary>
-        /// <remarks>
-        ///  Compared with whitespace collapsed, because the file has been round-tripped through JSON
-        ///  and both line ending conventions since it was written, and a command is not user-edited
-        ///  merely because it now has CRLFs.
-        /// </remarks>
-        private static bool WasShipped(string name, string body, bool windows)
-        {
-            string[] known = name switch
-            {
-                "Today's commits" =>
-                [
-                    "git log --since=midnight --oneline --stat",
-                    windows ? TodaySh : TodayPs,
-                ],
-                "TODOs and FIXMEs" =>
-                [
-                    "git grep -n -E \"TODO|FIXME|HACK|XXX\"",
-                    "git grep -n -E 'TODO|FIXME|HACK|XXX'",
-                    windows ? TodosSh : TodosPs,
-                ],
-                _ => [],
-            };
-
-            return Array.Exists(known, one => Flat(one) == Flat(body));
-        }
-
-        private static string Flat(string text) =>
-            string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-
-        private static CustomCommand Script(string name, string body, bool windows) =>
-            Make(name, body, windows ? CommandKind.PowerShell : CommandKind.Bash);
-
         private static CustomCommand Make(
-            string name, string body, CommandKind kind, bool detached = false) => new()
+            string name, string body, params (string Name, string Value)[] parameters) => new()
             {
                 Name = name,
                 Command = body,
-                Kind = Runnable(kind) ? kind : CommandKind.Shell,
-                Detached = detached,
+                Kind = CommandKind.JavaScript,
+                Arguments = [.. parameters.Select(p => new CommandArgument { Name = p.Name, Value = p.Value })],
             };
-
-        /// <summary>
-        ///  Whether this machine has an interpreter for the kind.
-        /// </summary>
-        /// <remarks>
-        ///  Only bash can be genuinely absent here - it is the one the Windows fallback needs, and
-        ///  a Windows box without Git for Windows or WSL has none. Falling back to Shell keeps the
-        ///  entry in the deck, where it fails with a readable error if it is ever clicked, rather
-        ///  than the starter deck silently differing between two machines for no visible reason.
-        /// </remarks>
-        private static bool Runnable(CommandKind kind) => kind switch
-        {
-            CommandKind.Batch => OperatingSystem.IsWindows(),
-            CommandKind.Bash => ScriptFile.FindBash() is not null,
-            _ => true,
-        };
     }
 }

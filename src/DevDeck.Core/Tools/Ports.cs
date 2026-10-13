@@ -33,6 +33,9 @@ namespace DevDeck.Core
 
         public bool HasNote => Note.Length > 0;
 
+        /// <summary>The process's first letter, for the disc at the head of its row.</summary>
+        public string Initial => Process.Length > 0 ? Process[..1].ToUpperInvariant() : "?";
+
         /// <summary>What a browser would need, for the ports where that makes sense.</summary>
         public string Url => $"http://localhost:{Port}";
 

@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using DevDeck.App.ViewModels;
 
 namespace DevDeck.App.Views
@@ -50,6 +52,33 @@ namespace DevDeck.App.Views
         }
 
         private bool IsAttachedToVisualTree() => TopLevel.GetTopLevel(this) is not null;
+
+        /// <summary>
+        ///  Opens or closes a group from anywhere on its row: the chevron, the name, the bar.
+        /// </summary>
+        /// <remarks>
+        ///  The chevron, Spare and End sit on the same row and keep their own clicks, so a click on
+        ///  one of them is not counted twice.
+        /// </remarks>
+        private void OnRowTapped(object? sender, TappedEventArgs e)
+        {
+            if (sender is not Control { DataContext: ProcessRow { IsGroup: true } row }
+                || DataContext is not MemoryViewModel model)
+            {
+                return;
+            }
+
+            for (Visual? at = e.Source as Visual; at is not null && at != sender; at = at.GetVisualParent())
+            {
+                if (at is Button)
+                {
+                    return;
+                }
+            }
+
+            model.ToggleGroupCommand.Execute(row);
+            e.Handled = true;
+        }
 
         /// <summary>The same modal question the settings page asks; false when there is no window.</summary>
         private async Task<bool> Confirm(string heading, string detail, string proceed) =>

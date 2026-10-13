@@ -15,9 +15,10 @@
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="2" />
-      <Setter Property="Padding" Value="12,6" />
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="MinHeight" Value="0" />
     </Style>
 
     <Style Selector="Button:pointerover /template/ ContentPresenter">
@@ -30,18 +31,44 @@
       <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaint}" />
     </Style>
 
+    <!-- The copy button is the point of most tools, so it is the one that stands out. -->
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
     <Style Selector="TextBox.pad">
-      <Setter Property="Background" Value="{DynamicResource Ink}" />
+      <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
       <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
       <Setter Property="FontSize" Value="12.5" />
-      <Setter Property="Padding" Value="10" />
+      <Setter Property="Padding" Value="12,10" />
       <Setter Property="AcceptsReturn" Value="True" />
       <Setter Property="TextWrapping" Value="NoWrap" />
       <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
+
+    <Style Selector="TextBox.pad:focus /template/ Border#PART_BorderElement, TextBox.pad:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="TextBox.search">
+      <Setter Property="Background" Value="{DynamicResource CodeBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="28,6,8,6" />
+      <Setter Property="FontSize" Value="12" />
     </Style>
 
     <Style Selector="TextBlock.label">
@@ -52,20 +79,48 @@
     <Style Selector="ListBox.tools">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="0" />
+      <Setter Property="Padding" Value="6,0" />
     </Style>
 
     <Style Selector="ListBox.tools ListBoxItem">
-      <Setter Property="Padding" Value="14,7" />
+      <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="ListBox.tools ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <!-- The highlight is drawn on the tool's own row, not across the group heading above it. -->
+    <Style Selector="ListBox.tools ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox.tools ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.tools ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Border.toolRow">
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Border.toolRow">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected Border.toolRow">
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
     </Style>
 
-    <!-- The tool glyph: stroked, the weight of the text beside it, brass on the chosen row - the
-         same treatment the rail gives its own icons. -->
+    <Style Selector="TextBlock.groupHead">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+      <Setter Property="Margin" Value="10,12,0,4" />
+    </Style>
+
     <Style Selector="Path.toolIcon">
       <Setter Property="Stroke" Value="{DynamicResource TextMuted}" />
       <Setter Property="StrokeThickness" Value="1.3" />
@@ -77,27 +132,67 @@
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style Selector="ListBox.tools ListBoxItem:selected Path.toolIcon">
+    <Style Selector="ListBoxItem:selected Path.toolIcon">
       <Setter Property="Stroke" Value="{DynamicResource Accent}" />
     </Style>
 
-    <!-- Text and Tree: two halves of one switch, the current one lit. -->
+    <!-- The chosen tool's badge in the heading. -->
+    <Style Selector="Border.badge">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Margin" Value="0,0,14,0" />
+    </Style>
+
+    <Style Selector="Border.badge Path.toolIcon">
+      <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Input and output: each a panel with its own heading and its own buttons, so what a
+         button does is decided by where it is rather than by reading it. -->
+    <Style Selector="Border.pane">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style Selector="Border.paneHead">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Padding" Value="12,6,8,6" />
+    </Style>
+
+    <Style Selector="TextBlock.paneTitle">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <Style Selector="Button.seg">
       <Setter Property="CornerRadius" Value="0" />
-      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="Padding" Value="9,3" />
     </Style>
 
     <Style Selector="Button.seg.first">
-      <Setter Property="CornerRadius" Value="2,0,0,2" />
+      <Setter Property="CornerRadius" Value="3,0,0,3" />
     </Style>
 
     <Style Selector="Button.seg.last">
-      <Setter Property="CornerRadius" Value="0,2,2,0" />
+      <Setter Property="CornerRadius" Value="0,3,3,0" />
       <Setter Property="BorderThickness" Value="0,1,1,1" />
     </Style>
 
     <Style Selector="Button.seg.on">
       <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
     </Style>
 
@@ -105,194 +200,224 @@
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="CornerRadius" Value="3" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="MinHeight" Value="0" />
-      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="Padding" Value="10,4" />
     </Style>
 
   </UserControl.Styles>
 
-  <Grid ColumnDefinitions="188,*">
+  <Grid ColumnDefinitions="210,*">
 
-    <!-- The tools, grouped, down the side. A list rather than a dropdown because the answer to
-         "what can this do" should be visible without a click. -->
+    <!-- The tools: searchable, in their groups. -->
     <Border Grid.Column="0" Background="{DynamicResource Panel}"
             BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
       <DockPanel LastChildFill="True">
 
-        <TextBlock DockPanel.Dock="Bottom" Margin="14,10,14,14"
-                   Classes="label" TextWrapping="Wrap" LineHeight="15"
-                   Text="{loc:T ToolboxEverythingHereRunsOnThisMachine}" />
+        <Panel DockPanel.Dock="Top" Margin="12,14,12,4">
+          <TextBox Classes="search" Name="Search"
+                   Text="{Binding Search, Mode=TwoWay}"
+                   PlaceholderText="{loc:T ToolboxFind}"
+                   KeyDown="SearchKeyDown" />
+          <Path Classes="icon" Data="{x:Static app:Icons.Search}" Margin="8,0,0,0"
+                HorizontalAlignment="Left" IsHitTestVisible="False"
+                Stroke="{DynamicResource TextFaint}" />
+        </Panel>
 
-        <ListBox Classes="tools"
-                 ItemsSource="{Binding Tools}"
-                 SelectedItem="{Binding Selected, Mode=TwoWay}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:Tool">
-              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
-                <Path Grid.Column="0" Classes="toolIcon" Data="{Binding Icon}" />
-                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource Text}" />
-                <TextBlock Grid.Column="2" Text="{Binding Group}" FontSize="10"
-                           Margin="8,0,0,0" VerticalAlignment="Center"
-                           Foreground="{DynamicResource TextFaint}" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <!-- A promise, in a lock-marked strip at the foot: nothing pasted here leaves the machine. -->
+        <Border DockPanel.Dock="Bottom" Margin="12,8,12,14" Padding="10,8" CornerRadius="5"
+                Background="{DynamicResource Steel}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <Path Grid.Column="0" Classes="icon" Data="{x:Static app:Icons.Lock}" VerticalAlignment="Top"
+                  Stroke="{DynamicResource Good}" />
+            <TextBlock Grid.Column="1" Classes="label" TextWrapping="Wrap" LineHeight="15"
+                       Text="{loc:T ToolboxEverythingHereRunsOnThisMachine}" />
+          </Grid>
+        </Border>
+
+        <Panel>
+          <TextBlock Classes="label" Margin="18,14" IsVisible="{Binding NoTools}"
+                     Text="{loc:T ToolboxNoTools}" />
+
+          <ListBox Classes="tools"
+                   ItemsSource="{Binding VisibleTools}"
+                   SelectedItem="{Binding ListSelection, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:Tool">
+                <StackPanel>
+                  <TextBlock Classes="groupHead" Text="{Binding Group}" IsVisible="{Binding ShowGroup}" />
+                  <Border Classes="toolRow">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                      <Path Grid.Column="0" Classes="toolIcon" Data="{Binding Icon}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource Text}" />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Panel>
 
       </DockPanel>
     </Border>
 
-    <DockPanel Grid.Column="1" Margin="20" LastChildFill="True">
+    <DockPanel Grid.Column="1" Margin="22,18,22,18" LastChildFill="True">
 
-      <StackPanel DockPanel.Dock="Top" Spacing="3" Margin="0,0,0,14">
-        <TextBlock Text="{Binding Selected.Name}" FontSize="17" FontWeight="SemiBold"
-                   Foreground="{DynamicResource Text}" />
-        <TextBlock Text="{Binding Selected.Hint}" Classes="label" TextWrapping="Wrap"
-                   IsVisible="{Binding Selected.Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-      </StackPanel>
+      <!-- The tool: its badge, its name, what it expects, and the options only it needs. -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+        <Border Classes="badge" DockPanel.Dock="Left">
+          <Path Classes="toolIcon" Data="{Binding Selected.Icon}" />
+        </Border>
 
-      <!-- The controls that only some tools need. Each appears for its own tool rather than being
-           shown greyed out, so the panel is only ever as complicated as the job in front of it. -->
-      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <ComboBox ItemsSource="{Binding Algorithms}"
+                    SelectedItem="{Binding Algorithm, Mode=TwoWay}"
+                    IsVisible="{Binding Selected.NeedsAlgorithm}" />
+          <ComboBox ItemsSource="{Binding Cases}"
+                    SelectedItem="{Binding Casing, Mode=TwoWay}"
+                    IsVisible="{Binding Selected.NeedsCase}" />
+        </StackPanel>
 
-        <ComboBox ItemsSource="{Binding Algorithms}"
-                  SelectedItem="{Binding Algorithm, Mode=TwoWay}"
-                  IsVisible="{Binding Selected.NeedsAlgorithm}" />
+        <StackPanel Spacing="3" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Selected.Name}" FontSize="17" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Text}" />
+          <TextBlock Text="{Binding Selected.Hint}" Classes="label" TextWrapping="Wrap"
+                     IsVisible="{Binding Selected.Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </DockPanel>
 
-        <ComboBox ItemsSource="{Binding Cases}"
-                  SelectedItem="{Binding Casing, Mode=TwoWay}"
-                  IsVisible="{Binding Selected.NeedsCase}" />
-
-        <Button Command="{Binding AgainCommand}"
-                IsVisible="{Binding Selected.Generates}">
-          <StackPanel Classes="iconLabel">
-            <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
-            <TextBlock Text="{loc:T ToolboxAgain}" />
-          </StackPanel>
-        </Button>
-
-        <Button Command="{Binding PasteInCommand}"
-                IsVisible="{Binding !Selected.Generates}">
-          <StackPanel Classes="iconLabel">
-            <Path Classes="icon" Data="{x:Static app:Icons.Clipboard}" />
-            <TextBlock Text="{loc:T ToolboxPaste}" />
-          </StackPanel>
-        </Button>
-
-        <Button Command="{Binding ClearCommand}"
-                IsVisible="{Binding !Selected.Generates}">
-          <StackPanel Classes="iconLabel">
-            <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
-            <TextBlock Text="{loc:T Clear}" />
-          </StackPanel>
-        </Button>
-
-        <TextBlock Text="{Binding Statistics}" Classes="label" VerticalAlignment="Center"
-                   Margin="4,0,0,0" />
-      </StackPanel>
-
-      <TextBox DockPanel.Dock="Top" Classes="pad" Height="34" Margin="0,0,0,10"
-               AcceptsReturn="False"
-               Text="{Binding Pattern, Mode=TwoWay}"
-               PlaceholderText="{loc:T ToolboxThePattern}"
-               IsVisible="{Binding Selected.NeedsPattern}" />
-
-      <Grid RowDefinitions="*,Auto,*">
-
-        <TextBox Grid.Row="0" Classes="pad"
-                 Text="{Binding Input, Mode=TwoWay}"
-                 PlaceholderText="{loc:T ToolboxPasteHere}"
-                 IsVisible="{Binding !Selected.Generates}" />
-
-        <!-- A generator has no input, so the output takes the whole area rather than leaving an
-             empty box above it. -->
-        <Panel Grid.Row="0" IsVisible="{Binding Selected.Generates}" />
-
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,10">
-
-          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-            <TextBlock Text="{Binding Error}" FontSize="11.5" TextWrapping="Wrap"
-                       Foreground="{DynamicResource Warn}"
-                       IsVisible="{Binding HasError}" />
-            <TextBlock Text="{Binding Status}" Classes="label"
-                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-          </StackPanel>
-
-          <!-- For the tools whose answer is a JSON document: read it as text, or open it up as a
-               tree and collapse what is not wanted. -->
-          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,0"
-                      IsVisible="{Binding Selected.HasTree}">
-            <Button Classes="seg first" Classes.on="{Binding !TreeChosen}"
- Command="{Binding ShowTextCommand}">
-              <StackPanel Classes="iconLabel">
-                <Path Classes="icon" Data="{x:Static app:Icons.File}" />
-                <TextBlock Text="{loc:T ToolboxText}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="seg last" Classes.on="{Binding TreeChosen}"
- ToolTip.Tip="{loc:T ToolboxTreeTip}"
-                    Command="{Binding ShowTreeCommand}">
-              <StackPanel Classes="iconLabel">
-                <Path Classes="icon" Data="{x:Static app:Icons.List}" />
-                <TextBlock Text="{loc:T ToolboxTree}" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
-
-          <Button Grid.Column="2" Margin="0,0,8,0"
-                  Command="{Binding ChainCommand}"
-                  IsVisible="{Binding !Selected.Generates}">
-            <StackPanel Classes="iconLabel">
-              <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
-              <TextBlock Text="{loc:T ToolboxUseAsInput}" />
-            </StackPanel>
-          </Button>
-
-          <Button Grid.Column="3" Command="{Binding CopyOutCommand}">
-            <StackPanel Classes="iconLabel">
-              <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
-              <TextBlock Text="{loc:T Copy}" />
-            </StackPanel>
-          </Button>
-
+      <!-- The regex tool's second input. -->
+      <Border DockPanel.Dock="Top" Classes="pane" Margin="0,0,0,12" IsVisible="{Binding Selected.NeedsPattern}">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Grid.Column="0" Classes="paneHead" BorderThickness="0,0,1,0">
+            <TextBlock Classes="paneTitle" Text="{loc:T ToolboxPattern}" />
+          </Border>
+          <TextBox Grid.Column="1" Classes="pad" Height="36" Padding="12,8"
+                   AcceptsReturn="False"
+                   Text="{Binding Pattern, Mode=TwoWay}"
+                   PlaceholderText="{loc:T ToolboxThePattern}" />
         </Grid>
+      </Border>
 
-        <TextBox Grid.Row="2" Classes="pad" IsReadOnly="True"
-                 Text="{Binding Output}"
-                 IsVisible="{Binding ShowingPlainText}" />
+      <Grid RowDefinitions="*,12,*">
 
-        <!-- JSON and XML come out coloured, as the HTTP panel shows a response: a formatted
-             document in flat monospace leaves the eye to find the structure on its own. -->
-        <views:BodyView Grid.Row="2"
-                        Text="{Binding Output}"
-                        Kind="{Binding Selected.OutputKind}"
-                        IsVisible="{Binding ShowingStructuredText}" />
+        <!-- Input. A generator has none, so its output takes the whole area. -->
+        <Border Grid.Row="0" Classes="pane" IsVisible="{Binding !Selected.Generates}">
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Classes="paneHead">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Classes="paneTitle" Text="{loc:T ToolboxInput}" />
+                <TextBlock Grid.Column="1" Classes="label" Margin="10,0" VerticalAlignment="Center"
+                           Text="{Binding Statistics}" TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                  <Button Command="{Binding PasteInCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Clipboard}" />
+                      <TextBlock Text="{loc:T ToolboxPaste}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding ClearCommand}" ToolTip.Tip="{loc:T Clear}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <TextBox Classes="pad"
+                     Text="{Binding Input, Mode=TwoWay}"
+                     PlaceholderText="{loc:T ToolboxPasteHere}" />
+          </DockPanel>
+        </Border>
 
-        <views:JsonTreeView Grid.Row="2"
-                            Document="{Binding Tree}"
-                            EmptyText="{Binding TreeNote}"
-                            IsVisible="{Binding ShowingTree}" />
+        <!-- Output: what came out, how to read it, and what to do with it. -->
+        <Border Grid.Row="2" Grid.RowSpan="1" Classes="pane" Name="OutputPane">
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Classes="paneHead">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Classes="paneTitle" Text="{loc:T ToolboxOutput}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="10,0"
+                            VerticalAlignment="Center" ClipToBounds="True">
+                  <TextBlock Classes="label" Text="{Binding OutputStatistics}"
+                             IsVisible="{Binding !HasError}" />
+                  <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource Good}"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                  <StackPanel Orientation="Horizontal" IsVisible="{Binding Selected.HasTree}">
+                    <Button Classes="seg first" Classes.on="{Binding !TreeChosen}"
+                            Command="{Binding ShowTextCommand}">
+                      <TextBlock Text="{loc:T ToolboxText}" />
+                    </Button>
+                    <Button Classes="seg last" Classes.on="{Binding TreeChosen}"
+                            ToolTip.Tip="{loc:T ToolboxTreeTip}"
+                            Command="{Binding ShowTreeCommand}">
+                      <TextBlock Text="{loc:T ToolboxTree}" />
+                    </Button>
+                  </StackPanel>
+                  <Button Command="{Binding AgainCommand}" IsVisible="{Binding Selected.Generates}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Refresh}" />
+                      <TextBlock Text="{loc:T ToolboxAgain}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding ChainCommand}" ToolTip.Tip="{loc:T ToolboxUseAsInput}"
+                          IsVisible="{Binding !Selected.Generates}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Up}" />
+                      <TextBlock Text="{loc:T ToolboxUseAsInput}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="go" Command="{Binding CopyOutCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                      <TextBlock Text="{loc:T Copy}" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
 
-        <!-- The regex tool answers with a list of matches rather than one string, which is the one
-             place the shared shape does not fit. -->
-        <Border Grid.Row="2" Background="{DynamicResource Ink}"
-                BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2"
-                IsVisible="{Binding Selected.NeedsPattern}">
-          <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding Matches}" Margin="10">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                  <TextBlock Text="{Binding}" FontFamily="{DynamicResource MonoFont}"
-                             FontSize="12" Foreground="{DynamicResource Text}"
-                             Margin="0,0,0,3" TextWrapping="Wrap" />
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
+            <!-- What is wrong with the input, at the top of the answer rather than between boxes. -->
+            <Border DockPanel.Dock="Top" IsVisible="{Binding HasError}"
+                    Background="{DynamicResource Steel}" Padding="12,7"
+                    BorderBrush="{DynamicResource Warn}" BorderThickness="3,0,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon" Data="{x:Static app:Icons.Flag}" Stroke="{DynamicResource Warn}" />
+                <TextBlock Text="{Binding Error}" FontSize="11.5" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Warn}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+
+            <Panel>
+              <TextBox Classes="pad" IsReadOnly="True"
+                       Text="{Binding Output}"
+                       IsVisible="{Binding ShowingPlainText}" />
+
+              <views:BodyView Text="{Binding Output}"
+                              Kind="{Binding Selected.OutputKind}"
+                              IsVisible="{Binding ShowingStructuredText}" />
+
+              <views:JsonTreeView Document="{Binding Tree}"
+                                  EmptyText="{Binding TreeNote}"
+                                  IsVisible="{Binding ShowingTree}" />
+
+              <!-- The regex tool answers with a list of matches rather than one string. -->
+              <ScrollViewer IsVisible="{Binding Selected.NeedsPattern}">
+                <ItemsControl ItemsSource="{Binding Matches}" Margin="12,10">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Background="{DynamicResource Steel}" CornerRadius="4" Padding="8,4" Margin="0,0,0,4">
+                        <TextBlock Text="{Binding}" FontFamily="{DynamicResource MonoFont}"
+                                   FontSize="12" Foreground="{DynamicResource Text}" TextWrapping="Wrap" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Panel>
+          </DockPanel>
         </Border>
 
       </Grid>

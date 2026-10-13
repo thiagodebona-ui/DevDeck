@@ -54,8 +54,12 @@ namespace DevDeck.App.Views
             (DataContext as RunningViewModel)?.Stop();
         }
 
-        private void FoldContainers(bool show) =>
-            Lists.RowDefinitions[4].Height = show ? new Avalonia.Controls.GridLength(1, Avalonia.Controls.GridUnitType.Star) : new Avalonia.Controls.GridLength(0);
+        /// <summary>The gap and the containers card's row, both folded to nothing when there are none.</summary>
+        private void FoldContainers(bool show)
+        {
+            Lists.RowDefinitions[1].Height = new GridLength(show ? 14 : 0);
+            Lists.RowDefinitions[2].Height = show ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        }
 
         private async Task Copy(string text)
         {

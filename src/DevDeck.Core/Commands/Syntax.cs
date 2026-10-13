@@ -77,6 +77,19 @@ namespace DevDeck.Core
         ///  Every character of the input appears in exactly one token, plain ones included, so the
         ///  caller can build its inlines by walking the list without tracking where it has got to.
         /// </remarks>
+        // Line and block comments; double, single and template strings.
+        private static readonly Regex JavaScriptSpans = new(
+            @"(?<comment>//.*?$|/\*[\s\S]*?\*/)|(?<text>""(?:\\.|[^""\\\r\n])*""|'(?:\\.|[^'\\\r\n])*'|`(?:\\.|[^`\\])*`)",
+            Options);
+
+        private static readonly Regex JavaScriptWords = new(
+            @"\b(?<keyword>const|let|var|function|return|if|else|for|while|do|switch|case|break|"
+            + @"continue|new|class|extends|import|export|from|async|await|try|catch|finally|throw|"
+            + @"typeof|instanceof|of|in|true|false|null|undefined|this|require|default)\b"
+            + @"|(?<variable>\b(?:process|console|module|exports|__dirname|__filename)\b)"
+            + @"|(?<number>\b\d+(?:\.\d+)?\b)",
+            Options);
+
         public static IReadOnlyList<Token> Tokenize(string source, CommandKind kind)
         {
             if (string.IsNullOrEmpty(source))
@@ -88,6 +101,7 @@ namespace DevDeck.Core
             {
                 CommandKind.PowerShell => (PowerShellSpans, PowerShellWords),
                 CommandKind.Batch => (BatchSpans, BatchWords),
+                CommandKind.JavaScript => (JavaScriptSpans, JavaScriptWords),
                 _ => (ShellSpans, ShellWords),
             };
 
@@ -209,6 +223,7 @@ namespace DevDeck.Core
             CommandKind.PowerShell => "powershell",
             CommandKind.Batch => "batch",
             CommandKind.Bash => "bash",
+            CommandKind.JavaScript => "javascript",
             _ => OperatingSystem.IsWindows() ? "cmd" : "sh",
         };
     }

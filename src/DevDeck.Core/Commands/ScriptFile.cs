@@ -118,6 +118,20 @@ namespace DevDeck.Core
                     return new ScriptFile(bash, $"\"{ScriptPathFor(bash, file)}\"{ArgumentsFor(command)}", file);
                 }
 
+                case CommandKind.JavaScript:
+                {
+                    if (FindNode() is not { } node)
+                    {
+                        throw new PlatformNotSupportedException(
+                            "Node.js was not found. Install it from nodejs.org, then try again.");
+                    }
+
+                    // No BOM: Node strips one, but a shebang line after it would not be read as one.
+                    string file = Write(command.Name, ".js", command.Command, new UTF8Encoding(false));
+
+                    return new ScriptFile(node, $"\"{file}\"{ArgumentsFor(command)}", file);
+                }
+
                 default:
                     return windows
                         ? new ScriptFile("cmd.exe", Cmd(command.Command + ArgumentsFor(command)), null)
@@ -378,6 +392,43 @@ namespace DevDeck.Core
 
         /// <summary>Single quotes for sh, where nothing inside them is special but the quote itself.</summary>
         private static string ShQuote(string value) => $"'{value.Replace("'", "'\\''")}'";
+
+        /// <summary>
+        ///  Finds Node.js, or null if there is none.
+        /// </summary>
+        /// <remarks>
+        ///  PATH first, which is where every installer and version manager (nvm, volta, fnm) puts
+        ///  it, then the default install folder, for a machine whose PATH this process did not
+        ///  inherit - an app started at sign-in sees the PATH from before Node was installed.
+        /// </remarks>
+        public static string? FindNode()
+        {
+            string name = OperatingSystem.IsWindows() ? "node.exe" : "node";
+
+            foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+                .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    string candidate = Path.Combine(directory.Trim(), name);
+
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    // A malformed PATH entry; the next one may still be good.
+                }
+            }
+
+            string[] fallbacks = OperatingSystem.IsWindows()
+                ? [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "node.exe")]
+                : ["/usr/local/bin/node", "/opt/homebrew/bin/node", "/usr/bin/node"];
+
+            return fallbacks.FirstOrDefault(File.Exists);
+        }
 
         public static string? FindBash()
         {

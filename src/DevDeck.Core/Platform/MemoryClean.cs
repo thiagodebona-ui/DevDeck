@@ -82,6 +82,12 @@ namespace DevDeck.Core
         /// </remarks>
         public bool AllowElevation { get; init; } = true;
 
+        /// <summary>
+        ///  Single processes never to trim, by id, for this session only: one copy of a program
+        ///  spared from its expanded group. Ids are reused, so they are never saved.
+        /// </summary>
+        public IReadOnlyCollection<int> ExcludedIds { get; init; } = [];
+
         public bool Excludes(string name) =>
             Excluded.Any(entry => string.Equals(entry, name, StringComparison.OrdinalIgnoreCase));
     }
@@ -683,6 +689,12 @@ namespace DevDeck.Core
                 // 0 is the idle process and 4 is System; neither has a working set to empty.
                 if (id is 0 or 4)
                 {
+                    continue;
+                }
+
+                if (options.ExcludedIds.Contains(id))
+                {
+                    spared++;
                     continue;
                 }
 

@@ -40,6 +40,9 @@ namespace DevDeck.Core
                   holding only the command or script itself, ready to run.
                 - Label the fence correctly. A multi-line PowerShell script fenced as shell will fail.
                 - Do not put a shell prompt, or "cmd /c", inside the block.
+                - When the user asks for a language that has a fence above, write the code in that
+                  language and fence it with that language. Never wrap it in another script that
+                  saves it to a file and runs it: the app already does that for every fence.
                 - Reach for a script when the job needs several steps, variables or error handling,
                   and a one-line command when it does not.
                 - Assume a normal {Machine()} developer machine: git, node, npm, yarn, dotnet and the
@@ -156,6 +159,14 @@ namespace DevDeck.Core
             if (ScriptFile.FindBash() is not null)
             {
                 lines.Add("- ```bash         a whole shell script, saved and run as a .sh file");
+            }
+
+            // Without this line a model asked for JavaScript has no fence for it, so it hides the
+            // code in a PowerShell here-string that writes a .js file and calls node on it.
+            if (ScriptFile.FindNode() is not null)
+            {
+                lines.Add("- ```javascript   a whole Node.js script, saved and run as a .js file with node;"
+                    + " arguments are in process.argv, and only Node's built-in modules are installed");
             }
 
             return string.Join(Environment.NewLine, lines);

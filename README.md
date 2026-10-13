@@ -42,8 +42,11 @@ Free · No installer · No .NET needed · Everything stays on your machine
 3. If Windows says *"Windows protected your PC"*, click **More info → Run anyway** (the app is not
    code-signed yet).
 
-The deck arrives filled with starter commands, chains and examples, so there is something to click
-straight away. Pick your project folder at the top of the Commands page and commands run there.
+The deck arrives with a few starter commands, all JavaScript run by Node.js: *Project overview*,
+*What changed vs main*, *Find TODOs*, *Who is using a port*, *Heavy build folders* and a
+*Release notes* chain. Each one is useful as it is and shows off one feature - a parameter, a value
+asked for at run time, a secret, a chain passing a value on, a file watch. Pick your project
+folder at the top of the Commands page and commands run there.
 
 <details>
 <summary><b>macOS and Linux (preview)</b></summary>
@@ -99,8 +102,8 @@ Click a section below for the details and a screenshot.
 Each command is a saved script with a name. Select it, press **Run**, and its output streams in
 below, with how long it ran and its exit code at the end.
 
-- **Any kind of script:** PowerShell, Batch, Bash (Git Bash or WSL) or a single shell line, with
-  syntax colouring. Change **Run with** and the AI can rewrite the script for the new language.
+- **Any kind of script:** PowerShell, Batch, Bash (Git Bash or WSL), JavaScript (Node.js) or a
+  single shell line, with syntax colouring. Change **Run with** and the AI can rewrite the script for the new language.
 - **Parameters:** add name/value rows passed on every run, or write `{{branch}}` and DevDeck asks
   for a value each time (`{{branch:main}}` gives a default).
 - **Secrets:** `{{secret:API_TOKEN}}` is filled in from an encrypted vault at run time and never
@@ -121,8 +124,9 @@ below, with how long it ran and its exit code at the end.
 
 ![Automation](docs/images/automation.png)
 
-**Chains** run several commands one after another - *Morning check* runs *Where am I*, then
-*Today's commits*, then *What changed vs main*.
+**Chains** run several commands one after another - *Morning check* runs *Project overview*, then
+*What changed vs main*, then *Find TODOs*, and *Release notes* hands the last release tag from its
+first step to its second, which turns everything since then into release notes.
 
 - Build one by picking commands, or ask the Assistant to write it.
 - Untick a step to skip it, and choose whether the chain stops at the first failure.
@@ -143,8 +147,9 @@ switched off.
 
 - **Your model:** a free, private local model through Ollama or LM Studio, or any OpenAI-compatible
   service with your own key. **Set up Ollama** helps you get started.
-- **Writes commands:** code it writes has **Run** (output comes back into the chat) and **Add as
-  command**. It always asks before running anything.
+- **Writes commands:** code it writes - PowerShell, Batch, Bash or real JavaScript - has **Run**
+  (output comes back into the chat) and **Add as command**. It always asks before running anything,
+  and a running block turns its **Run** into **Stop**, with another **Stop** under its output.
 - **Builds chains:** ask for commands that work together and **Create chain** adds them to your deck.
 - **Explains:** **Ask AI why** under any output asks the model why it behaved that way.
 - Attach files, keep favourite **Prompts**, and reopen past chats from **History**. The status bar

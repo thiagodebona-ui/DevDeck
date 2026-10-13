@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using DevDeck.Core;
 
@@ -23,6 +24,12 @@ namespace DevDeck.App.Views
     ///  heat - and drops to a slow tick when the window is not the one in front. And every effect
     ///  is faint: panels are translucent in the living themes, so the effect shows through the
     ///  rail and the cards, and it has to stay quieter than the text on top of them.
+    ///
+    ///  Every brush and pen drawn with is immutable, and the ones that repeat are cached. A
+    ///  mutable brush handed to a <see cref="DrawingContext"/> becomes a compositor resource, and
+    ///  at a few hundred per frame those lived long enough to reach the oldest generation: the
+    ///  app sat at 2 GB after a day with the window open, almost all of it garbage that a full
+    ///  collection would have freed.
     /// </remarks>
     public sealed class Backdrop : Control
     {
@@ -106,6 +113,9 @@ namespace DevDeck.App.Views
             variable = Read("SynVariable", accent);
 
             glyphs.Clear();
+            solids.Clear();
+            glows.Clear();
+            fades.Clear();
             seededFor = default;
 
             if (effect == ThemeBackdrop.None)
@@ -416,18 +426,8 @@ namespace DevDeck.App.Views
 
                 Color c = band == 1 ? keyword : accent;
 
-                LinearGradientBrush fade = new()
-                {
-                    StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                    EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                    GradientStops =
-                    {
-                        new GradientStop(Color.FromArgb(0x36, c.R, c.G, c.B), 0),
-                        new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 1),
-                    },
-                };
-
-                context.DrawGeometry(fade, null, curtain);
+                context.DrawGeometry(
+                    Fade(Color.FromArgb(0x36, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)), null, curtain);
             }
         }
         #endregion
@@ -458,7 +458,7 @@ namespace DevDeck.App.Views
                     FlowDirection.LeftToRight,
                     new Typeface("Consolas, Cascadia Mono, MS Gothic, monospace"),
                     14,
-                    new SolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B)));
+                    new ImmutableSolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B)));
 
                 glyphs[(glyph, level)] = laid;
             }
@@ -519,7 +519,7 @@ namespace DevDeck.App.Views
                 Color c = star.Kind == 2 && star.Phase > 4 ? accentSoft : text;
 
                 context.DrawEllipse(
-                    new SolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B)), null,
+                    Solid(Color.FromArgb(alpha, c.R, c.G, c.B)), null,
                     new Point(star.X, star.Y), star.Size, star.Size);
             }
 
@@ -529,18 +529,15 @@ namespace DevDeck.App.Views
                 Point head = new(meteorFrom.X + travelled, meteorFrom.Y + travelled * 0.45);
                 Point tail = new(head.X - 120, head.Y - 54);
 
-                LinearGradientBrush streak = new()
-                {
-                    StartPoint = new RelativePoint(tail, RelativeUnit.Absolute),
-                    EndPoint = new RelativePoint(head, RelativeUnit.Absolute),
-                    GradientStops =
-                    {
-                        new GradientStop(Color.FromArgb(0, text.R, text.G, text.B), 0),
-                        new GradientStop(Color.FromArgb((byte)(220 * Math.Min(1, meteor * 2)), text.R, text.G, text.B), 1),
-                    },
-                };
+                ImmutableLinearGradientBrush streak = new(
+                    [
+                        new ImmutableGradientStop(0, Color.FromArgb(0, text.R, text.G, text.B)),
+                        new ImmutableGradientStop(1, Color.FromArgb((byte)(220 * Math.Min(1, meteor * 2)), text.R, text.G, text.B)),
+                    ],
+                    startPoint: new RelativePoint(tail, RelativeUnit.Absolute),
+                    endPoint: new RelativePoint(head, RelativeUnit.Absolute));
 
-                context.DrawLine(new Pen(streak, 1.6, lineCap: PenLineCap.Round), tail, head);
+                context.DrawLine(new ImmutablePen(streak, 1.6, lineCap: PenLineCap.Round), tail, head);
             }
         }
         #endregion
@@ -564,20 +561,12 @@ namespace DevDeck.App.Views
             // The sun, cut off at the horizon, banded across its lower half.
             using (context.PushClip(new Rect(0, 0, w, horizon)))
             {
-                LinearGradientBrush sun = new()
-                {
-                    StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                    EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                    GradientStops =
-                    {
-                        new GradientStop(Color.FromArgb(0x70, warn.R, warn.G, warn.B), 0),
-                        new GradientStop(Color.FromArgb(0x70, accent.R, accent.G, accent.B), 1),
-                    },
-                };
+                IImmutableBrush sun = Fade(
+                    Color.FromArgb(0x70, warn.R, warn.G, warn.B), Color.FromArgb(0x70, accent.R, accent.G, accent.B));
 
                 context.DrawEllipse(sun, null, centre, radius, radius);
 
-                SolidColorBrush gap = new(ink);
+                IImmutableBrush gap = Solid(ink);
 
                 for (int band = 0; band < 6; band++)
                 {
@@ -587,20 +576,12 @@ namespace DevDeck.App.Views
             }
 
             // The ground: a dark plane with the grid on it.
-            LinearGradientBrush ground = new()
-            {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                GradientStops =
-                {
-                    new GradientStop(Color.FromArgb(0x30, keyword.R, keyword.G, keyword.B), 0),
-                    new GradientStop(Color.FromArgb(0x08, keyword.R, keyword.G, keyword.B), 1),
-                },
-            };
+            IImmutableBrush ground = Fade(
+                Color.FromArgb(0x30, keyword.R, keyword.G, keyword.B), Color.FromArgb(0x08, keyword.R, keyword.G, keyword.B));
 
             context.FillRectangle(ground, new Rect(0, horizon, w, h - horizon));
 
-            Pen horizonLine = new(new SolidColorBrush(Color.FromArgb(0xA0, accent.R, accent.G, accent.B)), 1.5);
+            ImmutablePen horizonLine = new(Solid(Color.FromArgb(0xA0, accent.R, accent.G, accent.B)), 1.5);
             context.DrawLine(horizonLine, new Point(0, horizon), new Point(w, horizon));
 
             // Lines across, bunched towards the horizon and rolling forward.
@@ -614,12 +595,12 @@ namespace DevDeck.App.Views
                 byte alpha = (byte)(0x18 + 0x70 * z);
 
                 context.DrawLine(
-                    new Pen(new SolidColorBrush(Color.FromArgb(alpha, accent.R, accent.G, accent.B)), 1),
+                    new ImmutablePen(Solid(Color.FromArgb(alpha, accent.R, accent.G, accent.B)), 1),
                     new Point(0, y), new Point(w, y));
             }
 
             // Lines into the distance, all meeting at the centre of the horizon.
-            Pen depth = new(new SolidColorBrush(Color.FromArgb(0x50, accent.R, accent.G, accent.B)), 1);
+            ImmutablePen depth = new(Solid(Color.FromArgb(0x50, accent.R, accent.G, accent.B)), 1);
 
             for (int i = -16; i <= 16; i++)
             {
@@ -647,7 +628,7 @@ namespace DevDeck.App.Views
 
                 context.DrawEllipse(Glow(c, (byte)(0x40 * life * flicker)), null, at, spark.Size * 4, spark.Size * 4);
                 context.DrawEllipse(
-                    new SolidColorBrush(Color.FromArgb((byte)(0xE0 * life * flicker), c.R, c.G, c.B)), null,
+                    Solid(Color.FromArgb((byte)(0xE0 * life * flicker), c.R, c.G, c.B)), null,
                     at, spark.Size, spark.Size);
             }
         }
@@ -657,7 +638,7 @@ namespace DevDeck.App.Views
             foreach (Mote flake in motes)
             {
                 context.DrawEllipse(
-                    new SolidColorBrush(Color.FromArgb((byte)(0xFF * flake.Life), text.R, text.G, text.B)), null,
+                    Solid(Color.FromArgb((byte)(0xFF * flake.Life), text.R, text.G, text.B)), null,
                     new Point(flake.X, flake.Y), flake.Size, flake.Size);
             }
         }
@@ -667,7 +648,7 @@ namespace DevDeck.App.Views
             foreach (Mote petal in motes)
             {
                 Color c = petal.Kind == 0 ? accent : accentSoft;
-                SolidColorBrush fill = new(Color.FromArgb((byte)(0xFF * petal.Life), c.R, c.G, c.B));
+                IImmutableBrush fill = Solid(Color.FromArgb((byte)(0xFF * petal.Life), c.R, c.G, c.B));
 
                 // Turning about its own centre, and squashed as it turns, so it reads as tumbling
                 // rather than as a flat shape spinning.
@@ -683,16 +664,60 @@ namespace DevDeck.App.Views
         }
         #endregion
 
-        /// <summary>A soft round light: the colour at the centre, nothing at the edge.</summary>
-        private static RadialGradientBrush Glow(Color c, byte alpha) => new()
+        // Brushes by colour, built on first use and kept until the theme changes. An alpha is a
+        // byte and the palette is a handful of colours, so none of these grows past a few
+        // thousand entries however long the window stays open.
+        private readonly Dictionary<uint, IImmutableBrush> solids = [];
+        private readonly Dictionary<uint, IImmutableBrush> glows = [];
+        private readonly Dictionary<(uint Top, uint Bottom), IImmutableBrush> fades = [];
+
+        private IImmutableBrush Solid(Color c)
         {
-            GradientStops =
+            if (!solids.TryGetValue(c.ToUInt32(), out IImmutableBrush? brush))
             {
-                new GradientStop(Color.FromArgb(alpha, c.R, c.G, c.B), 0),
-                new GradientStop(Color.FromArgb((byte)(alpha / 3), c.R, c.G, c.B), 0.55),
-                new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 1),
-            },
-        };
+                solids[c.ToUInt32()] = brush = new ImmutableSolidColorBrush(c);
+            }
+
+            return brush;
+        }
+
+        /// <summary>A soft round light: the colour at the centre, nothing at the edge.</summary>
+        private IImmutableBrush Glow(Color c, byte alpha)
+        {
+            uint key = Color.FromArgb(alpha, c.R, c.G, c.B).ToUInt32();
+
+            if (!glows.TryGetValue(key, out IImmutableBrush? brush))
+            {
+                // Built mutable and frozen once, which keeps the default centre and radius.
+                glows[key] = brush = new RadialGradientBrush
+                {
+                    GradientStops =
+                    {
+                        new GradientStop(Color.FromArgb(alpha, c.R, c.G, c.B), 0),
+                        new GradientStop(Color.FromArgb((byte)(alpha / 3), c.R, c.G, c.B), 0.55),
+                        new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 1),
+                    },
+                }.ToImmutable();
+            }
+
+            return brush;
+        }
+
+        /// <summary>One colour at the top of the shape fading to another at the bottom.</summary>
+        private IImmutableBrush Fade(Color top, Color bottom)
+        {
+            (uint, uint) key = (top.ToUInt32(), bottom.ToUInt32());
+
+            if (!fades.TryGetValue(key, out IImmutableBrush? brush))
+            {
+                fades[key] = brush = new ImmutableLinearGradientBrush(
+                    [new ImmutableGradientStop(0, top), new ImmutableGradientStop(1, bottom)],
+                    startPoint: new RelativePoint(0, 0, RelativeUnit.Relative),
+                    endPoint: new RelativePoint(0, 1, RelativeUnit.Relative));
+            }
+
+            return brush;
+        }
 
         private static Color Mix(Color a, Color b, double amount) => Color.FromRgb(
             (byte)(a.R + (b.R - a.R) * amount),

@@ -116,6 +116,7 @@ namespace DevDeck.Core
                         Math.Min(100, members.Sum(usage => usage.CpuPercent)))
                     {
                         Ids = [.. members.Select(usage => usage.Id)],
+                        Members = members.Count > 1 ? members : [],
                     };
                 });
     }

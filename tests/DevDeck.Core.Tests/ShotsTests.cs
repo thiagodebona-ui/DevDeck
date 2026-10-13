@@ -153,6 +153,24 @@ namespace DevDeck.Core.Tests
         }
 
         [Fact]
+        public void TheSystemFolderIsFoundAgainAfterItIsDeletedAndMadeAgain()
+        {
+            Shots shots = Store();
+            DateTime now = DateTime.Now;
+
+            Directory.Delete(System, recursive: true);
+
+            Assert.Null(shots.SystemFolder);
+            Assert.Empty(shots.All());
+
+            Directory.CreateDirectory(System);
+            SystemShot("back.png", 10, 10, now);
+
+            Assert.Equal(System, shots.SystemFolder);
+            Assert.Equal("back", Assert.Single(shots.All()).Name);
+        }
+
+        [Fact]
         public void AFavouriteSurvivesTheSweepAndARestart()
         {
             DateTime now = DateTime.Now;

@@ -275,12 +275,17 @@ namespace DevDeck.App.ViewModels
             await Refresh();
         }
 
+        /// <summary>
+        ///  Copies a port's address. Every row action takes its row, falling back to the selection,
+        ///  so the buttons on a row act on that row without it having to be selected first.
+        /// </summary>
         [RelayCommand]
-        private async Task CopyPortUrl()
+        private async Task CopyPortUrl(ListeningPort? row)
         {
-            if (SelectedPort is { IsWeb: true } port && Copy is { } copy)
+            if ((row ?? SelectedPort) is { IsWeb: true } port && Copy is { } copy)
             {
                 await copy(port.Url);
+                Status = Strings.Format("RunCopied", port.Url);
             }
         }
 
@@ -366,7 +371,16 @@ namespace DevDeck.App.ViewModels
 
             SelectedPort = Ports.FirstOrDefault(port => port.Port == wasPort);
             SelectedContainer = Containers.FirstOrDefault(container => container.Id == wasContainer);
+
+            OnPropertyChanged(nameof(NoPorts));
+            OnPropertyChanged(nameof(PortsCountText));
         }
+
+        /// <summary>Nothing to list - said in words rather than shown as an empty box.</summary>
+        public bool NoPorts => Ports.Count == 0;
+
+        /// <summary>"12 shown of 48", beside the list's heading, so a filter never hides rows silently.</summary>
+        public string PortsCountText => Strings.Format("RunShownOf", Ports.Count, allPorts.Count);
 
         private static bool Matches(ListeningPort port, string wanted) =>
             wanted.Length == 0
@@ -552,9 +566,9 @@ namespace DevDeck.App.ViewModels
             !OnlyInteresting || port.HasNote || port.Port is >= 1024 and < 32_768;
 
         [RelayCommand]
-        private async Task KillPort()
+        private async Task KillPort(ListeningPort? row)
         {
-            if (SelectedPort is not { } port)
+            if ((row ?? SelectedPort) is not { } port)
             {
                 return;
             }
@@ -567,35 +581,35 @@ namespace DevDeck.App.ViewModels
         }
 
         [RelayCommand]
-        private void OpenPort()
+        private void OpenPort(ListeningPort? row)
         {
-            if (SelectedPort is { IsWeb: true } port)
+            if ((row ?? SelectedPort) is { IsWeb: true } port)
             {
                 Open?.Invoke(port.Url);
             }
         }
 
         [RelayCommand]
-        private void OpenContainer()
+        private void OpenContainer(ContainerInfo? row)
         {
-            if (SelectedContainer is { HasPublished: true } container)
+            if ((row ?? SelectedContainer) is { HasPublished: true } container)
             {
                 Open?.Invoke(container.Url);
             }
         }
 
         [RelayCommand]
-        private Task StartContainer() => Verb("start");
+        private Task StartContainer(ContainerInfo? row) => Verb("start", row);
 
         [RelayCommand]
-        private Task StopContainer() => Verb("stop");
+        private Task StopContainer(ContainerInfo? row) => Verb("stop", row);
 
         [RelayCommand]
-        private Task RestartContainer() => Verb("restart");
+        private Task RestartContainer(ContainerInfo? row) => Verb("restart", row);
 
-        private async Task Verb(string verb)
+        private async Task Verb(string verb, ContainerInfo? row)
         {
-            if (SelectedContainer is not { } container)
+            if ((row ?? SelectedContainer) is not { } container)
             {
                 return;
             }
@@ -612,13 +626,15 @@ namespace DevDeck.App.ViewModels
         }
 
         [RelayCommand]
-        private async Task ShowLogs()
+        private async Task ShowLogs(ContainerInfo? row)
         {
-            if (SelectedContainer is not { } container)
+            if ((row ?? SelectedContainer) is not { } container)
             {
                 return;
             }
 
+            // The log overlay names the container it shows, which is the selected one.
+            SelectedContainer = container;
             Busy = true;
             Logs = "Reading…";
 
@@ -629,9 +645,9 @@ namespace DevDeck.App.ViewModels
 
         /// <summary>Turns "follow this container's log" into a saved command.</summary>
         [RelayCommand]
-        private void FollowInDeck()
+        private void FollowInDeck(ContainerInfo? row)
         {
-            if (SelectedContainer is not { } container || Adopt is not { } adopt)
+            if ((row ?? SelectedContainer) is not { } container || Adopt is not { } adopt)
             {
                 return;
             }

@@ -30,6 +30,9 @@ namespace DevDeck.Core
         /// </summary>
         public IReadOnlyList<int> Ids { get; init; } = [Id];
 
+        /// <summary>A group's processes, heaviest first, each with its own figures. Empty for a single process.</summary>
+        public IReadOnlyList<ProcessUsage> Members { get; init; } = [];
+
         public int Count => Ids.Count;
 
         public bool IsGroup => Ids.Count > 1;

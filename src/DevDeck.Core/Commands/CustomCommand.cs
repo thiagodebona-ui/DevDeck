@@ -19,7 +19,12 @@ namespace DevDeck.Core
         ///  Added in V3. It sits last so that the three kinds saved before it keep their numbers
         ///  and an older settings file still deserialises.
         /// </remarks>
-        Bash
+        Bash,
+
+        /// <summary>
+        ///  A JavaScript file, written to a temporary .js and run by Node. Last, for the same reason.
+        /// </summary>
+        JavaScript,
     }
 
     /// <summary>

@@ -91,6 +91,13 @@ namespace DevDeck.App.ViewModels
         public string KeptPattern { get; set; } = string.Empty;
 
         public bool HasTree => TreeFrom is not null;
+
+        /// <summary>
+        ///  Whether this tool opens a group in the list, so the group's name is drawn once above
+        ///  it rather than beside every tool in it.
+        /// </summary>
+        [ObservableProperty]
+        private bool showGroup;
     }
 
     /// <summary>
@@ -115,10 +122,76 @@ namespace DevDeck.App.ViewModels
         {
             Tools = new ObservableCollection<Tool>(Build());
             selected = Tools[0];
+            listSelection = selected;
+            FilterTools();
             Convert();
+
+            // Group names come from the table, so the headings move with the language.
+            Strings.Changed += FilterTools;
         }
 
         public ObservableCollection<Tool> Tools { get; }
+
+        /// <summary>The tools the search leaves, in their groups.</summary>
+        public ObservableCollection<Tool> VisibleTools { get; } = [];
+
+        /// <summary>Narrows the list by tool name or group: "base", "jwt", "encoding".</summary>
+        [ObservableProperty]
+        private string search = string.Empty;
+
+        partial void OnSearchChanged(string value) => FilterTools();
+
+        public bool NoTools => VisibleTools.Count == 0;
+
+        /// <summary>
+        ///  What the list has selected, which can be nothing while a search hides the current tool.
+        /// </summary>
+        /// <remarks>
+        ///  Separate from <see cref="Selected"/>, which is never null: rebuilding the filtered list
+        ///  clears a ListBox's selection, and that must not clear the tool the panel is showing.
+        /// </remarks>
+        [ObservableProperty]
+        private Tool? listSelection;
+
+        partial void OnListSelectionChanged(Tool? value)
+        {
+            if (value is not null && value != Selected)
+            {
+                Selected = value;
+            }
+        }
+
+        /// <summary>Picks the first tool the search found - Enter in the search box.</summary>
+        public void PickFirst()
+        {
+            if (VisibleTools.FirstOrDefault() is { } first)
+            {
+                ListSelection = first;
+            }
+        }
+
+        private void FilterTools()
+        {
+            string wanted = Search.Trim();
+
+            List<Tool> found = [.. Tools.Where(tool => wanted.Length == 0
+                || tool.Name.Contains(wanted, StringComparison.OrdinalIgnoreCase)
+                || tool.Group.Contains(wanted, StringComparison.OrdinalIgnoreCase))];
+
+            VisibleTools.Clear();
+
+            string? group = null;
+
+            foreach (Tool tool in found)
+            {
+                tool.ShowGroup = tool.Group != group;
+                group = tool.Group;
+                VisibleTools.Add(tool);
+            }
+
+            ListSelection = VisibleTools.Contains(Selected) ? Selected : null;
+            OnPropertyChanged(nameof(NoTools));
+        }
 
         [ObservableProperty]
         private Tool selected;
@@ -239,6 +312,11 @@ namespace DevDeck.App.ViewModels
         {
             Status = string.Empty;
 
+            if (ListSelection != newValue && VisibleTools.Contains(newValue))
+            {
+                ListSelection = newValue;
+            }
+
             // Each tool keeps its own input. The box used to be shared, so JSON formatted in one
             // tool was still sitting there when the UUID generator or the hash was opened - text
             // that belonged to another job. Going back to a tool finds what was left in it, which
@@ -277,6 +355,13 @@ namespace DevDeck.App.ViewModels
             Statistics = value.Length > 0 ? TextTools.Statistics(value) : string.Empty;
             Convert();
         }
+
+        partial void OnOutputChanged(string value) =>
+            OutputStatistics = value.Length > 0 ? TextTools.Statistics(value) : string.Empty;
+
+        /// <summary>The same counts for the result, in the output panel's heading.</summary>
+        [ObservableProperty]
+        private string outputStatistics = string.Empty;
 
         partial void OnPatternChanged(string value) => Convert();
 

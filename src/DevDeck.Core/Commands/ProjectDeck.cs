@@ -32,6 +32,7 @@ namespace DevDeck.Core
             "powershell" or "pwsh" or "ps1" => CommandKind.PowerShell,
             "batch" or "bat" or "cmd" => CommandKind.Batch,
             "bash" or "sh" or "shell-script" => CommandKind.Bash,
+            "javascript" or "js" or "node" => CommandKind.JavaScript,
             _ => CommandKind.Shell,
         };
     }
@@ -152,6 +153,7 @@ namespace DevDeck.Core
                             CommandKind.PowerShell => "powershell",
                             CommandKind.Batch => "batch",
                             CommandKind.Bash => "bash",
+                            CommandKind.JavaScript => "javascript",
                             _ => null,
                         },
                         Detached = command.Detached,

@@ -14,7 +14,7 @@
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="CornerRadius" Value="3" />
       <Setter Property="Padding" Value="11,5" />
       <Setter Property="FontSize" Value="11.5" />
     </Style>
@@ -28,39 +28,26 @@
       <Setter Property="Foreground" Value="{DynamicResource Bad}" />
     </Style>
 
+    <Style Selector="Button.go">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.go:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
     <Style Selector="TextBox">
       <Setter Property="Background" Value="{DynamicResource CodeBg}" />
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="2" />
-      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="28,6,8,6" />
       <Setter Property="FontSize" Value="12" />
-    </Style>
-
-    <!-- A link looks like a link: the colour the rest of the app uses for "this does something",
-         underlined, and with the pointer that says so. Underlined rather than coloured alone,
-         because colour by itself is not a signal to anyone who cannot see that colour. -->
-    <Style Selector="Button.link">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="HorizontalAlignment" Value="Left" />
-      <Setter Property="HorizontalContentAlignment" Value="Left" />
-    </Style>
-
-    <Style Selector="Button.link /template/ ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="Button.link TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
-      <Setter Property="TextDecorations" Value="Underline" />
     </Style>
 
     <Style Selector="TextBlock.label">
@@ -68,74 +55,129 @@
       <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
     </Style>
 
+    <!-- The filter chips: one lit at a time. -->
+    <Style Selector="Button.chip">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="12,4" />
+      <Setter Property="Margin" Value="0,0,6,0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="Button.chip.on">
+      <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
     <Style Selector="ListBox.clips">
-      <Setter Property="Background" Value="{DynamicResource Ink}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="0" />
     </Style>
 
     <Style Selector="ListBox.clips ListBoxItem">
-      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,6" />
       <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="ListBox.clips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="ListBox.clips ListBoxItem /template/ ContentPresenter#PART_ContentPresenter, ListBox.clips ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.clips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Each clip a small card: its first lines, then when and what it looks like. -->
+    <Style Selector="Border.clip">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,9" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Border.clip">
+      <Setter Property="Background" Value="{DynamicResource Steel}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected Border.clip">
       <Setter Property="Background" Value="{DynamicResource SteelRaised}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Border.kind">
+      <Setter Property="Background" Value="{DynamicResource Track}" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="7,0" />
+    </Style>
+
+    <Style Selector="Border.kind TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The quick buttons on a card appear with the pointer, like everywhere else in the app. -->
+    <Style Selector="Button.act">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Padding" Value="5,2" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Button.act, ListBoxItem:selected Button.act">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <!-- The recording banner: green and calm while on, a clear invitation while off. -->
+    <Style Selector="Border.banner">
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="14,10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+    </Style>
+
+    <Style Selector="Border.banner.on">
+      <Setter Property="BorderBrush" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="Ellipse.live">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+      <Setter Property="Fill" Value="{DynamicResource TextFaint}" />
+    </Style>
+
+    <Style Selector="Ellipse.live.on">
+      <Setter Property="Fill" Value="{DynamicResource Good}" />
+      <Style.Animations>
+        <Animation Duration="0:0:1.6" IterationCount="INFINITE">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.35" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
     </Style>
 
   </UserControl.Styles>
 
-  <DockPanel Margin="20" LastChildFill="True">
+  <DockPanel Margin="22,18,22,18" LastChildFill="True">
 
+    <!-- Title, and the danger action out of the way at the far right. -->
     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
       <StackPanel Grid.Column="0" Spacing="2">
         <TextBlock Text="{loc:T ClipsClipboard}" FontSize="17" FontWeight="SemiBold"
                    Foreground="{DynamicResource Text}" />
-        <TextBlock Classes="label"
-                   Text="{loc:T ClipsWhatYouHaveCopiedWhileThis}" />
+        <TextBlock Classes="label" Text="{loc:T ClipsWhatYouHaveCopiedWhileThis}" />
       </StackPanel>
-
-      <!-- The switch is the feature, so it is the first control and it is labelled with what it
-           does rather than with the word "enabled". -->
-      <CheckBox Grid.Column="1" Content="{loc:T ClipsRecordWhatICopy}" FontSize="11.5"
-                VerticalAlignment="Center"
-                Foreground="{DynamicResource TextMuted}"
-                IsChecked="{Binding Capturing, Mode=TwoWay}" />
-    </Grid>
-
-    <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="12,10"
-            Background="{DynamicResource Panel}"
-            BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="2">
-      <StackPanel Spacing="4">
-        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMuted}" TextWrapping="Wrap"
-                   Text="{loc:T ClipsThisIsOffUntilYouTurn}" />
-        <TextBlock Classes="label" Text="{Binding Where}" FontFamily="{DynamicResource MonoFont}" />
-      </StackPanel>
-    </Border>
-
-    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
-      <TextBox Grid.Column="0" Margin="0,0,8,0"
-               Text="{Binding Query, Mode=TwoWay}"
-               PlaceholderText="{loc:T ClipsSearchWhatYouHaveCopied}" />
-      <Button Grid.Column="1" Margin="0,0,6,0"
-              Command="{Binding UseCommand}"
-              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <StackPanel Classes="iconLabel">
-          <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
-          <TextBlock Text="{loc:T Copy}" />
-        </StackPanel>
-      </Button>
-      <Button Grid.Column="2" Margin="0,0,6,0"
-              Command="{Binding PinCommand}"
-              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <StackPanel Classes="iconLabel">
-          <Path Classes="icon" Data="{x:Static app:Icons.Pin}" />
-          <TextBlock Text="{loc:T ClipsPin}" />
-        </StackPanel>
-      </Button>
-      <Button Grid.Column="3" Classes="danger"
+      <Button Grid.Column="1" Classes="danger" VerticalAlignment="Center"
               Command="{Binding ClearCommand}">
         <StackPanel Classes="iconLabel">
           <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
@@ -144,90 +186,183 @@
       </Button>
     </Grid>
 
-    <TextBlock DockPanel.Dock="Bottom" Classes="label" Margin="0,10,0,0"
-               Text="{Binding Status}" />
+    <!-- Recording: the switch is the feature, so it is a banner with a real button. -->
+    <Border DockPanel.Dock="Top" Classes="banner" Classes.on="{Binding Capturing}" Margin="0,0,0,14">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+        <Ellipse Grid.Column="0" Classes="live" Classes.on="{Binding Capturing}" VerticalAlignment="Center" />
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Text}"
+                     Text="{loc:T ClipsRecordingOnTitle}" IsVisible="{Binding Capturing}" />
+          <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Text}"
+                     Text="{loc:T ClipsRecordingOffTitle}" IsVisible="{Binding !Capturing}" />
+          <TextBlock Classes="label" TextWrapping="Wrap" Text="{loc:T ClipsThisIsOffUntilYouTurn}" />
+        </StackPanel>
+        <Button Grid.Column="2" VerticalAlignment="Center" Classes.go="{Binding !Capturing}"
+                Command="{Binding ToggleCaptureCommand}">
+          <Panel>
+            <StackPanel Classes="iconLabel" IsVisible="{Binding !Capturing}">
+              <Path Classes="icon solid" Data="{x:Static app:Icons.Run}" />
+              <TextBlock Text="{loc:T ClipsStartRecording}" />
+            </StackPanel>
+            <StackPanel Classes="iconLabel" IsVisible="{Binding Capturing}">
+              <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+              <TextBlock Text="{loc:T ClipsPauseRecording}" />
+            </StackPanel>
+          </Panel>
+        </Button>
+      </Grid>
+    </Border>
 
-    <Panel>
+    <!-- Search and the three filters. -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <Panel Grid.Column="0" Margin="0,0,12,0">
+        <TextBox Text="{Binding Query, Mode=TwoWay}"
+                 PlaceholderText="{loc:T ClipsSearchWhatYouHaveCopied}" />
+        <Path Classes="icon" Data="{x:Static app:Icons.Search}" Margin="8,0,0,0"
+              HorizontalAlignment="Left" IsHitTestVisible="False"
+              Stroke="{DynamicResource TextFaint}" />
+      </Panel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+        <Button Classes="chip" Classes.on="{Binding ShowingAll}"
+                Command="{Binding SetFilterCommand}" CommandParameter="All">
+          <TextBlock Text="{loc:T ClipsAll}" />
+        </Button>
+        <Button Classes="chip" Classes.on="{Binding ShowingPinned}"
+                Command="{Binding SetFilterCommand}" CommandParameter="Pinned">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Pin}" />
+            <TextBlock Text="{loc:T ClipsPinned}" />
+          </StackPanel>
+        </Button>
+        <Button Classes="chip" Classes.on="{Binding ShowingLinks}"
+                Command="{Binding SetFilterCommand}" CommandParameter="Links">
+          <StackPanel Classes="iconLabel">
+            <Path Classes="icon" Data="{x:Static app:Icons.Link}" />
+            <TextBlock Text="{loc:T ClipsLinks}" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Grid>
 
-      <ListBox Classes="clips"
-               ItemsSource="{Binding Items}"
-               SelectedItem="{Binding Selected, Mode=TwoWay}">
-        <ListBox.ItemTemplate>
-          <DataTemplate x:DataType="core:Clip">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+    <TextBlock DockPanel.Dock="Bottom" Classes="label" Margin="0,10,0,0" Text="{Binding Status}" />
 
-              <Path Grid.Column="0" Classes="icon" Data="{x:Static app:Icons.Pin}"
-                    VerticalAlignment="Center"
-                    IsVisible="{Binding Pinned}" />
+    <Grid ColumnDefinitions="2*,14,3*">
 
-              <!-- The tooltip carries the head of the clip, because a single trimmed line cannot
-                   tell two curl commands or two stack traces apart and those are exactly what this
-                   list fills up with. -->
-              <StackPanel Grid.Column="1" Spacing="2"
-                          ToolTip.Tip="{Binding Peek}">
+      <!-- The clips. -->
+      <Panel Grid.Column="0">
+        <ListBox Classes="clips"
+                 ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding Selected, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="core:Clip">
+              <Border Classes="clip">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="{Binding Preview}" FontSize="12"
+                               FontFamily="{DynamicResource MonoFont}"
+                               Foreground="{DynamicResource Text}"
+                               TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Pin}" Width="12" Height="12" Stretch="Uniform"
+                            Stroke="{DynamicResource Accent}" IsVisible="{Binding Pinned}" />
+                      <Border Classes="kind">
+                        <TextBlock Text="{Binding Shape}" />
+                      </Border>
+                      <TextBlock Text="{Binding When}" FontSize="10.5" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource TextFaint}" />
+                    </StackPanel>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                    <Button Classes="act" ToolTip.Tip="{loc:T Copy}"
+                            Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).UseCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                    </Button>
+                    <Button Classes="act" ToolTip.Tip="{loc:T Remove}"
+                            Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).RemoveCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
 
-                <!-- A copied address is followed from here rather than pasted somewhere first,
-                     which is most of what makes having copied it useful. Two controls rather than
-                     one styled conditionally: a clip that is not a link must not be clickable at
-                     all, and the surest way to get that is for there to be no button. -->
-                <Button Classes="link"
-                        IsVisible="{Binding IsLink}"
-                        Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).FollowCommand}"
-                        CommandParameter="{Binding}"
-                        ToolTip.Tip="{loc:T ClipsOpenThisInTheBrowser}">
-                  <TextBlock Text="{Binding Preview}" FontSize="12"
-                             FontFamily="{DynamicResource MonoFont}"
-                             TextTrimming="CharacterEllipsis" />
-                </Button>
+        <!-- Two different kinds of empty: nothing yet, and nothing matching. -->
+        <StackPanel IsVisible="{Binding IsEmpty}" Spacing="10" MaxWidth="300"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Border Width="52" Height="52" CornerRadius="26" Background="{DynamicResource Steel}"
+                  HorizontalAlignment="Center">
+            <Path Classes="icon" Data="{x:Static app:Icons.Clipboard}" HorizontalAlignment="Center"
+                  Stroke="{DynamicResource TextMuted}" />
+          </Border>
+          <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                     FontSize="12" Foreground="{DynamicResource TextFaint}"
+                     IsVisible="{Binding NothingRecorded}"
+                     Text="{loc:T ClipsNothingRecordedYet}" />
+          <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                     FontSize="12" Foreground="{DynamicResource TextFaint}"
+                     IsVisible="{Binding !NothingRecorded}"
+                     Text="{loc:T ClipsNoneMatch}" />
+        </StackPanel>
+      </Panel>
 
-                <TextBlock Text="{Binding Preview}" FontSize="12"
-                           IsVisible="{Binding !IsLink}"
-                           FontFamily="{DynamicResource MonoFont}"
-                           Foreground="{DynamicResource Text}"
-                           TextTrimming="CharacterEllipsis" />
-
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="{Binding When}" FontSize="10"
-                             Foreground="{DynamicResource TextFaint}" />
-                  <TextBlock Text="{Binding Shape}" FontSize="10"
-                             Foreground="{DynamicResource Accent}" />
-                  <TextBlock Text="{loc:T ClipsLink}" FontSize="10"
-                             IsVisible="{Binding IsLink}"
-                             Foreground="{DynamicResource TextFaint}" />
+      <!-- The whole of the selected clip, and everything to do with it. -->
+      <Border Grid.Column="2" Classes="card">
+        <Panel>
+          <DockPanel IsVisible="{Binding HasSelection}">
+            <Border DockPanel.Dock="Top" Padding="12,8" Background="{DynamicResource Steel}"
+                    BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" CornerRadius="6,6,0,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Selected.When, FallbackValue=''}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="{DynamicResource Text}" />
+                  <TextBlock Classes="label" Text="{Binding SelectedFacts}" />
                 </StackPanel>
-              </StackPanel>
-
-              <!-- Per-row rather than only in the toolbar: the thing being copied is the row under
-                   the pointer, and making that a two-step selection is friction for the action the
-                   whole panel exists to perform. -->
-              <Button Grid.Column="2" Padding="8,3" FontSize="10.5"
-                      VerticalAlignment="Center"
-                      Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).UseCommand}"
-                      CommandParameter="{Binding}">
-                <StackPanel Classes="iconLabel">
-                  <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
-                  <TextBlock Text="{loc:T Copy}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                  <Button ToolTip.Tip="{loc:T ClipsOpenThisInTheBrowser}"
+                          IsVisible="{Binding Selected.IsLink, FallbackValue=False}"
+                          Command="{Binding FollowCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.External}" />
+                      <TextBlock Text="{loc:T RunningOpen}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding PinCommand}" ToolTip.Tip="{loc:T ClipsPin}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Pin}" />
+                      <TextBlock Text="{loc:T ClipsPin}" IsVisible="{Binding !Selected.Pinned, FallbackValue=True}" />
+                      <TextBlock Text="{loc:T ClipsUnpin}" IsVisible="{Binding Selected.Pinned, FallbackValue=False}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="danger" ToolTip.Tip="{loc:T Remove}" Command="{Binding RemoveCommand}">
+                    <Path Classes="icon" Data="{x:Static app:Icons.Delete}" />
+                  </Button>
+                  <Button Classes="go" Command="{Binding UseCommand}">
+                    <StackPanel Classes="iconLabel">
+                      <Path Classes="icon" Data="{x:Static app:Icons.Copy}" />
+                      <TextBlock Text="{loc:T Copy}" />
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
-              </Button>
+              </Grid>
+            </Border>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+              <SelectableTextBlock Text="{Binding SelectedText}" Margin="14,12"
+                                   FontFamily="{DynamicResource MonoFont}" FontSize="12.5"
+                                   Foreground="{DynamicResource Text}" />
+            </ScrollViewer>
+          </DockPanel>
 
-              <Button Grid.Column="3" Padding="7,3" FontSize="10.5"
-                      VerticalAlignment="Center"
-                      Command="{Binding $parent[UserControl].((vm:ClipsViewModel)DataContext).RemoveCommand}"
-                      CommandParameter="{Binding}">
-                <Path Classes="icon" Data="{x:Static app:Icons.Close}" />
-              </Button>
+          <TextBlock IsVisible="{Binding !HasSelection}" Classes="label"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Text="{loc:T ClipsPickOne}" />
+        </Panel>
+      </Border>
 
-            </Grid>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
-
-      <TextBlock IsVisible="{Binding IsEmpty}"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                 FontSize="12" Foreground="{DynamicResource TextFaint}"
-                 Text="{loc:T ClipsNothingRecordedYet}" />
-
-    </Panel>
+    </Grid>
 
   </DockPanel>
 </UserControl>

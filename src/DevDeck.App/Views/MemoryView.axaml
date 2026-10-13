@@ -356,6 +356,50 @@
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- The opener on a grouped row: the disc, made a button. -->
+    <Style Selector="Button.expand">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Just the chevron, in every state: Fluent's hover and press fills read as a black block
+         on the row's own highlight. -->
+    <Style Selector="Button.expand:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.expand:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.expand:pressed">
+      <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <Style Selector="Button.expand Path.icon">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style Selector="Border.row.group">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Border.row.member">
+      <Setter Property="MinHeight" Value="26" />
+    </Style>
+
+    <Style Selector="Border.row.member:pointerover Button.end">
+      <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <Style Selector="Border.row.member:pointerover Button.spare">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
     <Style Selector="Border.badge.count TextBlock">
       <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
       <Setter Property="Foreground" Value="{DynamicResource Accent}" />
@@ -619,14 +663,29 @@
               <ItemsControl ItemsSource="{Binding Processes}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ProcessRow">
-                    <Border Classes="row" ToolTip.Tip="{Binding Detail}">
+                    <StackPanel>
+                    <!-- A group's whole row opens it, not just the chevron: the name is where the
+                         eye and the pointer go. -->
+                    <Border Classes="row" Classes.group="{Binding IsGroup}" ToolTip.Tip="{Binding Detail}"
+                            Tapped="OnRowTapped">
                       <Grid ColumnDefinitions="Auto,2*,3*,96,64,Auto,Auto">
 
-                        <Border Grid.Column="0" Classes="disc">
+                        <Border Grid.Column="0" Classes="disc" IsVisible="{Binding !IsGroup}">
                           <TextBlock Text="{Binding Initial}" FontSize="11" FontWeight="SemiBold"
                                      HorizontalAlignment="Center" VerticalAlignment="Center"
                                      Foreground="{DynamicResource TextMuted}" />
                         </Border>
+
+                        <!-- A group opens in place of its disc: the same spot, so the eye finds it. -->
+                        <Button Grid.Column="0" Classes="disc expand" IsVisible="{Binding IsGroup}"
+                                ToolTip.Tip="{loc:T MemExpandTip}"
+                                CommandParameter="{Binding}"
+                                Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).ToggleGroupCommand}">
+                          <Panel>
+                            <Path Classes="icon" Data="{x:Static app:Icons.Right}" IsVisible="{Binding !IsExpanded}" />
+                            <Path Classes="icon" Data="{x:Static app:Icons.Down}" IsVisible="{Binding IsExpanded}" />
+                          </Panel>
+                        </Button>
 
                         <!-- Name and pid side by side. Stacked, the pid was a second line of text
                              holding the row open and giving the bar something to collide with. The
@@ -693,6 +752,51 @@
 
                       </Grid>
                     </Border>
+
+                    <!-- An opened group: one indented row per process, heaviest first, each with
+                         its own Spare and End. A line down the left ties them to their group. -->
+                    <Border IsVisible="{Binding IsExpanded}" Margin="19,0,0,4" Padding="12,0,0,0"
+                            BorderBrush="{DynamicResource Line}" BorderThickness="1,0,0,0">
+                      <ItemsControl ItemsSource="{Binding Members}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:MemberRow">
+                            <Border Classes="row member">
+                              <Grid ColumnDefinitions="*,96,64,Auto,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                  <TextBlock Classes="pid" Text="{Binding Pid}" FontSize="12" />
+                                  <Path Classes="icon sparedMark" Data="{x:Static app:Icons.Shield}"
+                                        IsVisible="{Binding IsSpared}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Classes="num" Text="{Binding Size}"
+                                           Foreground="{DynamicResource TextMuted}" />
+                                <TextBlock Grid.Column="2" Classes="num" Classes.idle="{Binding IsIdle}"
+                                           Text="{Binding Cpu}" Foreground="{DynamicResource TextMuted}" />
+                                <Button Grid.Column="3" Classes="end spare" Classes.on="{Binding IsSpared}"
+                                        ToolTip.Tip="{loc:T MemSpareOneTip}"
+                                        CommandParameter="{Binding}"
+                                        Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).SpareMemberCommand}">
+                                  <StackPanel Classes="iconLabel">
+                                    <Path Classes="icon" Data="{x:Static app:Icons.Shield}" />
+                                    <TextBlock Text="{loc:T MemSpare}" IsVisible="{Binding !IsSpared}" />
+                                    <TextBlock Text="{loc:T MemSpared}" IsVisible="{Binding IsSpared}" />
+                                  </StackPanel>
+                                </Button>
+                                <Button Grid.Column="4" Classes="end"
+                                        ToolTip.Tip="{loc:T RunningKillTip}"
+                                        CommandParameter="{Binding}"
+                                        Command="{Binding $parent[UserControl].((vm:MemoryViewModel)DataContext).EndMemberCommand}">
+                                  <StackPanel Classes="iconLabel">
+                                    <Path Classes="icon solid" Data="{x:Static app:Icons.Stop}" />
+                                    <TextBlock Text="{loc:T RunningKill}" />
+                                  </StackPanel>
+                                </Button>
+                              </Grid>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                    </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

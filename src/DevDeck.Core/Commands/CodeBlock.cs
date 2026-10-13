@@ -109,6 +109,14 @@ namespace DevDeck.Core
                     // cmd all the time, and writing "yarn install" out to a .bat just to run it
                     // would be a temporary file for nothing.
                     return body.Contains(NewLine) ? CommandKind.Batch : CommandKind.Shell;
+
+                case "javascript":
+                case "js":
+                case "node":
+                case "mjs":
+                case "cjs":
+                    // Even a single line: console.log(1) means nothing to cmd.exe.
+                    return CommandKind.JavaScript;
             }
 
             // A single line is a command line whatever it is written in. PowerShell is the

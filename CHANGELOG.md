@@ -1,5 +1,47 @@
 ﻿# Changelog
 
+## 1.0.1 - 2026-10-08 18:12
+
+- **Quick run on the Commands page.** Type or paste anything, pick **Run with**, press **Run** -
+  without making it a command first. It has the same editor, colouring, output and Stop as a
+  command, remembers what you typed, and **Save as command** keeps it when a one-off turns out to
+  be worth keeping.
+- **JavaScript in Run with.** Commands and Quick run can be JavaScript, run by Node.js, with
+  colouring, parameters in `process.argv`, AI conversion to and from the other languages, and
+  `javascript` blocks from the Assistant run as JavaScript.
+- **The Assistant writes real JavaScript.** It is told about the `javascript` fence when Node.js is
+  installed, and never to wrap code in a script that saves it and runs it - asked for JavaScript,
+  it used to hand back a PowerShell here-string piped into `node`.
+- **A smaller, more useful starter deck.** A new install starts with nine JavaScript commands
+  instead of two dozen, and two chains instead of seven: *Project overview*, *What changed vs
+  main*, *Find TODOs*, *Who is using a port*, *Heavy build folders*, and a *Release notes* chain
+  that turns everything since the last tag into notes. Each one works on every platform and shows
+  off one feature. An existing deck is left as it is; **Add the starter commands** adds the new
+  ones.
+- **A new floating widget.** The dial now looks like an instrument: a tick-mark bezel, a glowing
+  memory ring, CPU, GPU and disk rings in their own colours with a matching legend, used and total
+  memory under the reading, and a rim that lights up under the pointer.
+- **Size it, fade it, leave it where you put it.** Right-click the widget for Small, Medium, Large
+  or Extra large and four opacities, or use Ctrl+wheel and Shift+wheel for anything between. It
+  remembers its size, opacity and place, and snaps flush to a screen edge it is dropped near.
+- **The widget shows more.** A graph of the last two minutes of memory behind the reading, a notch
+  on the ring at the session's peak, and a halo that pulses red past 90%.
+- **Stop where it runs.** A running block in the Assistant swaps its Run for Stop, and its output
+  has a Stop under it while it runs, instead of only the button in the status bar.
+- **A message's delete is visible.** The name, time and delete cross over each message sit on a
+  surface of their own, so they no longer vanish into a background image.
+- **Open a grouped process.** On Memory/CPU, the arrow on a grouped row ("node ×14") lists every
+  process in it with its own memory and CPU, and **Spare** or **End** for each one.
+- **A new Running page.** Every port and container has its actions on its own row - Open, Copy
+  URL, Stop, Start, Restart, Logs - instead of select-then-find-the-button. Ports show as pills
+  with what they are for, tiles carry icons, and an empty list says why it is empty.
+- **A new Toolbox.** Search the tools, read them in their groups, and work in two labelled panels:
+  Input with Paste and Clear, Output with Text or Tree, Use as input and Copy. Errors show at the top
+  of the output.
+- **A new Clipboard page.** Clips are cards, and the selected one is shown in full beside the list
+  with Copy, Open, Pin and Delete. Recording is a banner with one clear button, the list filters to
+  **Pinned** or **Links**, and **Clear all** asks before deleting pinned clips too.
+
 ## 1.0.0 - 2026-10-07 20:35
 
 The first release of DevDeck.

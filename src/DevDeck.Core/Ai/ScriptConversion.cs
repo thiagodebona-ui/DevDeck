@@ -20,6 +20,7 @@ namespace DevDeck.Core
             CommandKind.PowerShell => "powershell",
             CommandKind.Batch => "bat",
             CommandKind.Bash => "bash",
+            CommandKind.JavaScript => "javascript",
             _ => "shell",
         };
 
@@ -29,6 +30,7 @@ namespace DevDeck.Core
             CommandKind.PowerShell => "a PowerShell script, run as a .ps1 file",
             CommandKind.Batch => "a Windows batch script, run as a .bat file",
             CommandKind.Bash => "a bash script, run as a .sh file",
+            CommandKind.JavaScript => "a JavaScript file run by Node.js, using only Node's built-in modules",
             _ => OperatingSystem.IsWindows()
                 ? "a single command line run by cmd.exe"
                 : "a single command line run by /bin/sh",

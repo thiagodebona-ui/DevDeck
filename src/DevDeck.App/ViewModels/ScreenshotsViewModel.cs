@@ -84,7 +84,13 @@ namespace DevDeck.App.ViewModels
         /// <summary>Gathers a burst of file events into one refresh.</summary>
         private readonly DispatcherTimer refreshTimer;
 
-        private readonly FileSystemWatcher? watcher;
+        /// <summary>Looks for the system folder coming or going while the page is on screen.</summary>
+        private readonly DispatcherTimer folderTimer;
+
+        private FileSystemWatcher? watcher;
+
+        /// <summary>The folder <see cref="watcher"/> was made for; null when there was none.</summary>
+        private string? watched;
 
         private readonly Dictionary<string, (DateTime At, Bitmap Thumb)> thumbs = new(StringComparer.OrdinalIgnoreCase);
 
@@ -123,26 +129,10 @@ namespace DevDeck.App.ViewModels
             refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
             refreshTimer.Tick += (_, _) => Settled();
 
-            if (Shots.Instance.SystemFolder is { } folder)
-            {
-                try
-                {
-                    watcher = new FileSystemWatcher(folder)
-                    {
-                        NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
-                    };
+            folderTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            folderTimer.Tick += (_, _) => Rewatch();
 
-                    watcher.Created += (_, e) => Dispatcher.UIThread.Post(() => Changed(e.FullPath));
-                    watcher.Deleted += (_, _) => Dispatcher.UIThread.Post(() => Changed(null));
-                    watcher.Renamed += (_, e) => Dispatcher.UIThread.Post(() => Changed(e.FullPath));
-                    watcher.EnableRaisingEvents = true;
-                }
-                catch (Exception)
-                {
-                    // A folder that cannot be watched is still read each time the page is shown.
-                    watcher = null;
-                }
-            }
+            Rewatch();
 
             if (capturing && CanCapture)
             {
@@ -322,6 +312,8 @@ namespace DevDeck.App.ViewModels
         public void Start()
         {
             visible = true;
+            folderTimer.Start();
+            Rewatch();
 
             if (stale)
             {
@@ -329,7 +321,91 @@ namespace DevDeck.App.ViewModels
             }
         }
 
-        public void Stop() => visible = false;
+        public void Stop()
+        {
+            visible = false;
+            folderTimer.Stop();
+        }
+
+        /// <summary>
+        ///  Watches the system folder as it is now: made since start-up, deleted, or made again.
+        /// </summary>
+        /// <remarks>
+        ///  A watcher dies with its folder and never wakes up when one of the same name is made, so
+        ///  the page used to say there was no folder until the app was restarted. Checked when the
+        ///  page is shown and every couple of seconds while it stays on screen; hidden, the next
+        ///  showing catches up.
+        /// </remarks>
+        private void Rewatch()
+        {
+            string? folder = Shots.Instance.SystemFolder;
+
+            if (watcher is not null && string.Equals(folder, watched, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (watcher is null && folder is null && watched is null)
+            {
+                return;
+            }
+
+            // A watcher that died with its folder, rewatched once the folder is back, is a change
+            // too: whatever arrived in between was never reported.
+            bool changed = watcher is not null || !string.Equals(folder, watched, StringComparison.OrdinalIgnoreCase);
+
+            watcher?.Dispose();
+            watcher = null;
+            watched = folder;
+
+            if (folder is not null)
+            {
+                try
+                {
+                    FileSystemWatcher fresh = new(folder)
+                    {
+                        NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                    };
+
+                    fresh.Created += (_, e) => Dispatcher.UIThread.Post(() => Changed(e.FullPath));
+                    fresh.Deleted += (_, _) => Dispatcher.UIThread.Post(() => Changed(null));
+                    fresh.Renamed += (_, e) => Dispatcher.UIThread.Post(() => Changed(e.FullPath));
+
+                    // The folder itself went: start over on the next check.
+                    fresh.Error += (_, _) => Dispatcher.UIThread.Post(() =>
+                    {
+                        if (watcher == fresh)
+                        {
+                            watcher.Dispose();
+                            watcher = null;
+                            watched = null;
+                        }
+                    });
+
+                    fresh.EnableRaisingEvents = true;
+                    watcher = fresh;
+                }
+                catch (Exception)
+                {
+                    // A folder that cannot be watched is still read each time the page is shown.
+                }
+            }
+
+            if (!changed)
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(HasSystemFolder));
+            OnPropertyChanged(nameof(Where));
+
+            stale = true;
+
+            if (visible)
+            {
+                Refresh();
+            }
+        }
 
         /// <summary>A file came or went. Gathered, because a save is several events in a row.</summary>
         private void Changed(string? path)
@@ -814,6 +890,7 @@ namespace DevDeck.App.ViewModels
         {
             clipboardTimer.Stop();
             refreshTimer.Stop();
+            folderTimer.Stop();
             watcher?.Dispose();
         }
     }

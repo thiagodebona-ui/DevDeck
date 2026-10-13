@@ -56,8 +56,78 @@ namespace DevDeck.App.ViewModels
 
             Mark();
 
+            settings.QuickRun ??= new CustomCommand
+            {
+                Name = "Quick run",
+                Command = string.Empty,
+                Kind = OperatingSystem.IsWindows() ? CommandKind.PowerShell : CommandKind.Bash,
+            };
+
+            QuickRun = new CommandItem(settings.QuickRun, () => Workspace);
+            Attach(QuickRun);
+            Watch(QuickRun);
+
             selected = Commands.FirstOrDefault(c => c.Name == settings.SelectedCommand)
                 ?? Commands.FirstOrDefault();
+            listSelected = selected;
+        }
+
+        /// <summary>
+        ///  A scratch command that is never part of the deck: type something, pick Run with, run it.
+        /// </summary>
+        /// <remarks>
+        ///  The deck is for what you run every day; this is for the one-off. Before it, running
+        ///  anything at all meant adding a command, naming it, and deleting it afterwards - a deck
+        ///  slowly filling with "New command 7". It is a full <see cref="CommandItem"/>, so it gets
+        ///  the same editor, colouring, AI conversion, output and Stop as any other, and **Save as
+        ///  command** promotes it when a one-off turns out to be worth keeping.
+        /// </remarks>
+        public CommandItem QuickRun { get; }
+
+        public bool IsQuickRun => Selected == QuickRun;
+
+        public bool IsDeckCommand => Selected is not null && Selected != QuickRun;
+
+        /// <summary>
+        ///  The list's own selection, which is nothing while Quick run is showing.
+        /// </summary>
+        /// <remarks>
+        ///  Separate from <see cref="Selected"/> because Quick run is not one of the list's rows: a
+        ///  ListBox told to select something it does not hold selects nothing and writes that back,
+        ///  which would have cleared the page the moment Quick run was opened.
+        /// </remarks>
+        [ObservableProperty]
+        private CommandItem? listSelected;
+
+        partial void OnListSelectedChanged(CommandItem? value)
+        {
+            if (value is not null && value != Selected)
+            {
+                Selected = value;
+            }
+        }
+
+        [RelayCommand]
+        private void OpenQuickRun() => Selected = QuickRun;
+
+        /// <summary>Keeps what is in Quick run as a real command, and leaves Quick run empty for the next one-off.</summary>
+        [RelayCommand]
+        private void SaveQuickRun()
+        {
+            if (QuickRun.Body.Trim().Length == 0)
+            {
+                return;
+            }
+
+            Add(new CustomCommand
+            {
+                Name = UniqueName(Strings.Text("CmdQuickRunSaved")),
+                Command = QuickRun.Body,
+                Kind = QuickRun.Kind,
+            });
+
+            QuickRun.Body = string.Empty;
+            Save();
         }
 
         public ObservableCollection<CommandItem> Commands { get; }
@@ -81,6 +151,8 @@ namespace DevDeck.App.ViewModels
                 {
                     item.Prompt = value;
                 }
+
+                QuickRun.Prompt = value;
             }
         }
 
@@ -101,6 +173,8 @@ namespace DevDeck.App.ViewModels
                 {
                     Equip(item);
                 }
+
+                Equip(QuickRun);
             }
         }
 
@@ -182,7 +256,14 @@ namespace DevDeck.App.ViewModels
 
         partial void OnSelectedChanged(CommandItem? value)
         {
-            settings.SelectedCommand = value?.Name ?? string.Empty;
+            if (value != QuickRun)
+            {
+                settings.SelectedCommand = value?.Name ?? string.Empty;
+            }
+
+            ListSelected = value is not null && Commands.Contains(value) ? value : null;
+            OnPropertyChanged(nameof(IsQuickRun));
+            OnPropertyChanged(nameof(IsDeckCommand));
             OnPropertyChanged(nameof(CanExplain));
             DeleteChanged();
             MoveUpCommand.NotifyCanExecuteChanged();
@@ -268,7 +349,7 @@ namespace DevDeck.App.ViewModels
         {
             int added = 0;
 
-            foreach (CustomCommand starter in StarterCommands.For().Concat(StarterExamples.Commands()))
+            foreach (CustomCommand starter in StarterCommands.For())
             {
                 if (Commands.Any(existing => existing.Name == starter.Name))
                 {
@@ -404,7 +485,7 @@ namespace DevDeck.App.ViewModels
         ///  user is in another application - so the moment to say so is the delete, while the user
         ///  is looking at the thing they are about to break.
         /// </remarks>
-        public bool CanDelete => Selected is { } command && UsedBy(command.Name).Count == 0;
+        public bool CanDelete => Selected is { } command && command != QuickRun && UsedBy(command.Name).Count == 0;
 
         /// <summary>What the delete button says when hovered: what it does, or why it will not.</summary>
         public string DeleteTip => Selected is { } command && UsedBy(command.Name) is { Count: > 0 } users
@@ -535,7 +616,8 @@ namespace DevDeck.App.ViewModels
 
         private bool CanMoveUp() => Selected is { } item && Commands.IndexOf(item) > 0;
 
-        private bool CanMoveDown() => Selected is { } item && Commands.IndexOf(item) < Commands.Count - 1;
+        private bool CanMoveDown() => Selected is { } item
+            && Commands.IndexOf(item) is var at && at >= 0 && at < Commands.Count - 1;
 
         [RelayCommand(CanExecute = nameof(CanDelete))]
         private void Delete()
@@ -581,10 +663,10 @@ namespace DevDeck.App.ViewModels
         ///  it. This is also the honest readout of whether the deck is busy: an item that finished
         ///  on its own clears it without anyone pressing anything.
         /// </remarks>
-        public bool AnyRunning => Commands.Any(command => command.IsRunning);
+        public bool AnyRunning => Commands.Any(command => command.IsRunning) || QuickRun.IsRunning;
 
         /// <summary>How many are running, for the button's own label.</summary>
-        public int RunningCount => Commands.Count(command => command.IsRunning);
+        public int RunningCount => Commands.Count(command => command.IsRunning) + (QuickRun.IsRunning ? 1 : 0);
 
         public string StopAllLabel => RunningCount > 1
             ? Strings.Format("CmdStopAllCount", RunningCount)
@@ -661,7 +743,7 @@ namespace DevDeck.App.ViewModels
         [RelayCommand(CanExecute = nameof(AnyRunning))]
         private void StopAll()
         {
-            foreach (CommandItem item in Commands.Where(c => c.IsRunning).ToList())
+            foreach (CommandItem item in Commands.Append(QuickRun).Where(c => c.IsRunning).ToList())
             {
                 item.StopCommand.Execute(null);
             }
@@ -712,6 +794,7 @@ namespace DevDeck.App.ViewModels
         {
             CommandKind.Batch => OperatingSystem.IsWindows(),
             CommandKind.Bash => ScriptFile.FindBash() is not null,
+            CommandKind.JavaScript => ScriptFile.FindNode() is not null,
             _ => true,
         };
     }

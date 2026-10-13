@@ -72,9 +72,48 @@ namespace DevDeck.App.ViewModels
 
         public bool IsEmpty => Items.Count == 0;
 
+        /// <summary>Nothing recorded at all, as opposed to nothing matching the search or filter.</summary>
+        public bool NothingRecorded => Clips.Instance.All.Count == 0;
+
         public string Where => Clips.Path;
 
+        /// <summary>Set by the view: a question with a heading, a consequence and a button label.</summary>
+        public Func<string, string, string, Task<bool>>? Confirm { get; set; }
+
         partial void OnQueryChanged(string value) => Show();
+
+        /// <summary>Which clips the chips at the top let through: "All", "Pinned" or "Links".</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowingAll), nameof(ShowingPinned), nameof(ShowingLinks))]
+        private string filter = "All";
+
+        public bool ShowingAll => Filter == "All";
+
+        public bool ShowingPinned => Filter == "Pinned";
+
+        public bool ShowingLinks => Filter == "Links";
+
+        partial void OnFilterChanged(string value) => Show();
+
+        [RelayCommand]
+        private void SetFilter(string? value) => Filter = value is "Pinned" or "Links" ? value : "All";
+
+        /// <summary>The whole of the selected clip, for the preview pane - the list only has room for a line.</summary>
+        public string SelectedText => Selected?.Text ?? string.Empty;
+
+        public bool HasSelection => Selected is not null;
+
+        /// <summary>"1,204 characters · 18 lines", under the preview.</summary>
+        public string SelectedFacts => Selected is { } clip
+            ? Strings.Format("ClipsFacts", clip.Text.Length, clip.Text.Split('\n').Length)
+            : string.Empty;
+
+        partial void OnSelectedChanged(Clip? value)
+        {
+            OnPropertyChanged(nameof(SelectedText));
+            OnPropertyChanged(nameof(HasSelection));
+            OnPropertyChanged(nameof(SelectedFacts));
+        }
 
         partial void OnCapturingChanged(bool value)
         {
@@ -156,16 +195,27 @@ namespace DevDeck.App.ViewModels
 
             Items.Clear();
 
-            foreach (Clip clip in Clips.Instance.Search(Query))
+            foreach (Clip clip in Clips.Instance.Search(Query).Where(clip => Filter switch
+            {
+                "Pinned" => clip.Pinned,
+                "Links" => clip.IsLink,
+                _ => true,
+            }))
             {
                 Items.Add(clip);
             }
 
             // Restored by reference, since these are the same objects the store holds rather than
-            // copies of them.
-            Selected = was is not null && Items.Contains(was) ? was : null;
+            // copies of them. With nothing to restore, the newest is shown, so the preview pane
+            // is never an empty box beside a full list.
+            Selected = was is not null && Items.Contains(was) ? was : Items.FirstOrDefault();
+
+            // Pinning changes the clip in place, which the preview's facts do not see otherwise.
+            OnSelectedChanged(Selected);
+            OnPropertyChanged(nameof(Selected));
 
             OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(NothingRecorded));
         }
 
         [RelayCommand]
@@ -182,7 +232,7 @@ namespace DevDeck.App.ViewModels
             // move the entry to the top of the list for no reason the user asked for.
             last = Clips.Digest(wanted.Text);
 
-            Status = "Copied.";
+            Status = Strings.Text("ClipsCopied");
         }
 
         /// <summary>
@@ -202,8 +252,12 @@ namespace DevDeck.App.ViewModels
             }
 
             Open?.Invoke(link);
-            Status = "Opened.";
+            Status = Strings.Text("ClipsOpened");
         }
+
+        /// <summary>The recording switch as one button: start it, or pause it.</summary>
+        [RelayCommand]
+        private void ToggleCapture() => Capturing = !Capturing;
 
         [RelayCommand]
         private void Remove(Clip? clip)
@@ -229,14 +283,34 @@ namespace DevDeck.App.ViewModels
             Show();
         }
 
-        /// <summary>Wipes the history, pinned entries included.</summary>
+        /// <summary>
+        ///  Wipes the history, pinned entries included - after asking, because pins are the clips
+        ///  someone chose to keep, and one stray click used to take them too.
+        /// </summary>
         [RelayCommand]
-        private void Clear()
+        private async Task Clear()
         {
+            int count = Clips.Instance.All.Count;
+
+            if (count == 0)
+            {
+                return;
+            }
+
+            bool sure = Confirm is { } ask && await ask(
+                Strings.Text("ClipsClearConfirm"),
+                Strings.Format("ClipsClearConfirmDetail", count),
+                Strings.Text("ClipsClearAll"));
+
+            if (!sure)
+            {
+                return;
+            }
+
             Clips.Instance.Clear();
             Show();
 
-            Status = "Cleared.";
+            Status = Strings.Text("ClipsCleared");
         }
 
         public void Dispose() => timer.Stop();

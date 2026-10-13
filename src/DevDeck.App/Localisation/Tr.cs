@@ -572,6 +572,50 @@ namespace DevDeck.App.Localisation
             "MemoryWidgetQuitDevDeck",
             "MemoryWidgetClickToClean",
             "MemoryWidgetFreed",
+            "MemoryWidgetMemory",
+            "MemoryWidgetCpu",
+            "MemoryWidgetGpu",
+            "MemoryWidgetDisk",
+            "MemoryWidgetSizeMenu",
+            "MemoryWidgetSmall",
+            "MemoryWidgetMedium",
+            "MemoryWidgetLarge",
+            "MemoryWidgetHuge",
+            "MemoryWidgetOpacityMenu",
+            "MemoryWidgetTip",
+            "MemExpandTip",
+            "MemSpareOneTip",
+            "RunCopied",
+            "RunShownOf",
+            "RunNoPorts",
+            "ToolboxFind",
+            "ToolboxNoTools",
+            "ToolboxInput",
+            "ToolboxOutput",
+            "ToolboxPattern",
+            "ClipsFacts",
+            "ClipsCopied",
+            "ClipsOpened",
+            "ClipsClearConfirm",
+            "ClipsClearConfirmDetail",
+            "ClipsCleared",
+            "ClipsRecordingOnTitle",
+            "ClipsRecordingOffTitle",
+            "ClipsStartRecording",
+            "ClipsPauseRecording",
+            "ClipsAll",
+            "ClipsPinned",
+            "ClipsLinks",
+            "ClipsNoneMatch",
+            "ClipsUnpin",
+            "ClipsPickOne",
+            "CmdQuickRun",
+            "CmdQuickRunSub",
+            "CmdQuickRunTip",
+            "CmdQuickRunHint",
+            "CmdQuickRunSave",
+            "CmdQuickRunSaveTip",
+            "CmdQuickRunSaved",
             "MemGroup",
             "MemGroupTip",
             "MemProcessCount",
@@ -2480,6 +2524,138 @@ namespace DevDeck.App.Localisation
 
         /// <summary>freed</summary>
         public string MemoryWidgetFreed => Strings.Text("MemoryWidgetFreed");
+
+        /// <summary>MEMORY</summary>
+        public string MemoryWidgetMemory => Strings.Text("MemoryWidgetMemory");
+
+        /// <summary>CPU</summary>
+        public string MemoryWidgetCpu => Strings.Text("MemoryWidgetCpu");
+
+        /// <summary>GPU</summary>
+        public string MemoryWidgetGpu => Strings.Text("MemoryWidgetGpu");
+
+        /// <summary>DISK</summary>
+        public string MemoryWidgetDisk => Strings.Text("MemoryWidgetDisk");
+
+        /// <summary>Size</summary>
+        public string MemoryWidgetSizeMenu => Strings.Text("MemoryWidgetSizeMenu");
+
+        /// <summary>Small</summary>
+        public string MemoryWidgetSmall => Strings.Text("MemoryWidgetSmall");
+
+        /// <summary>Medium</summary>
+        public string MemoryWidgetMedium => Strings.Text("MemoryWidgetMedium");
+
+        /// <summary>Large</summary>
+        public string MemoryWidgetLarge => Strings.Text("MemoryWidgetLarge");
+
+        /// <summary>Extra large</summary>
+        public string MemoryWidgetHuge => Strings.Text("MemoryWidgetHuge");
+
+        /// <summary>Opacity</summary>
+        public string MemoryWidgetOpacityMenu => Strings.Text("MemoryWidgetOpacityMenu");
+
+        /// <summary>Click to clean · Drag to move · Ctrl+wheel to resize · Shift+wheel to fade · Right-click for more</summary>
+        public string MemoryWidgetTip => Strings.Text("MemoryWidgetTip");
+
+        /// <summary>Show each process in this group, to end or spare them one by one</summary>
+        public string MemExpandTip => Strings.Text("MemExpandTip");
+
+        /// <summary>Never trim this one process, until it exits or DevDeck closes</summary>
+        public string MemSpareOneTip => Strings.Text("MemSpareOneTip");
+
+        /// <summary>Copied {0}</summary>
+        public string RunCopied => Strings.Text("RunCopied");
+
+        /// <summary>{0} of {1}</summary>
+        public string RunShownOf => Strings.Text("RunShownOf");
+
+        /// <summary>Nothing listening matches. Clear the filter, or untick Only likely por</summary>
+        public string RunNoPorts => Strings.Text("RunNoPorts");
+
+        /// <summary>Find a tool</summary>
+        public string ToolboxFind => Strings.Text("ToolboxFind");
+
+        /// <summary>No tool matches.</summary>
+        public string ToolboxNoTools => Strings.Text("ToolboxNoTools");
+
+        /// <summary>Input</summary>
+        public string ToolboxInput => Strings.Text("ToolboxInput");
+
+        /// <summary>Output</summary>
+        public string ToolboxOutput => Strings.Text("ToolboxOutput");
+
+        /// <summary>Pattern</summary>
+        public string ToolboxPattern => Strings.Text("ToolboxPattern");
+
+        /// <summary>{0} characters · {1} lines</summary>
+        public string ClipsFacts => Strings.Text("ClipsFacts");
+
+        /// <summary>Copied.</summary>
+        public string ClipsCopied => Strings.Text("ClipsCopied");
+
+        /// <summary>Opened.</summary>
+        public string ClipsOpened => Strings.Text("ClipsOpened");
+
+        /// <summary>Clear the whole clipboard history?</summary>
+        public string ClipsClearConfirm => Strings.Text("ClipsClearConfirm");
+
+        /// <summary>All {0} clips are deleted, pinned ones included. This cannot be undone</summary>
+        public string ClipsClearConfirmDetail => Strings.Text("ClipsClearConfirmDetail");
+
+        /// <summary>Cleared.</summary>
+        public string ClipsCleared => Strings.Text("ClipsCleared");
+
+        /// <summary>Recording what you copy</summary>
+        public string ClipsRecordingOnTitle => Strings.Text("ClipsRecordingOnTitle");
+
+        /// <summary>Recording is off</summary>
+        public string ClipsRecordingOffTitle => Strings.Text("ClipsRecordingOffTitle");
+
+        /// <summary>Start recording</summary>
+        public string ClipsStartRecording => Strings.Text("ClipsStartRecording");
+
+        /// <summary>Pause</summary>
+        public string ClipsPauseRecording => Strings.Text("ClipsPauseRecording");
+
+        /// <summary>All</summary>
+        public string ClipsAll => Strings.Text("ClipsAll");
+
+        /// <summary>Pinned</summary>
+        public string ClipsPinned => Strings.Text("ClipsPinned");
+
+        /// <summary>Links</summary>
+        public string ClipsLinks => Strings.Text("ClipsLinks");
+
+        /// <summary>Nothing matches the search or filter.</summary>
+        public string ClipsNoneMatch => Strings.Text("ClipsNoneMatch");
+
+        /// <summary>Unpin</summary>
+        public string ClipsUnpin => Strings.Text("ClipsUnpin");
+
+        /// <summary>Pick a clip to see all of it.</summary>
+        public string ClipsPickOne => Strings.Text("ClipsPickOne");
+
+        /// <summary>Quick run</summary>
+        public string CmdQuickRun => Strings.Text("CmdQuickRun");
+
+        /// <summary>Run anything, without saving it</summary>
+        public string CmdQuickRunSub => Strings.Text("CmdQuickRunSub");
+
+        /// <summary>A scratch pad for one-off commands in any Run with language. Nothing i</summary>
+        public string CmdQuickRunTip => Strings.Text("CmdQuickRunTip");
+
+        /// <summary>Type or paste, choose Run with, press Run. Not added to your deck.</summary>
+        public string CmdQuickRunHint => Strings.Text("CmdQuickRunHint");
+
+        /// <summary>Save as command</summary>
+        public string CmdQuickRunSave => Strings.Text("CmdQuickRunSave");
+
+        /// <summary>Keep this as a command on your deck, and clear Quick run for the next </summary>
+        public string CmdQuickRunSaveTip => Strings.Text("CmdQuickRunSaveTip");
+
+        /// <summary>From quick run</summary>
+        public string CmdQuickRunSaved => Strings.Text("CmdQuickRunSaved");
 
         /// <summary>Group by program</summary>
         public string MemGroup => Strings.Text("MemGroup");
