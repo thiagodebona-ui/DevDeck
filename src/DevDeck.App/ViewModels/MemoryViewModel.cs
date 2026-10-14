@@ -450,6 +450,7 @@ namespace DevDeck.App.ViewModels
             autoIdleSeconds = settings.MemoryAutoIdleSeconds;
             widgetDiameter = Math.Clamp(settings.MemoryWidgetDiameter, WidgetSmallest, WidgetLargest);
             widgetOpacity = Math.Clamp(settings.MemoryWidgetOpacity, WidgetFaintest, 1);
+            widgetSkin = WidgetSkins.Parse(settings.MemoryWidgetSkin);
 
             ReadHistory();
 
@@ -1692,7 +1693,33 @@ namespace DevDeck.App.ViewModels
             if (ToggleWidget is { } toggle)
             {
                 IsWidgetOpen = toggle();
+                RememberWidgetOpen();
             }
+        }
+
+        /// <summary>
+        ///  Floats the widget again at start-up if it was floating when the app last ended.
+        /// </summary>
+        public void RestoreWidget()
+        {
+            if (settings.MemoryWidgetVisible && !IsWidgetOpen && ToggleWidget is { } toggle)
+            {
+                IsWidgetOpen = toggle();
+            }
+        }
+
+        /// <summary>
+        ///  Saved only when the user opens or hides the widget, not whenever it closes.
+        /// </summary>
+        /// <remarks>
+        ///  At sign-out and shutdown Windows closes the widget along with everything else, and
+        ///  quitting from its menu closes it too. Counting those as hiding it would forget it every
+        ///  time, which is exactly when it is meant to be remembered.
+        /// </remarks>
+        private void RememberWidgetOpen()
+        {
+            settings.MemoryWidgetVisible = IsWidgetOpen;
+            settings.Save();
         }
 
         public string WidgetLabel => IsWidgetOpen ? Strings.Text("MemHideWidget") : Strings.Text("MemFloatWidget");
@@ -1722,6 +1749,7 @@ namespace DevDeck.App.ViewModels
             if (IsWidgetOpen && ToggleWidget is { } toggle)
             {
                 IsWidgetOpen = toggle();
+                RememberWidgetOpen();
             }
         }
 
@@ -1795,6 +1823,19 @@ namespace DevDeck.App.ViewModels
         partial void OnWidgetOpacityChanged(double value)
         {
             settings.MemoryWidgetOpacity = value;
+            settings.Save();
+        }
+
+        /// <summary>The dial, or the scene drawn in its place.</summary>
+        [ObservableProperty]
+        private WidgetSkin widgetSkin;
+
+        [RelayCommand]
+        private void SkinWidget(WidgetSkin skin) => WidgetSkin = skin;
+
+        partial void OnWidgetSkinChanged(WidgetSkin value)
+        {
+            settings.MemoryWidgetSkin = value.ToString();
             settings.Save();
         }
 

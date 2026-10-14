@@ -184,6 +184,8 @@
     <!-- The rim lights up in the accent under the pointer: the face is a button, and this is
          where it says so. -->
     <Style Selector="Border.dial">
+      <!-- In the style rather than on the element, so a scene can take it away. -->
+      <Setter Property="Background" Value="{DynamicResource WidgetBg}" />
       <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
       <Setter Property="Transitions">
         <Transitions>
@@ -194,6 +196,13 @@
 
     <Style Selector="Border.dial:pointerover">
       <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- Wearing a scene: the face keeps its events but none of its looks. Transparent rather than
+         no background, because a face with no background cannot be pressed. -->
+    <Style Selector="Border.dial.skinned, Border.dial.skinned:pointerover">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
     <!-- A soft wash of the accent in the middle of the face, which brightens on hover and breathes
@@ -362,7 +371,6 @@
        PointerPressed here is the only handle it gets. A press that turns out to be a click, rather
        than a drag, runs the clean - which is decided in the code-behind by whether it moved. -->
   <Border Name="Face" Classes="dial"
-          Background="{DynamicResource WidgetBg}"
           BorderThickness="1.5"
           CornerRadius="111" Margin="4"
           PointerPressed="DragStart"
@@ -414,6 +422,11 @@
                     IsChecked="{Binding IsWidgetFaded, Mode=OneWay}"
                     Command="{Binding FadeWidgetCommand}" CommandParameter="0.5" />
         </MenuItem>
+        <!-- One radio item per skin, filled in code as the menu opens, so the names follow the
+             language and the tick follows the choice. -->
+        <MenuItem Name="SkinMenu" Header="{loc:T MemoryWidgetSkinMenu}">
+          <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Sparkle}" /></MenuItem.Icon>
+        </MenuItem>
         <Separator />
         <MenuItem Header="{loc:T MemoryWidgetHideWidget}" Command="{Binding HideWidgetCommand}">
           <MenuItem.Icon><Path Classes="icon" Data="{x:Static app:Icons.Close}" /></MenuItem.Icon>
@@ -425,6 +438,9 @@
     </Border.ContextMenu>
 
     <Panel>
+
+      <!-- The dial. Hidden when a scene is worn instead; the scene goes in SceneHost below. -->
+      <Panel Name="GaugeFace">
 
       <Ellipse Classes="glow" Classes.breathing="{Binding IsBusy}"
                Width="130" Height="130"
@@ -556,6 +572,12 @@
                    HorizontalAlignment="Center" />
         <TextBlock Classes="caption" Text="{loc:T MemoryWidgetFreed}" IsVisible="{Binding FlashGood}" />
       </StackPanel>
+
+      </Panel>
+
+      <!-- A scene drawn in code, from the Style menu. It only paints: the press, drag, wheel and
+           menu still belong to the face round it. -->
+      <ContentControl Name="SceneHost" IsHitTestVisible="False" />
 
       <Button Classes="close" Click="CloseClick"
               VerticalAlignment="Top" HorizontalAlignment="Right"

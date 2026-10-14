@@ -582,6 +582,18 @@ namespace DevDeck.App.Localisation
             "MemoryWidgetLarge",
             "MemoryWidgetHuge",
             "MemoryWidgetOpacityMenu",
+            "MemoryWidgetSkinMenu",
+            "MemoryWidgetSkinGauge",
+            "MemoryWidgetSkinMoonShot",
+            "MemoryWidgetSkinAquarium",
+            "MemoryWidgetSkinReactor",
+            "MemoryWidgetSkinHourglass",
+            "MemoryWidgetSkinSolarSystem",
+            "MemoryWidgetSkinPet",
+            "MemoryWidgetSkinRetro",
+            "MemoryWidgetSkinGlobe",
+            "MemoryWidgetSkinLavaLamp",
+            "MemoryWidgetSkinRadar",
             "MemoryWidgetTip",
             "MemExpandTip",
             "MemSpareOneTip",
@@ -2554,6 +2566,42 @@ namespace DevDeck.App.Localisation
 
         /// <summary>Opacity</summary>
         public string MemoryWidgetOpacityMenu => Strings.Text("MemoryWidgetOpacityMenu");
+
+        /// <summary>Style</summary>
+        public string MemoryWidgetSkinMenu => Strings.Text("MemoryWidgetSkinMenu");
+
+        /// <summary>Gauge</summary>
+        public string MemoryWidgetSkinGauge => Strings.Text("MemoryWidgetSkinGauge");
+
+        /// <summary>Moon shot</summary>
+        public string MemoryWidgetSkinMoonShot => Strings.Text("MemoryWidgetSkinMoonShot");
+
+        /// <summary>Aquarium</summary>
+        public string MemoryWidgetSkinAquarium => Strings.Text("MemoryWidgetSkinAquarium");
+
+        /// <summary>Reactor core</summary>
+        public string MemoryWidgetSkinReactor => Strings.Text("MemoryWidgetSkinReactor");
+
+        /// <summary>Hourglass</summary>
+        public string MemoryWidgetSkinHourglass => Strings.Text("MemoryWidgetSkinHourglass");
+
+        /// <summary>Solar system</summary>
+        public string MemoryWidgetSkinSolarSystem => Strings.Text("MemoryWidgetSkinSolarSystem");
+
+        /// <summary>Pixel pet</summary>
+        public string MemoryWidgetSkinPet => Strings.Text("MemoryWidgetSkinPet");
+
+        /// <summary>Retro meters</summary>
+        public string MemoryWidgetSkinRetro => Strings.Text("MemoryWidgetSkinRetro");
+
+        /// <summary>Weather globe</summary>
+        public string MemoryWidgetSkinGlobe => Strings.Text("MemoryWidgetSkinGlobe");
+
+        /// <summary>Lava lamp</summary>
+        public string MemoryWidgetSkinLavaLamp => Strings.Text("MemoryWidgetSkinLavaLamp");
+
+        /// <summary>Radar</summary>
+        public string MemoryWidgetSkinRadar => Strings.Text("MemoryWidgetSkinRadar");
 
         /// <summary>Click to clean · Drag to move · Ctrl+wheel to resize · Shift+wheel to fade · Right-click for more</summary>
         public string MemoryWidgetTip => Strings.Text("MemoryWidgetTip");

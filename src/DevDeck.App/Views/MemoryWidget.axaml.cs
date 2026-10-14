@@ -5,6 +5,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using DevDeck.App.ViewModels;
+using DevDeck.App.Views.Skins;
+using DevDeck.Core;
 
 namespace DevDeck.App.Views
 {
@@ -28,7 +30,15 @@ namespace DevDeck.App.Views
 
         private MemoryViewModel? model;
 
-        public MemoryWidget() => InitializeComponent();
+        public MemoryWidget()
+        {
+            InitializeComponent();
+
+            if (Face.ContextMenu is { } menu)
+            {
+                menu.Opening += FillSkinMenu;
+            }
+        }
 
         protected override void OnDataContextChanged(EventArgs e)
         {
@@ -54,6 +64,53 @@ namespace DevDeck.App.Views
 
             DrawHistory();
             DrawPeak();
+            WearSkin();
+        }
+
+        /// <summary>
+        ///  Shows the dial, or swaps it for the chosen scene.
+        /// </summary>
+        /// <remarks>
+        ///  The scene is built fresh on each change and the old one dropped, which stops its timer:
+        ///  a scene nobody is wearing should not be drawing.
+        /// </remarks>
+        private void WearSkin()
+        {
+            SkinScene? scene = model is null ? null : SkinScenes.Create(model.WidgetSkin);
+
+            SceneHost.Content = scene;
+            GaugeFace.IsVisible = scene is null;
+            Face.Classes.Set("skinned", scene is not null);
+        }
+
+        /// <summary>Fills the Style submenu, with a tick on the skin being worn.</summary>
+        private void FillSkinMenu(object? sender, EventArgs e)
+        {
+            // Looked up through the menu rather than by the generated field: a popup's items are
+            // not always in the window's name scope, and a null here would break the whole menu.
+            if (model is null
+                || sender is not ContextMenu menu
+                || menu.Items.OfType<MenuItem>().FirstOrDefault(i => i.Name == "SkinMenu") is not { } skins)
+            {
+                return;
+            }
+
+            skins.Items.Clear();
+
+            foreach (WidgetSkin skin in WidgetSkins.All)
+            {
+                MenuItem item = new()
+                {
+                    Header = Strings.Text(WidgetSkins.NameKey(skin)),
+                    ToggleType = MenuItemToggleType.Radio,
+                    GroupName = "skin",
+                    IsChecked = model.WidgetSkin == skin,
+                    Command = model.SkinWidgetCommand,
+                    CommandParameter = skin,
+                };
+
+                skins.Items.Add(item);
+            }
         }
 
         /// <summary>Back where it was left, if that is still on a screen.</summary>
@@ -87,6 +144,10 @@ namespace DevDeck.App.Views
 
                 case nameof(MemoryViewModel.WidgetOpacity):
                     Opacity = model!.WidgetOpacity;
+                    break;
+
+                case nameof(MemoryViewModel.WidgetSkin):
+                    WearSkin();
                     break;
 
                 case nameof(MemoryViewModel.MemoryHistory):
@@ -353,7 +414,15 @@ namespace DevDeck.App.Views
             pressed = false;
             e.Handled = true;
 
-            Close();
+            // Through the view model, so hiding it here is remembered the same as from the menu.
+            if (DataContext is MemoryViewModel model)
+            {
+                model.HideWidgetCommand.Execute(null);
+            }
+            else
+            {
+                Close();
+            }
         }
     }
 }

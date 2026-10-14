@@ -164,6 +164,12 @@ namespace DevDeck.Core
         /// <summary>Pull the widget flush against a screen edge when it is dropped near one.</summary>
         public bool MemoryWidgetSnap { get; set; } = true;
 
+        /// <summary>
+        ///  The widget's look, by <see cref="WidgetSkin"/> name. Files written before there was a
+        ///  choice have no value here and keep the dial.
+        /// </summary>
+        public string MemoryWidgetSkin { get; set; } = nameof(WidgetSkin.Gauge);
+
         /// <summary>Clean by itself once memory in use passes <see cref="MemoryAutoThreshold"/>.</summary>
         public bool MemoryAutoClean { get; set; }
 

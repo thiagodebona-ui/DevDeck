@@ -119,6 +119,12 @@ namespace DevDeck.App
                     // After Surface is wired by the window, since the menu's first entry uses it.
                     Tray? tray = Tray.Attach(this, model);
 
+                    // Here rather than on the Memory page, which does not exist until it is opened:
+                    // a widget that was floating when the machine went down comes back at sign-in.
+                    // After the main window is assigned, which the widget checks when it closes.
+                    WidgetHost.Attach(model.Memory);
+                    model.Memory.RestoreWidget();
+
                     // Claiming the key is the app's job rather than the settings page's: what the key
                     // does is raise a window, and a view model has none. Posted onto the UI thread
                     // because the press arrives on the hotkey thread's own message loop.

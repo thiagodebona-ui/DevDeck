@@ -404,8 +404,55 @@ namespace DevDeck.App.Views
                 context.DrawEllipse(Glow(colours[i], 0x4A), null, new Point(x, y), r, r * 0.7);
             }
 
-            // A band of light rippling across the top third, the curtain itself.
-            for (int band = 0; band < 3; band++)
+            if (curtainsFor != size)
+            {
+                BuildCurtains(size);
+            }
+
+            // A band of light rippling across the top third, the curtain itself. The ripple is the
+            // same wave sliding sideways, so each band is one shape moved along rather than a new
+            // shape every frame.
+            for (int band = 0; band < curtains.Length; band++)
+            {
+                double phase = t * (0.35 + band * 0.12) + band * 2;
+                double slide = phase * CurtainWave % CurtainPeriod;
+
+                Color c = band == 1 ? keyword : accent;
+
+                using (context.PushTransform(Matrix.CreateTranslation(-slide, 0)))
+                {
+                    context.DrawGeometry(
+                        Fade(Color.FromArgb(0x36, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)), null, curtains[band]);
+                }
+            }
+        }
+
+        /// <summary>How stretched the curtain's wave is: x / this is the angle.</summary>
+        private const double CurtainWave = 170;
+
+        /// <summary>One whole ripple, in pixels: sliding by this looks like not moving at all.</summary>
+        private const double CurtainPeriod = 2 * Math.PI * CurtainWave;
+
+        private StreamGeometry[] curtains = [];
+
+        private Size curtainsFor;
+
+        /// <summary>
+        ///  The three curtain shapes for a window this size, one ripple wider than the window.
+        /// </summary>
+        /// <remarks>
+        ///  Built once per size. A geometry made every frame is a native path the collector cannot
+        ///  see the weight of, which is how the brushes here once took the app to 2 GB. The extra
+        ///  ripple is what the slide in <see cref="DrawAurora"/> uncovers, so the edge never shows.
+        /// </remarks>
+        private void BuildCurtains(Size size)
+        {
+            curtainsFor = size;
+            curtains = new StreamGeometry[3];
+
+            double right = size.Width + CurtainPeriod + 40;
+
+            for (int band = 0; band < curtains.Length; band++)
             {
                 StreamGeometry curtain = new();
 
@@ -414,20 +461,17 @@ namespace DevDeck.App.Views
                     double top = size.Height * (0.12 + band * 0.07);
                     g.BeginFigure(new Point(0, top), true);
 
-                    for (double x = 0; x <= size.Width + 40; x += 40)
+                    for (double x = 0; x <= right; x += 20)
                     {
-                        g.LineTo(new Point(x, top + 26 * Math.Sin(x / 170 + t * (0.35 + band * 0.12) + band * 2)));
+                        g.LineTo(new Point(x, top + 26 * Math.Sin(x / CurtainWave)));
                     }
 
-                    g.LineTo(new Point(size.Width + 40, top + 160));
+                    g.LineTo(new Point(right, top + 160));
                     g.LineTo(new Point(0, top + 160));
                     g.EndFigure(true);
                 }
 
-                Color c = band == 1 ? keyword : accent;
-
-                context.DrawGeometry(
-                    Fade(Color.FromArgb(0x36, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)), null, curtain);
+                curtains[band] = curtain;
             }
         }
         #endregion

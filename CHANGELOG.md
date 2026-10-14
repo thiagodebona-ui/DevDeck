@@ -1,6 +1,17 @@
 ﻿# Changelog
 
-## 1.0.1 - 2026-10-08 18:12
+## 1.0.1 - 2026-10-14 17:05
+
+- **Ten new looks for the widget.** Right-click it and pick a **Style**: besides the dial, Moon
+  shot (a rocket climbs towards the Moon as memory fills, and launches into the sky on a clean),
+  Aquarium (your heaviest processes are the fish), Reactor core, Hourglass, Solar system, Pixel
+  pet, Retro meters, Weather globe, Lava lamp and Radar. Every one shows memory, CPU, GPU and disk,
+  keeps the click, drag, wheel and menu, and plays its own animation while a clean runs.
+- **The widget comes back after a restart.** A widget left floating when Windows shut down or you
+  signed out is open again at the next sign-in, even before the Memory page is opened. Hiding it
+  is remembered too, from the menu or its own close button.
+- **A lighter aurora.** The aurora background builds its curtains once per window size instead of
+  every frame.
 
 - **Quick run on the Commands page.** Type or paste anything, pick **Run with**, press **Run** -
   without making it a command first. It has the same editor, colouring, output and Stop as a

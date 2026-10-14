@@ -233,7 +233,10 @@ token or password, and lets you search, pin and copy entries back.
 - **Free up disk space:** temp files, recycle bin, crash dumps and the NuGet, npm, Yarn and pip
   caches - each measured before anything is deleted.
 - **Automatic clean** when memory passes a threshold, and a small **floating widget** for the
-  desktop.
+  desktop. Right-click it and pick a **Style**: the dial, or one of ten animated scenes - Moon
+  shot, Aquarium, Reactor core, Hourglass, Solar system, Pixel pet, Retro meters, Weather globe,
+  Lava lamp and Radar - each showing memory, CPU, GPU and disk in its own way, with its own clean
+  animation. A widget left open comes back at the next sign-in.
 
 </details>
 
